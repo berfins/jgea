@@ -18,6 +18,7 @@ package io.github.ericmedvet.jgea.core.representation.ttpn;
 
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public interface Gate {
   record InputGate(Type type) implements Gate {
@@ -34,6 +35,11 @@ public interface Gate {
     @Override
     public Function<List<List<Object>>, List<List<Object>>> processingFunction() {
       return inputs -> List.of(List.of(inputs.getFirst().getFirst()));
+    }
+
+    @Override
+    public String toString() {
+      return "IN-->(%s)".formatted(type);
     }
   }
 
@@ -52,6 +58,11 @@ public interface Gate {
     public Function<List<List<Object>>, List<List<Object>>> processingFunction() {
       return inputs -> List.of(List.of(inputs.getFirst().getFirst()));
     }
+
+    @Override
+    public String toString() {
+      return "(%s)-->OUT".formatted(type);
+    }
   }
 
   record Port(Type type, Condition condition, int n) {
@@ -67,6 +78,17 @@ public interface Gate {
 
     public static Port single(Type type) {
       return new Port(type, Condition.EXACTLY, 1);
+    }
+
+    @Override
+    public String toString() {
+      return "%s(%s%d)".formatted(
+          type, switch (condition) {
+            case EXACTLY -> "==";
+            case AT_LEAST -> ">=";
+          },
+          n
+      );
     }
   }
 
@@ -85,7 +107,16 @@ public interface Gate {
         List<Port> inputPorts,
         List<Type> outputTypes,
         Function<List<List<Object>>, List<List<Object>>> processingFunction
-    ) implements Gate {}
+    ) implements Gate {
+      @Override
+      public String toString() {
+        return "(%s)--(%s)-->(%s)".formatted(
+            inputPorts().stream().map(Port::toString).collect(Collectors.joining(",")),
+            HardGate.this.processingFunction,
+            outputTypes().stream().map(Object::toString).collect(Collectors.joining(","))
+        );
+      }
+    }
     return new HardGate(inputPorts, outputTypes, processingFunction);
   }
 

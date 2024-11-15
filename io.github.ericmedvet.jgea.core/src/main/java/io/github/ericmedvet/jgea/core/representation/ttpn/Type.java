@@ -17,6 +17,7 @@
 package io.github.ericmedvet.jgea.core.representation.ttpn;
 
 import java.util.List;
+import java.util.Map;
 
 public interface Type {
 
@@ -33,7 +34,7 @@ public interface Type {
     }
 
     @Override
-    public boolean matches(Object o) {
+    public boolean matches(Object o, Map<String, Type> valuedGenericTypes) {
       return javaClass.isInstance(o);
     }
   }
@@ -41,28 +42,63 @@ public interface Type {
   interface Composed extends Type {
     record Pair(Type firstType, Type secondType) implements Composed {
       @Override
-      public boolean matches(Object o) {
+      public boolean matches(Object o, Map<String, Type> valuedGenericTypes) {
         if (o instanceof List<?> list) {
-          if (list.size()==2) {
-            if (firstType.matches(list.getFirst())) {
-              return secondType.matches(list.getLast());
+          if (list.size() == 2) {
+            if (firstType.matches(list.getFirst(), valuedGenericTypes)) {
+              return secondType.matches(list.getLast(), valuedGenericTypes);
             }
           }
         }
         return false;
       }
+
+      @Override
+      public String toString() {
+        return "<%s,%s>".formatted(firstType, secondType);
+      }
     }
+
     record Sequence(Type type) implements Composed {
       @Override
-      public boolean matches(Object o) {
+      public boolean matches(Object o, Map<String, Type> valuedGenericTypes) {
         if (o instanceof List<?> list) {
-          return list.stream().allMatch(type::matches);
+          return list.stream().allMatch(lO -> type().matches(lO, valuedGenericTypes));
         }
         return false;
       }
+
+      @Override
+      public String toString() {
+        return "[%s]".formatted(type);
+      }
+    }
+
+    static Pair pair(Type firstType, Type secondType) {
+      return new Pair(firstType, secondType);
+    }
+
+    static Sequence sequence(Type type) {
+      return new Sequence(type);
     }
   }
 
-  boolean matches(Object o);
+  record Generic(String name) implements Type {
+    public static Generic of(String name) {
+      return new Generic(name);
+    }
+
+    @Override
+    public boolean matches(Object o, Map<String, Type> valuedGenericTypes) {
+      return valuedGenericTypes.get(name).matches(o, valuedGenericTypes);
+    }
+
+    @Override
+    public String toString() {
+      return name;
+    }
+  }
+
+  boolean matches(Object o, Map<String, Type> valuedGenericTypes);
 
 }

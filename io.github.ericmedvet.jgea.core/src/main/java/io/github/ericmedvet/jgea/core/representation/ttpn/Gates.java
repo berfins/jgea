@@ -17,6 +17,7 @@
 package io.github.ericmedvet.jgea.core.representation.ttpn;
 
 import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
+import io.github.ericmedvet.jnb.datastructure.NamedFunction;
 
 import java.util.Collections;
 import java.util.List;
@@ -30,9 +31,12 @@ public class Gates {
     return Gate.of(
         Collections.nCopies(operator.arity(), Gate.Port.single(Type.Base.INT)),
         List.of(Type.Base.INT),
-        inputs -> List.of(List.of((int) operator.applyAsDouble(inputs.stream()
-            .mapToDouble(tokens -> ((Integer) tokens.getFirst()).doubleValue())
-            .toArray())))
+        NamedFunction.from(
+            inputs -> List.of(List.of((int) operator.applyAsDouble(inputs.stream()
+                .mapToDouble(tokens -> ((Integer) tokens.getFirst()).doubleValue())
+                .toArray()))),
+            "%s[i]".formatted(operator.toString())
+        )
     );
   }
 
@@ -40,10 +44,13 @@ public class Gates {
     return Gate.of(
         List.of(Gate.Port.atLeast(Type.Base.INT, 2)),
         List.of(Type.Base.INT),
-        inputs -> List.of(List.of(inputs.getFirst()
-            .stream()
-            .mapToInt(token -> (Integer) token)
-            .reduce((n1, n2) -> n1 * n2)))
+        NamedFunction.from(
+            inputs -> List.of(List.of(inputs.getFirst()
+                .stream()
+                .mapToInt(token -> (Integer) token)
+                .reduce((n1, n2) -> n1 * n2))),
+            "s*[i]"
+        )
     );
   }
 
@@ -51,15 +58,10 @@ public class Gates {
     return Gate.of(
         List.of(Gate.Port.atLeast(Type.Base.INT, 2)),
         List.of(Type.Base.INT),
-        inputs -> List.of(List.of(inputs.getFirst().stream().mapToInt(token -> (Integer) token).sum()))
-    );
-  }
-
-  public static Gate iSplit() {
-    return Gate.of(
-        List.of(Gate.Port.single(new Type.Composed.Sequence(Type.Base.INT))),
-        List.of(Type.Base.INT),
-        inputs -> inputs.getFirst().stream().map(List::of).toList()
+        NamedFunction.from(
+            inputs -> List.of(List.of(inputs.getFirst().stream().mapToInt(token -> (Integer) token).sum())),
+            "s+[i]"
+        )
     );
   }
 
@@ -67,9 +69,12 @@ public class Gates {
     return Gate.of(
         Collections.nCopies(operator.arity(), Gate.Port.single(Type.Base.REAL)),
         List.of(Type.Base.REAL),
-        inputs -> List.of(List.of(operator.applyAsDouble(inputs.stream()
-            .mapToDouble(tokens -> (Double) tokens.getFirst())
-            .toArray())))
+        NamedFunction.from(
+            inputs -> List.of(List.of(operator.applyAsDouble(inputs.stream()
+                .mapToDouble(tokens -> (Double) tokens.getFirst())
+                .toArray()))),
+            "%s[r]".formatted(operator.toString())
+        )
     );
   }
 
@@ -77,10 +82,13 @@ public class Gates {
     return Gate.of(
         List.of(Gate.Port.atLeast(Type.Base.REAL, 2)),
         List.of(Type.Base.REAL),
-        inputs -> List.of(List.of(inputs.getFirst()
-            .stream()
-            .mapToDouble(token -> (Double) token)
-            .reduce((n1, n2) -> n1 * n2)))
+        NamedFunction.from(
+            inputs -> List.of(List.of(inputs.getFirst()
+                .stream()
+                .mapToDouble(token -> (Double) token)
+                .reduce((n1, n2) -> n1 * n2))),
+            "s*[r]"
+        )
     );
   }
 
@@ -88,7 +96,21 @@ public class Gates {
     return Gate.of(
         List.of(Gate.Port.atLeast(Type.Base.REAL, 2)),
         List.of(Type.Base.REAL),
-        inputs -> List.of(List.of(inputs.getFirst().stream().mapToDouble(token -> (Double) token).sum()))
+        NamedFunction.from(
+            inputs -> List.of(List.of(inputs.getFirst()
+                .stream()
+                .mapToDouble(token -> (Double) token)
+                .sum())),
+            "s+[r]"
+        )
+    );
+  }
+
+  public static Gate split() {
+    return Gate.of(
+        List.of(Gate.Port.single(Type.Composed.sequence(Type.Generic.of("t")))),
+        List.of(Type.Generic.of("t")),
+        NamedFunction.from(inputs -> inputs.getFirst().stream().map(List::of).toList(), "split")
     );
   }
 
