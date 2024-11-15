@@ -204,6 +204,7 @@ public class Misc {
     return dirsPath.resolve(filePath).toFile();
   }
 
+  @SafeVarargs
   public static <K, V> SequencedMap<K, V> sequencedMap(Map.Entry<K, V>... entries) {
     SequencedMap<K, V> map = new LinkedHashMap<>(entries.length);
     for (Map.Entry<K, V> entry : entries) {

@@ -16,19 +16,14 @@
 
 package io.github.ericmedvet.jgea.core.representation.ttpn;
 
-import io.github.ericmedvet.jgea.core.util.Misc;
-
 import java.util.List;
-import java.util.Map;
-import java.util.SequencedMap;
 import java.util.function.Function;
 
 public interface Gate {
   record InputGate(Type type) implements Gate {
     @Override
-    public SequencedMap<Type, Integer> inputTypes() {
-      //noinspection unchecked
-      return Misc.sequencedMap();
+    public List<Port> inputPorts() {
+      return List.of();
     }
 
     @Override
@@ -44,9 +39,8 @@ public interface Gate {
 
   record OutputGate(Type type) implements Gate {
     @Override
-    public SequencedMap<Type, Integer> inputTypes() {
-      //noinspection unchecked
-      return Misc.sequencedMap(Map.entry(type, 1));
+    public List<Port> inputPorts() {
+      return List.of(new Port(type, Port.Condition.EXACTLY, 1));
     }
 
     @Override
@@ -60,9 +54,39 @@ public interface Gate {
     }
   }
 
-  SequencedMap<Type, Integer> inputTypes();
+  record Port(Type type, Condition condition, int n) {
+    enum Condition {EXACTLY, AT_LEAST}
+
+    public static Port atLeast(Type type, int n) {
+      return new Port(type, Condition.AT_LEAST, n);
+    }
+
+    public static Port exactly(Type type, int n) {
+      return new Port(type, Condition.EXACTLY, n);
+    }
+
+    public static Port single(Type type) {
+      return new Port(type, Condition.EXACTLY, 1);
+    }
+  }
+
+  List<Port> inputPorts();
 
   List<Type> outputTypes();
 
   Function<List<List<Object>>, List<List<Object>>> processingFunction();
+
+  static Gate of(
+      List<Port> inputPorts,
+      List<Type> outputTypes,
+      Function<List<List<Object>>, List<List<Object>>> processingFunction
+  ) {
+    record HardGate(
+        List<Port> inputPorts,
+        List<Type> outputTypes,
+        Function<List<List<Object>>, List<List<Object>>> processingFunction
+    ) implements Gate {}
+    return new HardGate(inputPorts, outputTypes, processingFunction);
+  }
+
 }
