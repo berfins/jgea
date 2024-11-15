@@ -39,7 +39,8 @@ public class Misc {
 
   private static final Logger L = Logger.getLogger(Misc.class.getName());
 
-  private Misc() {}
+  private Misc() {
+  }
 
   private record Point(double x, double y) {}
 
@@ -68,7 +69,8 @@ public class Misc {
   }
 
   public static void doOrLog(
-      Runnable runnable, Logger logger, Level level, Function<Throwable, String> messageFunction) {
+      Runnable runnable, Logger logger, Level level, Function<Throwable, String> messageFunction
+  ) {
     try {
       runnable.run();
     } catch (Throwable t) {
@@ -95,15 +97,19 @@ public class Misc {
   }
 
   public static double hypervolume2D(
-      Collection<List<Double>> points, List<Double> minReference, List<Double> maxReference) {
+      Collection<List<Double>> points, List<Double> minReference, List<Double> maxReference
+  ) {
     return hypervolume2D(
         Stream.concat(
                 Stream.of(
                     List.of(minReference.get(0), maxReference.get(1)),
-                    List.of(minReference.get(1), maxReference.get(0))),
-                points.stream())
+                    List.of(minReference.get(1), maxReference.get(0))
+                ),
+                points.stream()
+            )
             .toList(),
-        maxReference);
+        maxReference
+    );
   }
 
   public static <T> Set<T> intersection(Set<T> set1, Set<T> set2) {
@@ -191,10 +197,19 @@ public class Misc {
         L.log(
             Level.WARNING,
             String.format(
-                "Given file path '%s' exists; will write on '%s'", path, dirsPath.resolve(filePath)));
+                "Given file path '%s' exists; will write on '%s'", path, dirsPath.resolve(filePath))
+        );
       }
     }
     return dirsPath.resolve(filePath).toFile();
+  }
+
+  public static <K, V> SequencedMap<K, V> sequencedMap(Map.Entry<K, V>... entries) {
+    SequencedMap<K, V> map = new LinkedHashMap<>(entries.length);
+    for (Map.Entry<K, V> entry : entries) {
+      map.put(entry.getKey(), entry.getValue());
+    }
+    return Collections.unmodifiableSequencedMap(map);
   }
 
   public static <K> List<K> shuffle(List<K> list, RandomGenerator random) {
