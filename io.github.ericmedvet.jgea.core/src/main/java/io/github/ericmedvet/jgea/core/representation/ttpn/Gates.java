@@ -80,6 +80,26 @@ public class Gates {
             "s+"));
   }
 
+  public static Gate pairer() {
+    return Gate.of(
+      List.of(
+          Gate.Port.single(Generic.of("f")),
+          Gate.Port.single(Generic.of("s"))
+      ),
+       List.of(Composed.tuple(List.of(
+           Generic.of("f"),
+           Generic.of("s")
+       ))) ,
+        NamedFunction.from(
+            inputs -> List.of(List.of(List.of(
+                inputs.getFirst().getFirst(),
+                inputs.getLast().getFirst()
+            ))),
+            "pairer"
+        )
+    );
+  }
+
   public static Gate rPMathOperator(Element.Operator operator) {
     return Gate.of(
         Collections.nCopies(operator.arity(), Gate.Port.single(Base.REAL)),
@@ -113,11 +133,32 @@ public class Gates {
             "s+"));
   }
 
-  public static Gate split() {
+  public static Gate splitter() {
     return Gate.of(
         List.of(Gate.Port.single(Composed.sequence(Generic.of("t")))),
         List.of(Generic.of("t")),
         NamedFunction.from(
-            inputs -> inputs.getFirst().stream().map(List::of).toList(), "split"));
+            inputs -> inputs.getFirst().stream().map(List::of).toList(), "splitter"));
+  }
+
+  public static Gate unpairer() {
+    //noinspection unchecked
+    return Gate.of(
+        List.of(Gate.Port.single(Composed.tuple(List.of(
+            Generic.of("f"),
+            Generic.of("s")
+        )))),
+        List.of(
+            Generic.of("f"),
+            Generic.of("s")
+        ),
+        NamedFunction.from(
+            inputs -> List.of(
+                List.of(((List<Object>)inputs.getFirst().getFirst()).getFirst()),
+                List.of(((List<Object>)inputs.getFirst().getFirst()).get(1))
+            ),
+            "unpairer"
+        )
+    );
   }
 }

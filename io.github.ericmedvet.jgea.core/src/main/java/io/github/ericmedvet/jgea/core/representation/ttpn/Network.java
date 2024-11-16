@@ -54,8 +54,8 @@ public record Network(List<Gate> gates, Set<Wire> wires) {
         List.of(
             Gate.input(Composed.sequence(Base.REAL)),
             Gate.input(Composed.sequence(Base.REAL)),
-            Gates.split(),
-            Gates.split(),
+            Gates.splitter(),
+            Gates.splitter(),
             Gates.rPMathOperator(Element.Operator.MULTIPLICATION),
             Gates.rPMathOperator(Element.Operator.ADDITION),
             Gate.output(Base.REAL)
