@@ -36,6 +36,10 @@
 package io.github.ericmedvet.jgea.core.representation.ttpn;
 
 import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
+import io.github.ericmedvet.jgea.core.representation.ttpn.type.Base;
+import io.github.ericmedvet.jgea.core.representation.ttpn.type.Composed;
+import io.github.ericmedvet.jgea.core.representation.ttpn.type.Generic;
+import io.github.ericmedvet.jgea.core.representation.ttpn.type.Type;
 import io.github.ericmedvet.jgea.core.util.Misc;
 
 import java.util.*;
@@ -108,13 +112,13 @@ public record Network(List<Gate> gates, Set<Wire> wires) {
   }
 
   private void validateOutGenerics(int gateIndex) throws NetworkStructureException {
-    Set<Type.Generic> outGenerics = gates.get(gateIndex)
+    Set<Generic> outGenerics = gates.get(gateIndex)
         .outputTypes()
         .stream()
         .map(Type::generics)
         .reduce(Misc::union)
         .orElse(Set.of());
-    Set<Type.Generic> inGenerics = gates.get(gateIndex)
+    Set<Generic> inGenerics = gates.get(gateIndex)
         .inputPorts()
         .stream()
         .map(Gate.Port::type)
@@ -179,13 +183,13 @@ public record Network(List<Gate> gates, Set<Wire> wires) {
   public static void main(String[] args) throws NetworkStructureException {
     Network n = new Network(
         List.of(
-            Gate.input(Type.Composed.sequence(Type.Base.REAL)),
-            Gate.input(Type.Composed.sequence(Type.Base.REAL)),
+            Gate.input(Composed.sequence(Base.REAL)),
+            Gate.input(Composed.sequence(Base.REAL)),
             Gates.split(),
             Gates.split(),
             Gates.rPMathOperator(Element.Operator.MULTIPLICATION),
             Gates.rPMathOperator(Element.Operator.ADDITION),
-            Gate.output(Type.Base.REAL)
+            Gate.output(Base.REAL)
         ),
         Set.of(
             Wire.of(0, 0, 2, 0),

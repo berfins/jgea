@@ -36,6 +36,9 @@
 package io.github.ericmedvet.jgea.core.representation.ttpn;
 
 import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
+import io.github.ericmedvet.jgea.core.representation.ttpn.type.Base;
+import io.github.ericmedvet.jgea.core.representation.ttpn.type.Composed;
+import io.github.ericmedvet.jgea.core.representation.ttpn.type.Generic;
 import io.github.ericmedvet.jnb.datastructure.NamedFunction;
 import java.util.Collections;
 import java.util.List;
@@ -46,8 +49,8 @@ public class Gates {
 
   public static Gate iPMathOperator(Element.Operator operator) {
     return Gate.of(
-        Collections.nCopies(operator.arity(), Gate.Port.single(Type.Base.INT)),
-        List.of(Type.Base.INT),
+        Collections.nCopies(operator.arity(), Gate.Port.single(Base.INT)),
+        List.of(Base.INT),
         NamedFunction.from(
             inputs -> List.of(List.of((int) operator.applyAsDouble(inputs.stream()
                 .mapToDouble(tokens -> ((Integer) tokens.getFirst()).doubleValue())
@@ -57,8 +60,8 @@ public class Gates {
 
   public static Gate iSMult() {
     return Gate.of(
-        List.of(Gate.Port.atLeast(Type.Base.INT, 2)),
-        List.of(Type.Base.INT),
+        List.of(Gate.Port.atLeast(Base.INT, 2)),
+        List.of(Base.INT),
         NamedFunction.from(
             inputs -> List.of(List.of(inputs.getFirst().stream()
                 .mapToInt(token -> (Integer) token)
@@ -68,8 +71,8 @@ public class Gates {
 
   public static Gate iSSum() {
     return Gate.of(
-        List.of(Gate.Port.atLeast(Type.Base.INT, 2)),
-        List.of(Type.Base.INT),
+        List.of(Gate.Port.atLeast(Base.INT, 2)),
+        List.of(Base.INT),
         NamedFunction.from(
             inputs -> List.of(List.of(inputs.getFirst().stream()
                 .mapToInt(token -> (Integer) token)
@@ -79,8 +82,8 @@ public class Gates {
 
   public static Gate rPMathOperator(Element.Operator operator) {
     return Gate.of(
-        Collections.nCopies(operator.arity(), Gate.Port.single(Type.Base.REAL)),
-        List.of(Type.Base.REAL),
+        Collections.nCopies(operator.arity(), Gate.Port.single(Base.REAL)),
+        List.of(Base.REAL),
         NamedFunction.from(
             inputs -> List.of(List.of(operator.applyAsDouble(inputs.stream()
                 .mapToDouble(tokens -> (Double) tokens.getFirst())
@@ -90,8 +93,8 @@ public class Gates {
 
   public static Gate rSMult() {
     return Gate.of(
-        List.of(Gate.Port.atLeast(Type.Base.REAL, 2)),
-        List.of(Type.Base.REAL),
+        List.of(Gate.Port.atLeast(Base.REAL, 2)),
+        List.of(Base.REAL),
         NamedFunction.from(
             inputs -> List.of(List.of(inputs.getFirst().stream()
                 .mapToDouble(token -> (Double) token)
@@ -101,8 +104,8 @@ public class Gates {
 
   public static Gate rSSum() {
     return Gate.of(
-        List.of(Gate.Port.atLeast(Type.Base.REAL, 2)),
-        List.of(Type.Base.REAL),
+        List.of(Gate.Port.atLeast(Base.REAL, 2)),
+        List.of(Base.REAL),
         NamedFunction.from(
             inputs -> List.of(List.of(inputs.getFirst().stream()
                 .mapToDouble(token -> (Double) token)
@@ -112,8 +115,8 @@ public class Gates {
 
   public static Gate split() {
     return Gate.of(
-        List.of(Gate.Port.single(Type.Composed.sequence(Type.Generic.of("t")))),
-        List.of(Type.Generic.of("t")),
+        List.of(Gate.Port.single(Composed.sequence(Generic.of("t")))),
+        List.of(Generic.of("t")),
         NamedFunction.from(
             inputs -> inputs.getFirst().stream().map(List::of).toList(), "split"));
   }

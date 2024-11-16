@@ -35,6 +35,8 @@
 
 package io.github.ericmedvet.jgea.core.representation.ttpn;
 
+import io.github.ericmedvet.jgea.core.representation.ttpn.type.Type;
+
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
