@@ -36,7 +36,6 @@
 package io.github.ericmedvet.jgea.core.representation.ttpn;
 
 import java.util.List;
-import java.util.Map;
 
 public interface Type {
 
@@ -53,7 +52,7 @@ public interface Type {
     }
 
     @Override
-    public boolean matches(Object o, Map<String, Type> valuedGenericTypes) {
+    public boolean matches(Object o) {
       return javaClass.isInstance(o);
     }
   }
@@ -61,11 +60,11 @@ public interface Type {
   interface Composed extends Type {
     record Pair(Type firstType, Type secondType) implements Composed {
       @Override
-      public boolean matches(Object o, Map<String, Type> valuedGenericTypes) {
+      public boolean matches(Object o) {
         if (o instanceof List<?> list) {
           if (list.size() == 2) {
-            if (firstType.matches(list.getFirst(), valuedGenericTypes)) {
-              return secondType.matches(list.getLast(), valuedGenericTypes);
+            if (firstType.matches(list.getFirst())) {
+              return secondType.matches(list.getLast());
             }
           }
         }
@@ -80,9 +79,9 @@ public interface Type {
 
     record Sequence(Type type) implements Composed {
       @Override
-      public boolean matches(Object o, Map<String, Type> valuedGenericTypes) {
+      public boolean matches(Object o) {
         if (o instanceof List<?> list) {
-          return list.stream().allMatch(lO -> type().matches(lO, valuedGenericTypes));
+          return list.stream().allMatch(lO -> type().matches(lO));
         }
         return false;
       }
@@ -108,8 +107,8 @@ public interface Type {
     }
 
     @Override
-    public boolean matches(Object o, Map<String, Type> valuedGenericTypes) {
-      return valuedGenericTypes.get(name).matches(o, valuedGenericTypes);
+    public boolean matches(Object o) {
+      return true;
     }
 
     @Override
@@ -118,5 +117,5 @@ public interface Type {
     }
   }
 
-  boolean matches(Object o, Map<String, Type> valuedGenericTypes);
+  boolean matches(Object o);
 }

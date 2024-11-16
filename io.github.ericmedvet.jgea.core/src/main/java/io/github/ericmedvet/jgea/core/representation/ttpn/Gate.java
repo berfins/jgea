@@ -58,7 +58,7 @@ public interface Gate {
 
     @Override
     public String toString() {
-      return "IN-->(%s)".formatted(type);
+      return "IN|-->(%s)".formatted(type);
     }
   }
 
@@ -80,7 +80,7 @@ public interface Gate {
 
     @Override
     public String toString() {
-      return "(%s)-->OUT".formatted(type);
+      return "(%s)--|OUT".formatted(type);
     }
   }
 
@@ -132,7 +132,7 @@ public interface Gate {
         implements Gate {
       @Override
       public String toString() {
-        return "(%s)--(%s)-->(%s)"
+        return "(%s)--|%s|-->(%s)"
             .formatted(
                 inputPorts().stream().map(Port::toString).collect(Collectors.joining(",")),
                 HardGate.this.processingFunction,
