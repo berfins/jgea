@@ -52,7 +52,7 @@ public class Gates {
             inputs -> List.of(List.of((int) operator.applyAsDouble(inputs.stream()
                 .mapToDouble(tokens -> ((Integer) tokens.getFirst()).doubleValue())
                 .toArray()))),
-            "%s[i]".formatted(operator.toString())));
+            "%s".formatted(operator.toString())));
   }
 
   public static Gate iSMult() {
@@ -63,7 +63,7 @@ public class Gates {
             inputs -> List.of(List.of(inputs.getFirst().stream()
                 .mapToInt(token -> (Integer) token)
                 .reduce((n1, n2) -> n1 * n2))),
-            "s*[i]"));
+            "s*"));
   }
 
   public static Gate iSSum() {
@@ -74,7 +74,7 @@ public class Gates {
             inputs -> List.of(List.of(inputs.getFirst().stream()
                 .mapToInt(token -> (Integer) token)
                 .sum())),
-            "s+[i]"));
+            "s+"));
   }
 
   public static Gate rPMathOperator(Element.Operator operator) {
@@ -85,7 +85,7 @@ public class Gates {
             inputs -> List.of(List.of(operator.applyAsDouble(inputs.stream()
                 .mapToDouble(tokens -> (Double) tokens.getFirst())
                 .toArray()))),
-            "%s[r]".formatted(operator.toString())));
+            "%s".formatted(operator.toString())));
   }
 
   public static Gate rSMult() {
@@ -96,7 +96,7 @@ public class Gates {
             inputs -> List.of(List.of(inputs.getFirst().stream()
                 .mapToDouble(token -> (Double) token)
                 .reduce((n1, n2) -> n1 * n2))),
-            "s*[r]"));
+            "s*"));
   }
 
   public static Gate rSSum() {
@@ -107,7 +107,7 @@ public class Gates {
             inputs -> List.of(List.of(inputs.getFirst().stream()
                 .mapToDouble(token -> (Double) token)
                 .sum())),
-            "s+[r]"));
+            "s+"));
   }
 
   public static Gate split() {
