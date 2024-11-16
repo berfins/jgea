@@ -60,6 +60,7 @@ public interface Gate {
     public String toString() {
       return "IN|-->(%s)".formatted(type);
     }
+
   }
 
   record OutputGate(Type type) implements Gate {
@@ -111,7 +112,8 @@ public interface Gate {
                 case EXACTLY -> "==";
                 case AT_LEAST -> ">=";
               },
-              n);
+              n
+          );
     }
   }
 
@@ -124,11 +126,13 @@ public interface Gate {
   static Gate of(
       List<Port> inputPorts,
       List<Type> outputTypes,
-      Function<List<List<Object>>, List<List<Object>>> processingFunction) {
+      Function<List<List<Object>>, List<List<Object>>> processingFunction
+  ) {
     record HardGate(
         List<Port> inputPorts,
         List<Type> outputTypes,
-        Function<List<List<Object>>, List<List<Object>>> processingFunction)
+        Function<List<List<Object>>, List<List<Object>>> processingFunction
+    )
         implements Gate {
       @Override
       public String toString() {
@@ -136,9 +140,18 @@ public interface Gate {
             .formatted(
                 inputPorts().stream().map(Port::toString).collect(Collectors.joining(",")),
                 HardGate.this.processingFunction,
-                outputTypes().stream().map(Object::toString).collect(Collectors.joining(",")));
+                outputTypes().stream().map(Object::toString).collect(Collectors.joining(","))
+            );
       }
     }
     return new HardGate(inputPorts, outputTypes, processingFunction);
+  }
+
+  static InputGate input(Type type) {
+    return new InputGate(type);
+  }
+
+  static OutputGate output(Type type) {
+    return new OutputGate(type);
   }
 }

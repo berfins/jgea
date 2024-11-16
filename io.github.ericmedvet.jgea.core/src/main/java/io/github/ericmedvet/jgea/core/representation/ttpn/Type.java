@@ -35,7 +35,11 @@
 
 package io.github.ericmedvet.jgea.core.representation.ttpn;
 
+import io.github.ericmedvet.jgea.core.util.Misc;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public interface Type {
 
@@ -52,13 +56,32 @@ public interface Type {
     }
 
     @Override
+    public boolean canTakeValuesOf(Type other) {
+      return equals(other);
+    }
+
+    @Override
     public boolean matches(Object o) {
       return javaClass.isInstance(o);
     }
+
+    @Override
+    public Set<Generic> generics() {
+      return Set.of();
+    }
+
   }
 
   interface Composed extends Type {
     record Pair(Type firstType, Type secondType) implements Composed {
+      @Override
+      public boolean canTakeValuesOf(Type other) {
+        if (other instanceof Pair(Type otherFirstType, Type otherSecondType)) {
+          return firstType.canTakeValuesOf(otherFirstType) && secondType.canTakeValuesOf(otherSecondType);
+        }
+        return false;
+      }
+
       @Override
       public boolean matches(Object o) {
         if (o instanceof List<?> list) {
@@ -72,6 +95,11 @@ public interface Type {
       }
 
       @Override
+      public Set<Generic> generics() {
+        return Misc.union(firstType.generics(), secondType.generics());
+      }
+
+      @Override
       public String toString() {
         return "<%s,%s>".formatted(firstType, secondType);
       }
@@ -79,11 +107,24 @@ public interface Type {
 
     record Sequence(Type type) implements Composed {
       @Override
+      public boolean canTakeValuesOf(Type other) {
+        if (other instanceof Sequence(Type otherType)) {
+          return type.canTakeValuesOf(otherType);
+        }
+        return false;
+      }
+
+      @Override
       public boolean matches(Object o) {
         if (o instanceof List<?> list) {
           return list.stream().allMatch(lO -> type().matches(lO));
         }
         return false;
+      }
+
+      @Override
+      public Set<Generic> generics() {
+        return type.generics();
       }
 
       @Override
@@ -107,8 +148,18 @@ public interface Type {
     }
 
     @Override
+    public boolean canTakeValuesOf(Type other) {
+      return true;
+    }
+
+    @Override
     public boolean matches(Object o) {
       return true;
+    }
+
+    @Override
+    public Set<Generic> generics() {
+      return Set.of(this);
     }
 
     @Override
@@ -117,5 +168,15 @@ public interface Type {
     }
   }
 
+  boolean canTakeValuesOf(Type other);
+
+  Set<Type.Generic> generics();
+
   boolean matches(Object o);
+
+  Map<Type.Generic, Type> resolveGenerics(Type concreteType);
+
+  default boolean isGenerics() {
+    return !generics().isEmpty();
+  }
 }
