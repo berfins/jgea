@@ -49,30 +49,6 @@ public record Network(List<Gate> gates, Set<Wire> wires) {
     this.wires = Collections.unmodifiableSet(wires);
   }
 
-  public static void main(String[] args) throws NetworkStructureException, TypeException {
-    Network n = new Network(
-        List.of(
-            Gate.input(Composed.sequence(Base.REAL)),
-            Gate.input(Composed.sequence(Base.REAL)),
-            Gates.splitter(),
-            Gates.splitter(),
-            Gates.rPMathOperator(Element.Operator.MULTIPLICATION),
-            Gates.rPMathOperator(Element.Operator.ADDITION),
-            Gate.output(Base.REAL)
-        ),
-        Set.of(
-            Wire.of(0, 0, 2, 0),
-            Wire.of(1, 0, 3, 0),
-            Wire.of(2, 0, 4, 0),
-            Wire.of(3, 0, 4, 1),
-            Wire.of(4, 0, 5, 0),
-            Wire.of(5, 0, 6, 0)
-        )
-    );
-    System.out.println(n);
-    n.validate();
-  }
-
   private Type actualType(Wire wire) throws TypeException {
     Gate srcGate = gates.get(wire.src().gateIndex());
     Type srcType = srcGate.outputTypes().get(wire.src().portIndex());
@@ -121,7 +97,7 @@ public record Network(List<Gate> gates, Set<Wire> wires) {
                     .collect(Collectors.joining(",")),
                 IntStream.range(0, gates.get(i).outputTypes().size())
                     .mapToObj(j -> wiresFrom(new Wire.EndPoint(i, j)).stream()
-                        .map(w -> w.src().toString())
+                        .map(w -> w.dst().toString())
                         .collect(Collectors.joining("+")))
                     .collect(Collectors.joining(","))
             ))
