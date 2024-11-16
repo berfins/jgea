@@ -47,16 +47,19 @@ public record Pair(Type firstType, Type secondType) implements Composed {
     if (concreteType instanceof Pair(Type otherFirstType, Type otherSecondType)) {
       Map<Generic, Type> first = firstType.resolveGenerics(otherFirstType);
       Map<Generic, Type> second = secondType.resolveGenerics(otherSecondType);
-      Stream.concat(first.entrySet().stream(), second.entrySet().stream())
-          .collect(Collectors.groupingBy(Map.Entry::getKey));
-      // TODO
-      // obtain a Map<Generic, Set<Type>>
-      // throw if any Set<Type> is >1 size
-      // return map by taking first of every set
-
-
-
-
+      for (Map.Entry<Generic, Type> e : first.entrySet()) {
+        if (second.containsKey(e.getKey()) && !second.get(e.getKey()).equals(e.getValue())) {
+          throw new TypeException("Inconsistent types for %s: %s != %s".formatted(
+              e.getKey(), e.getValue(), second.get(e.getKey())
+          ));
+        }
+      }
+      return Stream.concat(first.entrySet().stream(), second.entrySet().stream())
+          .collect(Collectors.toMap(
+              Map.Entry::getKey,
+              Map.Entry::getValue,
+              (t1, t2) -> t1
+          ));
     }
     throw new TypeException("Wrong concrete type %s".formatted(concreteType));
   }

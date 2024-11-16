@@ -33,7 +33,9 @@ public record Sequence(Type type) implements Composed {
 
   @Override
   public Map<Generic, Type> resolveGenerics(Type concreteType) throws TypeException {
-    // TODO
-    return Map.of();
+    if (concreteType instanceof Sequence(Type otherType)) {
+      return type.resolveGenerics(otherType);
+    }
+    throw new TypeException("Wrong concrete type %s".formatted(concreteType));
   }
 }
