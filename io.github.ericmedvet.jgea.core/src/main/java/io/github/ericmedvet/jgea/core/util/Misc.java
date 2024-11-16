@@ -39,7 +39,8 @@ public class Misc {
 
   private static final Logger L = Logger.getLogger(Misc.class.getName());
 
-  private Misc() {}
+  private Misc() {
+  }
 
   private record Point(double x, double y) {}
 
@@ -100,10 +101,13 @@ public class Misc {
         Stream.concat(
                 Stream.of(
                     List.of(minReference.get(0), maxReference.get(1)),
-                    List.of(minReference.get(1), maxReference.get(0))),
-                points.stream())
+                    List.of(minReference.get(1), maxReference.get(0))
+                ),
+                points.stream()
+            )
             .toList(),
-        maxReference);
+        maxReference
+    );
   }
 
   public static <T> Set<T> intersection(Set<T> set1, Set<T> set2) {
@@ -128,6 +132,18 @@ public class Misc {
     List<K> all = new ArrayList<>(ks);
     all.sort(comparator);
     return all.get(all.size() / 2);
+  }
+
+  public static <K, V> Map<K, Set<V>> merge(Collection<? extends Map<K, V>> maps) {
+    return maps.stream()
+        .map(Map::entrySet)
+        .flatMap(Set::stream)
+        .map(e -> Map.entry(e.getKey(), Set.of(e.getValue())))
+        .collect(Collectors.toMap(
+            Map.Entry::getKey,
+            Map.Entry::getValue,
+            Misc::union
+        ));
   }
 
   public static <K> K percentile(Collection<K> ks, Comparator<? super K> comparator, double p) {
@@ -191,7 +207,8 @@ public class Misc {
         L.log(
             Level.WARNING,
             String.format(
-                "Given file path '%s' exists; will write on '%s'", path, dirsPath.resolve(filePath)));
+                "Given file path '%s' exists; will write on '%s'", path, dirsPath.resolve(filePath))
+        );
       }
     }
     return dirsPath.resolve(filePath).toFile();

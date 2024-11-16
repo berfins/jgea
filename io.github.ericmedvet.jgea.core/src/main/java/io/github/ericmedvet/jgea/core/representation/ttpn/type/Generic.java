@@ -32,4 +32,12 @@ public record Generic(String name) implements Type {
   public Map<Generic, Type> resolveGenerics(Type concreteType) {
     return Map.of(this, concreteType);
   }
+
+  @Override
+  public Type concrete(Map<Generic, Type> genericTypeMap) throws TypeException {
+    if (genericTypeMap.containsKey(this)) {
+      return genericTypeMap.get(this).concrete(genericTypeMap);
+    }
+    throw new TypeException("Undefined generics %s".formatted(this));
+  }
 }

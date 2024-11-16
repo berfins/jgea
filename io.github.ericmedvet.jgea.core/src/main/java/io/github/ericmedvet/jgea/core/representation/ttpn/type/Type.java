@@ -51,4 +51,6 @@ public interface Type {
   default boolean isGenerics() {
     return !generics().isEmpty();
   }
+
+  Type concrete(Map<Generic, Type> genericTypeMap) throws TypeException;
 }

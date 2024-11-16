@@ -31,8 +31,15 @@ public enum Base implements Type {
   }
 
   @Override
+  public Type concrete(Map<Generic, Type> genericTypeMap) {
+    return this;
+  }
+
+  @Override
   public Set<Generic> generics() {
     return Set.of();
   }
+
+
 
 }

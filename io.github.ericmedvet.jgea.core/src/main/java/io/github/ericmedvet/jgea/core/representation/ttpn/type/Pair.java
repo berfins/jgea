@@ -63,4 +63,15 @@ public record Pair(Type firstType, Type secondType) implements Composed {
     }
     throw new TypeException("Wrong concrete type %s".formatted(concreteType));
   }
+
+  @Override
+  public Type concrete(Map<Generic, Type> genericTypeMap) throws TypeException {
+    if (!isGenerics()) {
+      return this;
+    }
+    return Composed.pair(
+        firstType.concrete(genericTypeMap),
+        secondType.concrete(genericTypeMap)
+    );
+  }
 }

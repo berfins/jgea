@@ -36,10 +36,7 @@
 package io.github.ericmedvet.jgea.core.representation.ttpn;
 
 import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
-import io.github.ericmedvet.jgea.core.representation.ttpn.type.Base;
-import io.github.ericmedvet.jgea.core.representation.ttpn.type.Composed;
-import io.github.ericmedvet.jgea.core.representation.ttpn.type.Generic;
-import io.github.ericmedvet.jgea.core.representation.ttpn.type.Type;
+import io.github.ericmedvet.jgea.core.representation.ttpn.type.*;
 import io.github.ericmedvet.jgea.core.util.Misc;
 
 import java.util.*;
@@ -50,6 +47,64 @@ public record Network(List<Gate> gates, Set<Wire> wires) {
   public Network(List<Gate> gates, Set<Wire> wires) {
     this.gates = Collections.unmodifiableList(gates);
     this.wires = Collections.unmodifiableSet(wires);
+  }
+
+  public static void main(String[] args) throws NetworkStructureException, TypeException {
+    Network n = new Network(
+        List.of(
+            Gate.input(Composed.sequence(Base.REAL)),
+            Gate.input(Composed.sequence(Base.REAL)),
+            Gates.split(),
+            Gates.split(),
+            Gates.rPMathOperator(Element.Operator.MULTIPLICATION),
+            Gates.rPMathOperator(Element.Operator.ADDITION),
+            Gate.output(Base.REAL)
+        ),
+        Set.of(
+            Wire.of(0, 0, 2, 0),
+            Wire.of(1, 0, 3, 0),
+            Wire.of(2, 0, 4, 0),
+            Wire.of(3, 0, 4, 1),
+            Wire.of(4, 0, 5, 0),
+            Wire.of(5, 0, 6, 0)
+        )
+    );
+    System.out.println(n);
+    n.validate();
+  }
+
+  private Type actualType(Wire wire) throws TypeException {
+    Gate srcGate = gates.get(wire.src().gateIndex());
+    Type srcType = srcGate.outputTypes().get(wire.src().portIndex());
+    if (!srcType.isGenerics()) {
+      return srcType;
+    }
+    // get maps of src gate
+    List<Map<Generic, Type>> maps = new ArrayList<>(srcGate.inputPorts().size());
+    for (int j = 0; j<srcGate.inputPorts().size(); j++) {
+      Optional<Wire> oToWire = wireTo(new Wire.EndPoint(wire.src().gateIndex(), j));
+      if (oToWire.isPresent()) {
+        Wire toWire = oToWire.get();
+        maps.add(srcGate.inputPorts().get(j).type().resolveGenerics(actualType(toWire)));
+      }
+    }
+    // merge and check
+    Map<Generic, Set<Type>> merged = Misc.merge(maps);
+    Optional<Map.Entry<Generic, Set<Type>>> oneWrongEntry = merged.entrySet().stream()
+        .filter(e -> e.getValue().size() > 1)
+        .findAny();
+    if (oneWrongEntry.isPresent()) {
+      throw new TypeException("Inconsistent type for %s: %s".formatted(
+          oneWrongEntry.get().getKey(),
+          oneWrongEntry.get().getValue().stream().map(Object::toString).collect(Collectors.joining(", "))
+      ));
+    }
+    // map generic to actual types
+    Map<Generic, Type> genericTypeMap = merged.entrySet().stream().collect(Collectors.toMap(
+        Map.Entry::getKey,
+        e -> e.getValue().stream().findFirst().orElseThrow()
+    ));
+    return srcType.concrete(genericTypeMap);
   }
 
   @Override
@@ -99,15 +154,12 @@ public record Network(List<Gate> gates, Set<Wire> wires) {
     }
   }
 
-  private void validatePortArity(int gateIndex) throws NetworkStructureException {
-    for (int portIndex = 0; portIndex < gates.get(gateIndex).inputPorts().size(); portIndex++) {
-      int finalPortIndex = portIndex;
-      long count = wires.stream()
-          .filter(w -> w.dst().gateIndex() == gateIndex && w.dst().portIndex() == finalPortIndex)
-          .count();
-      if (count > 1) {
-        throw new NetworkStructureException("Multiple input wires on port %d".formatted(portIndex));
-      }
+  private void validateGateIndexes(Wire wire) throws NetworkStructureException {
+    if (gates.size() <= wire.src().gateIndex()) {
+      throw new NetworkStructureException("Not existing src gate");
+    }
+    if (gates.size() <= wire.dst().gateIndex()) {
+      throw new NetworkStructureException("Not existing dst gate");
     }
   }
 
@@ -133,12 +185,15 @@ public record Network(List<Gate> gates, Set<Wire> wires) {
     }
   }
 
-  private void validateGateIndexes(Wire wire) throws NetworkStructureException {
-    if (gates.size() <= wire.src().gateIndex()) {
-      throw new NetworkStructureException("Not existing src gate");
-    }
-    if (gates.size() <= wire.dst().gateIndex()) {
-      throw new NetworkStructureException("Not existing dst gate");
+  private void validatePortArity(int gateIndex) throws NetworkStructureException {
+    for (int portIndex = 0; portIndex < gates.get(gateIndex).inputPorts().size(); portIndex++) {
+      int finalPortIndex = portIndex;
+      long count = wires.stream()
+          .filter(w -> w.dst().gateIndex() == gateIndex && w.dst().portIndex() == finalPortIndex)
+          .count();
+      if (count > 1) {
+        throw new NetworkStructureException("Multiple input wires on port %d".formatted(portIndex));
+      }
     }
   }
 
@@ -160,47 +215,22 @@ public record Network(List<Gate> gates, Set<Wire> wires) {
         .inputPorts()
         .get(wire.dst().portIndex())
         .type();
-    Type srcType = actualType(wire);
-    if (!dstType.canTakeValuesOf(srcType)) {
-      throw new NetworkStructureException("Not consistent types: src=%s, dst=%s"
-          .formatted(srcType, dstType));
+    try {
+      Type srcType = actualType(wire);
+      if (!dstType.canTakeValuesOf(srcType)) {
+        throw new NetworkStructureException("Not consistent types: src=%s, dst=%s"
+            .formatted(srcType, dstType));
+      }
+    } catch (TypeException e) {
+      throw new NetworkStructureException("Cannot infer actual type", e);
     }
-  }
-
-  private List<Wire> wiresFrom(Wire.EndPoint src) {
-    return wires.stream().filter(w -> w.src().equals(src)).toList();
   }
 
   private Optional<Wire> wireTo(Wire.EndPoint dst) {
     return wires.stream().filter(w -> w.dst().equals(dst)).findFirst();
   }
 
-  private Type actualType(Wire wire) {
-    Type srcType = gates.get(wire.src().gateIndex()).outputTypes().get(wire.src().portIndex());
-    return srcType;
-  }
-
-  public static void main(String[] args) throws NetworkStructureException {
-    Network n = new Network(
-        List.of(
-            Gate.input(Composed.sequence(Base.REAL)),
-            Gate.input(Composed.sequence(Base.REAL)),
-            Gates.split(),
-            Gates.split(),
-            Gates.rPMathOperator(Element.Operator.MULTIPLICATION),
-            Gates.rPMathOperator(Element.Operator.ADDITION),
-            Gate.output(Base.REAL)
-        ),
-        Set.of(
-            Wire.of(0, 0, 2, 0),
-            Wire.of(1, 0, 3, 0),
-            Wire.of(2, 0, 4, 0),
-            Wire.of(3, 0, 4, 1),
-            Wire.of(4, 0, 5, 0),
-            Wire.of(5, 0, 6, 0)
-        )
-    );
-    System.out.println(n);
-    n.validate();
+  private List<Wire> wiresFrom(Wire.EndPoint src) {
+    return wires.stream().filter(w -> w.src().equals(src)).toList();
   }
 }
