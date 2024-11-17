@@ -39,9 +39,60 @@ import io.github.ericmedvet.jgea.core.representation.ttpn.type.Type;
 
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 public interface Gate {
+  record Data(List<List<Object>> lines) {
+    public static Data empty() {
+      return Data.of(List.of());
+    }
+
+    public static Data of(List<List<Object>> lines) {
+      return new Data(lines);
+    }
+
+    public static Data pair(List<Object> tokens1, List<Object> tokens2) {
+      return Data.of(List.of(tokens1, tokens2));
+    }
+
+    public static Data pairOne(Object token1, Object token2) {
+      return pair(List.of(token1), List.of(token2));
+    }
+
+    public static Data single(List<Object> tokens) {
+      return Data.of(List.of(tokens));
+    }
+
+    public static Data singleOne(Object token) {
+      return Data.single(List.of(token));
+    }
+
+    public List<Object> all(int lineIndex) {
+      return lines().get(lineIndex).stream().toList();
+    }
+
+    public <T> List<T> all(int lineIndex, Class<T> clazz) {
+      return all(lineIndex).stream().map(clazz::cast).toList();
+    }
+
+    public Object one(int lineIndex) {
+      return lines().get(lineIndex).getFirst();
+    }
+
+    public <T> T one(int lineIndex, Class<T> clazz) {
+      return clazz.cast(one(lineIndex));
+    }
+
+    public List<Object> ones() {
+      return lines.stream().map(List::getFirst).toList();
+    }
+
+    public <T> List<T> ones(Class<T> clazz) {
+      return ones().stream().map(clazz::cast).toList();
+    }
+  }
+
   record InputGate(Type type) implements Gate {
     @Override
     public List<Port> inputPorts() {
@@ -54,8 +105,8 @@ public interface Gate {
     }
 
     @Override
-    public Function<List<List<Object>>, List<List<Object>>> processingFunction() {
-      return inputs -> List.of(List.of(inputs.getFirst().getFirst()));
+    public UnaryOperator<Data> operator() {
+      return input -> Data.empty();
     }
 
     @Override
@@ -77,8 +128,8 @@ public interface Gate {
     }
 
     @Override
-    public Function<List<List<Object>>, List<List<Object>>> processingFunction() {
-      return inputs -> List.of(List.of(inputs.getFirst().getFirst()));
+    public UnaryOperator<Data> operator() {
+      return input -> Data.empty();
     }
 
     @Override
@@ -107,7 +158,7 @@ public interface Gate {
 
     @Override
     public String toString() {
-      if (condition.equals(Condition.EXACTLY)&&n==1) {
+      if (condition.equals(Condition.EXACTLY) && n == 1) {
         return type.toString();
       }
       return "%s{%d%s}"
@@ -124,19 +175,23 @@ public interface Gate {
 
   List<Port> inputPorts();
 
+  UnaryOperator<Data> operator();
+
   List<Type> outputTypes();
 
-  Function<List<List<Object>>, List<List<Object>>> processingFunction();
+  static InputGate input(Type type) {
+    return new InputGate(type);
+  }
 
   static Gate of(
       List<Port> inputPorts,
       List<Type> outputTypes,
-      Function<List<List<Object>>, List<List<Object>>> processingFunction
+      Function<Data, Data> processingFunction
   ) {
     record HardGate(
         List<Port> inputPorts,
         List<Type> outputTypes,
-        Function<List<List<Object>>, List<List<Object>>> processingFunction
+        UnaryOperator<Data> operator
     )
         implements Gate {
       @Override
@@ -144,16 +199,23 @@ public interface Gate {
         return "(%s)--|%s|-->(%s)"
             .formatted(
                 inputPorts().stream().map(Port::toString).collect(Collectors.joining(",")),
-                HardGate.this.processingFunction,
+                operator,
                 outputTypes().stream().map(Object::toString).collect(Collectors.joining(","))
             );
       }
     }
-    return new HardGate(inputPorts, outputTypes, processingFunction);
-  }
+    UnaryOperator<Data> operator = new UnaryOperator<>() {
+      @Override
+      public Data apply(Data data) {
+        return processingFunction.apply(data);
+      }
 
-  static InputGate input(Type type) {
-    return new InputGate(type);
+      @Override
+      public String toString() {
+        return processingFunction.toString();
+      }
+    };
+    return new HardGate(inputPorts, outputTypes, operator);
   }
 
   static OutputGate output(Type type) {

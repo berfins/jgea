@@ -102,26 +102,26 @@ public class Runner {
           // check conditions and possibly apply function
           if (IntStream.range(0, g.inputPorts().size()).allMatch(pi -> inputQueues.get(pi).size() >= g.inputPorts().get(
               pi).n())) {
-            List<List<Object>> localInputs = IntStream.range(0, g.inputPorts().size())
+            Gate.Data localIn = Gate.Data.of(IntStream.range(0, g.inputPorts().size())
                 .mapToObj(pi -> switch (g.inputPorts().get(pi).condition()) {
                   case EXACTLY -> takeExactly(inputQueues.get(pi), g.inputPorts().get(pi).n());
                   case AT_LEAST -> takeAll(inputQueues.get(pi));
                 })
-                .toList();
+                .toList());
             try {
-              List<List<Object>> localOutputs = g.processingFunction().apply(localInputs);
+              Gate.Data localOut = g.operator().apply(localIn);
               // check number of outputs
-              if (localOutputs.size() != g.outputTypes().size()) {
+              if (localOut.lines().size() != g.outputTypes().size()) {
                 throw new RunnerException("Unexpected wrong number of outputs: %d expected, %d found".formatted(
                     g.outputTypes()
-                        .size(), localOutputs.size()
+                        .size(), localOut.lines().size()
                 ));
               }
               // put outputs
-              IntStream.range(0, localOutputs.size())
-                  .forEach(pi -> network.wiresFrom(gi, pi).forEach(w -> next.put(w, localOutputs.get(pi))));
+              IntStream.range(0, localOut.lines().size())
+                  .forEach(pi -> network.wiresFrom(gi, pi).forEach(w -> next.put(w, localOut.lines().get(pi))));
             } catch (RuntimeException e) {
-              throw new RunnerException("Cannot run %s on %s".formatted(g, localInputs), e);
+              throw new RunnerException("Cannot run %s on %s".formatted(g, localIn), e);
             }
           }
         }

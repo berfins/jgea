@@ -54,9 +54,7 @@ public class Gates {
         Collections.nCopies(operator.arity(), Gate.Port.single(Base.INT)),
         List.of(Base.INT),
         NamedFunction.from(
-            inputs -> List.of(List.of((int) operator.applyAsDouble(inputs.stream()
-                .mapToDouble(tokens -> ((Integer) tokens.getFirst()).doubleValue())
-                .toArray()))),
+            in -> Gate.Data.singleOne((int)operator.applyAsDouble(in.ones(Integer.class).stream().mapToDouble(d -> d).toArray())),
             "%s".formatted(operator.toString())
         )
     );
@@ -67,9 +65,7 @@ public class Gates {
         List.of(Gate.Port.atLeast(Base.INT, 2)),
         List.of(Base.INT),
         NamedFunction.from(
-            inputs -> List.of(List.of(inputs.getFirst().stream()
-                .mapToInt(token -> (Integer) token)
-                .reduce((n1, n2) -> n1 * n2))),
+            in -> Gate.Data.singleOne(in.all(0, Integer.class).stream().reduce((n1, n2) -> n1 * n2).orElseThrow()),
             "s*"
         )
     );
@@ -83,14 +79,10 @@ public class Gates {
         ),
         List.of(Base.INT),
         NamedFunction.from(
-            inputs -> List.of(List.of(
-                inputs.getFirst().stream()
-                    .mapToInt(token -> (Integer) token)
-                    .reduce((i1, i2) -> i1 * i2).orElse(1) +
-                    inputs.getLast().stream()
-                        .mapToInt(token -> (Integer) token)
-                        .reduce((n1, n2) -> n1 * n2).orElse(1)
-            )),
+            in -> Gate.Data.singleOne(
+                in.all(0, Integer.class).stream().reduce((n1, n2) -> n1 * n2).orElseThrow()*
+                in.all(1, Integer.class).stream().reduce((n1, n2) -> n1 * n2).orElse(1)
+            ),
             "sp*"
         )
     );
@@ -104,14 +96,10 @@ public class Gates {
         ),
         List.of(Base.INT),
         NamedFunction.from(
-            inputs -> List.of(List.of(
-                inputs.getFirst().stream()
-                    .mapToInt(token -> (Integer) token)
-                    .sum() +
-                    inputs.getLast().stream()
-                        .mapToInt(token -> (Integer) token)
-                        .sum()
-            )),
+            in -> Gate.Data.singleOne(
+                in.all(0, Integer.class).stream().reduce(Integer::sum).orElseThrow()+
+                    in.all(1, Integer.class).stream().reduce(Integer::sum).orElse(0)
+            ),
             "sp+"
         )
     );
@@ -122,9 +110,7 @@ public class Gates {
         List.of(Gate.Port.atLeast(Base.INT, 2)),
         List.of(Base.INT),
         NamedFunction.from(
-            inputs -> List.of(List.of(inputs.getFirst().stream()
-                .mapToInt(token -> (Integer) token)
-                .sum())),
+            in -> Gate.Data.singleOne(in.all(0, Integer.class).stream().reduce(Integer::sum).orElseThrow()),
             "s+"
         )
     );
@@ -134,7 +120,7 @@ public class Gates {
     return Gate.of(
         List.of(Gate.Port.single(Generic.of("t"))),
         List.of(Generic.of("t")),
-        NamedFunction.from(inputs -> inputs, "noop")
+        NamedFunction.from(in -> Gate.Data.singleOne(in.one(0)), "noop")
     );
   }
 
@@ -149,10 +135,7 @@ public class Gates {
             Generic.of("s")
         ))),
         NamedFunction.from(
-            inputs -> List.of(List.of(List.of(
-                inputs.getFirst().getFirst(),
-                inputs.getLast().getFirst()
-            ))),
+            in -> Gate.Data.singleOne(List.of(in.one(0), in.one(1))),
             "pairer"
         )
     );
@@ -163,9 +146,7 @@ public class Gates {
         Collections.nCopies(operator.arity(), Gate.Port.single(Base.REAL)),
         List.of(Base.REAL),
         NamedFunction.from(
-            inputs -> List.of(List.of(operator.applyAsDouble(inputs.stream()
-                .mapToDouble(tokens -> (Double) tokens.getFirst())
-                .toArray()))),
+            in -> Gate.Data.singleOne(operator.applyAsDouble(in.ones(Double.class).stream().mapToDouble(d -> d).toArray())),
             "%s".formatted(operator.toString())
         )
     );
@@ -176,9 +157,7 @@ public class Gates {
         List.of(Gate.Port.atLeast(Base.REAL, 2)),
         List.of(Base.REAL),
         NamedFunction.from(
-            inputs -> List.of(List.of(inputs.getFirst().stream()
-                .mapToDouble(token -> (Double) token)
-                .reduce((n1, n2) -> n1 * n2))),
+            in -> Gate.Data.singleOne(in.all(0, Double.class).stream().reduce((n1, n2) -> n1 * n2).orElseThrow()),
             "s*"
         )
     );
@@ -192,14 +171,10 @@ public class Gates {
         ),
         List.of(Base.REAL),
         NamedFunction.from(
-            inputs -> List.of(List.of(
-                inputs.getFirst().stream()
-                    .mapToDouble(token -> (Double) token)
-                    .reduce((n1, n2) -> n1 * n2).orElse(1) +
-                    inputs.getLast().stream()
-                        .mapToDouble(token -> (Double) token)
-                        .reduce((n1, n2) -> n1 * n2).orElse(1)
-            )),
+            in -> Gate.Data.singleOne(
+                in.all(0, Double.class).stream().reduce((n1, n2) -> n1 * n2).orElseThrow()*
+                    in.all(1, Double.class).stream().reduce((n1, n2) -> n1 * n2).orElse(1d)
+            ),
             "sp*"
         )
     );
@@ -213,14 +188,10 @@ public class Gates {
         ),
         List.of(Base.REAL),
         NamedFunction.from(
-            inputs -> List.of(List.of(
-                inputs.getFirst().stream()
-                    .mapToDouble(token -> (Double) token)
-                    .sum() +
-                    inputs.getLast().stream()
-                        .mapToDouble(token -> (Double) token)
-                        .sum()
-            )),
+            in -> Gate.Data.singleOne(
+                in.all(0, Double.class).stream().reduce(Double::sum).orElseThrow()+
+                    in.all(1, Double.class).stream().reduce(Double::sum).orElse(0d)
+            ),
             "sp+"
         )
     );
@@ -231,9 +202,7 @@ public class Gates {
         List.of(Gate.Port.atLeast(Base.REAL, 2)),
         List.of(Base.REAL),
         NamedFunction.from(
-            inputs -> List.of(List.of(inputs.getFirst().stream()
-                .mapToDouble(token -> (Double) token)
-                .sum())),
+            in -> Gate.Data.singleOne(in.all(0, Double.class).stream().reduce(Double::sum).orElseThrow()),
             "s+"
         )
     );
@@ -244,12 +213,11 @@ public class Gates {
         List.of(Gate.Port.single(Composed.sequence(Generic.of("t")))),
         List.of(Generic.of("t")),
         NamedFunction.from(
-            inputs -> inputs.getFirst().stream().map(List::of).toList(), "splitter")
+            in -> Gate.Data.single(in.all(0)), "splitter")
     );
   }
 
   public static Gate unpairer() {
-    //noinspection unchecked
     return Gate.of(
         List.of(Gate.Port.single(Composed.tuple(List.of(
             Generic.of("f"),
@@ -260,9 +228,9 @@ public class Gates {
             Generic.of("s")
         ),
         NamedFunction.from(
-            inputs -> List.of(
-                List.of(((List<Object>) inputs.getFirst().getFirst()).getFirst()),
-                List.of(((List<Object>) inputs.getFirst().getFirst()).get(1))
+            in -> Gate.Data.pairOne(
+                in.one(0, List.class).get(0),
+                in.one(0, List.class).get(1)
             ),
             "unpairer"
         )
