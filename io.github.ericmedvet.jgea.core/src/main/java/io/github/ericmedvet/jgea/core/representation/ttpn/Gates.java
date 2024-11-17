@@ -40,12 +40,14 @@ import io.github.ericmedvet.jgea.core.representation.ttpn.type.Base;
 import io.github.ericmedvet.jgea.core.representation.ttpn.type.Composed;
 import io.github.ericmedvet.jgea.core.representation.ttpn.type.Generic;
 import io.github.ericmedvet.jnb.datastructure.NamedFunction;
+
 import java.util.Collections;
 import java.util.List;
 
 public class Gates {
 
-  private Gates() {}
+  private Gates() {
+  }
 
   public static Gate iPMathOperator(Element.Operator operator) {
     return Gate.of(
@@ -55,7 +57,9 @@ public class Gates {
             inputs -> List.of(List.of((int) operator.applyAsDouble(inputs.stream()
                 .mapToDouble(tokens -> ((Integer) tokens.getFirst()).doubleValue())
                 .toArray()))),
-            "%s".formatted(operator.toString())));
+            "%s".formatted(operator.toString())
+        )
+    );
   }
 
   public static Gate iSMult() {
@@ -66,7 +70,51 @@ public class Gates {
             inputs -> List.of(List.of(inputs.getFirst().stream()
                 .mapToInt(token -> (Integer) token)
                 .reduce((n1, n2) -> n1 * n2))),
-            "s*"));
+            "s*"
+        )
+    );
+  }
+
+  public static Gate iSPMult() {
+    return Gate.of(
+        List.of(
+            Gate.Port.atLeast(Base.INT, 1),
+            Gate.Port.atLeast(Base.INT, 0)
+        ),
+        List.of(Base.INT),
+        NamedFunction.from(
+            inputs -> List.of(List.of(
+                inputs.getFirst().stream()
+                    .mapToInt(token -> (Integer) token)
+                    .reduce((i1, i2) -> i1 * i2).orElse(1) +
+                    inputs.getLast().stream()
+                        .mapToInt(token -> (Integer) token)
+                        .reduce((n1, n2) -> n1 * n2).orElse(1)
+            )),
+            "sp*"
+        )
+    );
+  }
+
+  public static Gate iSPSum() {
+    return Gate.of(
+        List.of(
+            Gate.Port.atLeast(Base.INT, 1),
+            Gate.Port.atLeast(Base.INT, 0)
+        ),
+        List.of(Base.INT),
+        NamedFunction.from(
+            inputs -> List.of(List.of(
+                inputs.getFirst().stream()
+                    .mapToInt(token -> (Integer) token)
+                    .sum() +
+                    inputs.getLast().stream()
+                        .mapToInt(token -> (Integer) token)
+                        .sum()
+            )),
+            "sp+"
+        )
+    );
   }
 
   public static Gate iSSum() {
@@ -77,19 +125,29 @@ public class Gates {
             inputs -> List.of(List.of(inputs.getFirst().stream()
                 .mapToInt(token -> (Integer) token)
                 .sum())),
-            "s+"));
+            "s+"
+        )
+    );
+  }
+
+  public static Gate noop() {
+    return Gate.of(
+        List.of(Gate.Port.single(Generic.of("t"))),
+        List.of(Generic.of("t")),
+        NamedFunction.from(inputs -> inputs, "noop")
+    );
   }
 
   public static Gate pairer() {
     return Gate.of(
-      List.of(
-          Gate.Port.single(Generic.of("f")),
-          Gate.Port.single(Generic.of("s"))
-      ),
-       List.of(Composed.tuple(List.of(
-           Generic.of("f"),
-           Generic.of("s")
-       ))) ,
+        List.of(
+            Gate.Port.single(Generic.of("f")),
+            Gate.Port.single(Generic.of("s"))
+        ),
+        List.of(Composed.tuple(List.of(
+            Generic.of("f"),
+            Generic.of("s")
+        ))),
         NamedFunction.from(
             inputs -> List.of(List.of(List.of(
                 inputs.getFirst().getFirst(),
@@ -108,7 +166,9 @@ public class Gates {
             inputs -> List.of(List.of(operator.applyAsDouble(inputs.stream()
                 .mapToDouble(tokens -> (Double) tokens.getFirst())
                 .toArray()))),
-            "%s".formatted(operator.toString())));
+            "%s".formatted(operator.toString())
+        )
+    );
   }
 
   public static Gate rSMult() {
@@ -119,7 +179,51 @@ public class Gates {
             inputs -> List.of(List.of(inputs.getFirst().stream()
                 .mapToDouble(token -> (Double) token)
                 .reduce((n1, n2) -> n1 * n2))),
-            "s*"));
+            "s*"
+        )
+    );
+  }
+
+  public static Gate rSPMult() {
+    return Gate.of(
+        List.of(
+            Gate.Port.atLeast(Base.REAL, 1),
+            Gate.Port.atLeast(Base.REAL, 0)
+        ),
+        List.of(Base.REAL),
+        NamedFunction.from(
+            inputs -> List.of(List.of(
+                inputs.getFirst().stream()
+                    .mapToDouble(token -> (Double) token)
+                    .reduce((n1, n2) -> n1 * n2).orElse(1) +
+                    inputs.getLast().stream()
+                        .mapToDouble(token -> (Double) token)
+                        .reduce((n1, n2) -> n1 * n2).orElse(1)
+            )),
+            "sp*"
+        )
+    );
+  }
+
+  public static Gate rSPSum() {
+    return Gate.of(
+        List.of(
+            Gate.Port.atLeast(Base.REAL, 1),
+            Gate.Port.atLeast(Base.REAL, 0)
+        ),
+        List.of(Base.REAL),
+        NamedFunction.from(
+            inputs -> List.of(List.of(
+                inputs.getFirst().stream()
+                    .mapToDouble(token -> (Double) token)
+                    .sum() +
+                    inputs.getLast().stream()
+                        .mapToDouble(token -> (Double) token)
+                        .sum()
+            )),
+            "sp+"
+        )
+    );
   }
 
   public static Gate rSSum() {
@@ -130,7 +234,9 @@ public class Gates {
             inputs -> List.of(List.of(inputs.getFirst().stream()
                 .mapToDouble(token -> (Double) token)
                 .sum())),
-            "s+"));
+            "s+"
+        )
+    );
   }
 
   public static Gate splitter() {
@@ -138,7 +244,8 @@ public class Gates {
         List.of(Gate.Port.single(Composed.sequence(Generic.of("t")))),
         List.of(Generic.of("t")),
         NamedFunction.from(
-            inputs -> inputs.getFirst().stream().map(List::of).toList(), "splitter"));
+            inputs -> inputs.getFirst().stream().map(List::of).toList(), "splitter")
+    );
   }
 
   public static Gate unpairer() {
@@ -154,8 +261,8 @@ public class Gates {
         ),
         NamedFunction.from(
             inputs -> List.of(
-                List.of(((List<Object>)inputs.getFirst().getFirst()).getFirst()),
-                List.of(((List<Object>)inputs.getFirst().getFirst()).get(1))
+                List.of(((List<Object>) inputs.getFirst().getFirst()).getFirst()),
+                List.of(((List<Object>) inputs.getFirst().getFirst()).get(1))
             ),
             "unpairer"
         )

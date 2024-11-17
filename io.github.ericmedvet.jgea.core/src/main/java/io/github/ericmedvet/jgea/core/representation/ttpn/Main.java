@@ -23,8 +23,8 @@ import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
 import io.github.ericmedvet.jgea.core.representation.ttpn.type.Base;
 import io.github.ericmedvet.jgea.core.representation.ttpn.type.Composed;
 
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.IntStream;
 
 public class Main {
   public static void main(String[] args) throws NetworkStructureException {

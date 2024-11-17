@@ -49,7 +49,7 @@ public record Network(List<Gate> gates, Set<Wire> wires) {
     this.wires = Collections.unmodifiableSet(wires);
   }
 
-  private Type actualType(Wire wire) throws TypeException {
+  public Type actualType(Wire wire) throws TypeException {
     Gate srcGate = gates.get(wire.src().gateIndex());
     Type srcType = srcGate.outputTypes().get(wire.src().portIndex());
     if (!srcType.isGenerics()) {
@@ -57,7 +57,7 @@ public record Network(List<Gate> gates, Set<Wire> wires) {
     }
     // get maps of src gate
     List<Map<Generic, Type>> maps = new ArrayList<>(srcGate.inputPorts().size());
-    for (int j = 0; j<srcGate.inputPorts().size(); j++) {
+    for (int j = 0; j < srcGate.inputPorts().size(); j++) {
       Optional<Wire> oToWire = wireTo(new Wire.EndPoint(wire.src().gateIndex(), j));
       if (oToWire.isPresent()) {
         Wire toWire = oToWire.get();
@@ -186,7 +186,7 @@ public record Network(List<Gate> gates, Set<Wire> wires) {
     }
   }
 
-  public void validateType(Wire wire) throws NetworkStructureException {
+  private void validateType(Wire wire) throws NetworkStructureException {
     Type dstType = gates.get(wire.dst().gateIndex())
         .inputPorts()
         .get(wire.dst().portIndex())
@@ -209,4 +209,13 @@ public record Network(List<Gate> gates, Set<Wire> wires) {
   private List<Wire> wiresFrom(Wire.EndPoint src) {
     return wires.stream().filter(w -> w.src().equals(src)).toList();
   }
+
+  public Optional<Wire> wireTo(int gateIndex, int portIntex) {
+    return wireTo(new Wire.EndPoint(gateIndex, portIntex));
+  }
+
+  public List<Wire> wiresFrom(int gateIndex, int portIntex) {
+    return wiresFrom(new Wire.EndPoint(gateIndex, portIntex));
+  }
+
 }
