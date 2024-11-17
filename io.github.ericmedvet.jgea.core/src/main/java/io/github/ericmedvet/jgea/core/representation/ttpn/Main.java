@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,7 +27,7 @@ import java.util.*;
 import java.util.stream.IntStream;
 
 public class Main {
-  public static void main(String[] args) throws NetworkStructureException {
+  public static void main(String[] args) throws NetworkStructureException, RunnerException {
     Network n = new Network(
         List.of(
             Gate.input(Composed.sequence(Base.REAL)),
@@ -50,5 +50,13 @@ public class Main {
     );
     System.out.println(n);
     n.validate();
+    Runner runner = new Runner(1000, 1000);
+    Runner.Outcome outcome = runner.run(
+        n, List.of(
+            List.of(1d, 2d),
+            List.of(3d, 4d)
+        )
+    );
+    System.out.println(outcome);
   }
 }

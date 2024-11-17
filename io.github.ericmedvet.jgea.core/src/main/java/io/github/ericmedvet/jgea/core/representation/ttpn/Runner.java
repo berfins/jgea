@@ -14,6 +14,14 @@ public class Runner {
 
   public record State(List<WireState> wireStates) {
     public record WireState(Wire wire, Type type, int nOfTokens) {}
+
+    public int nOfTokens(Type type) {
+      return wireStates.stream().filter(ws -> ws.type.equals(type)).mapToInt(ws -> ws.nOfTokens).sum();
+    }
+
+    public int nOfTokens() {
+      return wireStates.stream().mapToInt(ws -> ws.nOfTokens).sum();
+    }
   }
 
   public record Outcome(List<Object> outputs, List<State> states) {}
@@ -30,11 +38,13 @@ public class Runner {
         .filter(g -> g instanceof Gate.InputGate)
         .map(g -> ((Gate.InputGate) g).type())
         .toList();
-    List<Type> outputTypes = network.gates()
-        .stream()
-        .filter(g -> g instanceof Gate.OutputGate)
-        .map(g -> ((Gate.OutputGate) g).type())
-        .toList();
+    SortedMap<Integer, Type> outputTypes = new TreeMap<>(IntStream.range(0, network.gates().size())
+        .filter(gi -> network.gates().get(gi) instanceof Gate.OutputGate)
+        .boxed()
+        .collect(Collectors.toMap(
+            gi -> gi,
+            gi -> ((Gate.OutputGate) network.gates().get(gi)).type()
+        )));
     if (inputs.size() != inputTypes.size()) {
       throw new RunnerException("Wrong number of inputs: %d expected, %d found".formatted(
           inputTypes.size(),
@@ -69,11 +79,20 @@ public class Runner {
     SortedMap<Integer, Object> outputs = new TreeMap<>();
     // iterate
     while (k < maxSteps) {
+
+      System.out.printf("BEFORE:%n%s%n".formatted(
+          current.entrySet().stream().map(e -> "\t%s\t%2d : %s".formatted(
+              e.getKey(), e.getValue().size(), e.getValue()
+          )).collect(Collectors.joining("%n"))
+      ));
+
       for (int i = 0; i < network.gates().size(); i++) {
         int gi = i;
         Gate g = network.gates().get(gi);
-        if (g instanceof Gate.InputGate && !networkInputsQueue.isEmpty()) {
-          network.wiresFrom(gi, 0).forEach(w -> next.put(w, List.of(networkInputsQueue.remove())));
+        if (g instanceof Gate.InputGate) {
+          if (!networkInputsQueue.isEmpty()) {
+            network.wiresFrom(gi, 0).forEach(w -> next.put(w, List.of(networkInputsQueue.remove())));
+          }
         } else if (g instanceof Gate.OutputGate) {
           network.wireTo(gi, 0).flatMap(w -> takeOne(current.get(w))).ifPresent(token -> outputs.put(gi, token));
         } else {
@@ -115,14 +134,35 @@ public class Runner {
       next.forEach((w, ts) -> current.get(w).addAll(ts));
       next.clear();
       // build state
-      states.add(new State(
-          current.entrySet().stream().map(e -> new State.WireState(e.getKey(), actualTypes.get(e.getKey()), e.getValue().size())).toList()
-      ));
+      State state = new State(
+          current.entrySet()
+              .stream()
+              .map(e -> new State.WireState(e.getKey(), actualTypes.get(e.getKey()), e.getValue().size()))
+              .toList()
+      );
+      if (state.nOfTokens() > maxTokens) {
+        throw new RunnerException("Exceeded number of tokens: %d > %d".formatted(state.nOfTokens(), maxTokens));
+      }
+      states.add(state);
       // increment k
       k = k + 1;
     }
     // check output
-
+    if (!outputTypes.keySet().equals(outputs.keySet())) {
+      throw new RunnerException("Unexpected output gates: %s expected, %s found".formatted(
+          outputTypes.keySet(),
+          outputs.keySet()
+      ));
+    }
+    for (int gi : outputTypes.keySet()) {
+      if (!outputTypes.get(gi).matches(outputs.get(gi))) {
+        throw new RunnerException("Invalid output type for input %d of type %s: %s".formatted(
+            gi,
+            outputTypes.get(gi),
+            outputs.get(gi).getClass()
+        ));
+      }
+    }
     return new Outcome(outputs.values().stream().toList(), states);
   }
 
