@@ -40,6 +40,11 @@ public enum Base implements Type {
   }
 
   @Override
+  public Set<Generic> generics() {
+    return Set.of();
+  }
+
+  @Override
   public boolean matches(Object o) {
     return javaClass.isInstance(o);
   }
@@ -55,7 +60,7 @@ public enum Base implements Type {
   }
 
   @Override
-  public Set<Generic> generics() {
-    return Set.of();
+  public String toString() {
+    return "%s".formatted(name().substring(0, 1));
   }
 }

@@ -107,14 +107,17 @@ public interface Gate {
 
     @Override
     public String toString() {
-      return "%s(%s%d)"
+      if (condition.equals(Condition.EXACTLY)&&n==1) {
+        return type.toString();
+      }
+      return "%s{%d%s}"
           .formatted(
               type,
+              n,
               switch (condition) {
-                case EXACTLY -> "==";
-                case AT_LEAST -> ">=";
-              },
-              n
+                case EXACTLY -> "";
+                case AT_LEAST -> "+";
+              }
           );
     }
   }
