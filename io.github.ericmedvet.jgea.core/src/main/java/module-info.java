@@ -38,6 +38,8 @@ module io.github.ericmedvet.jgea.core {
   exports io.github.ericmedvet.jgea.core.representation.tree;
   exports io.github.ericmedvet.jgea.core.representation.tree.numeric;
   exports io.github.ericmedvet.jgea.core.representation.tree.booleanfunction;
+  exports io.github.ericmedvet.jgea.core.representation.ttpn;
+  exports io.github.ericmedvet.jgea.core.representation.ttpn.type;
   exports io.github.ericmedvet.jgea.core.representation.grammar.grid;
   exports io.github.ericmedvet.jgea.core.representation;
   exports io.github.ericmedvet.jgea.core.selector;

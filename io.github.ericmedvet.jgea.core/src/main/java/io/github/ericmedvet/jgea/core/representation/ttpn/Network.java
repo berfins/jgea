@@ -35,8 +35,11 @@
 
 package io.github.ericmedvet.jgea.core.representation.ttpn;
 
-import io.github.ericmedvet.jgea.core.representation.ttpn.type.*;
+import io.github.ericmedvet.jgea.core.representation.ttpn.type.Generic;
+import io.github.ericmedvet.jgea.core.representation.ttpn.type.Type;
+import io.github.ericmedvet.jgea.core.representation.ttpn.type.TypeException;
 import io.github.ericmedvet.jgea.core.util.Misc;
+
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -44,7 +47,7 @@ import java.util.stream.IntStream;
 public record Network(List<Gate> gates, Set<Wire> wires) {
   public Network(List<Gate> gates, Set<Wire> wires) {
     this.gates = Collections.unmodifiableList(gates);
-    this.wires = Collections.unmodifiableSet(wires);
+    this.wires = Collections.unmodifiableSortedSet(new TreeSet<>(wires)); // TODO add a comparator
   }
 
   public Type actualType(Wire wire) throws TypeException {
@@ -222,12 +225,12 @@ public record Network(List<Gate> gates, Set<Wire> wires) {
     return wires.stream().filter(w -> w.dst().equals(dst)).findFirst();
   }
 
-  private List<Wire> wiresFrom(Wire.EndPoint src) {
-    return wires.stream().filter(w -> w.src().equals(src)).toList();
-  }
-
   public Optional<Wire> wireTo(int gateIndex, int portIntex) {
     return wireTo(new Wire.EndPoint(gateIndex, portIntex));
+  }
+
+  private List<Wire> wiresFrom(Wire.EndPoint src) {
+    return wires.stream().filter(w -> w.src().equals(src)).toList();
   }
 
   public List<Wire> wiresFrom(int gateIndex, int portIntex) {
