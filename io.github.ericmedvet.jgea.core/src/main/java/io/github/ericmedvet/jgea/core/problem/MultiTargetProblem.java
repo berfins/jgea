@@ -47,13 +47,13 @@ public interface MultiTargetProblem<S> extends TotalOrderQualityBasedProblem<S, 
 
   default MultiHomogeneousObjectiveProblem<S, Double> toMHOProblem() {
     List<Comparator<Double>> comparators = Collections.nCopies(targets().size(), Double::compareTo);
-    Function<S, List<Double>> f =
-        s -> targets().stream().map(t -> distance().apply(s, t)).toList();
-    record MHOProblem<S>(List<Comparator<Double>> comparators, Function<S, List<Double>> qualityFunction)
-        implements MultiHomogeneousObjectiveProblem<S, Double> {}
+    Function<S, List<Double>> f = s -> targets().stream().map(t -> distance().apply(s, t)).toList();
+    record MHOProblem<S>(
+        List<Comparator<Double>> comparators, Function<S, List<Double>> qualityFunction
+    ) implements MultiHomogeneousObjectiveProblem<S, Double> {}
     record MHOProblemWithExample<S>(
-        List<Comparator<Double>> comparators, Function<S, List<Double>> qualityFunction, S example)
-        implements MultiHomogeneousObjectiveProblem<S, Double>, ProblemWithExampleSolution<S> {}
+        List<Comparator<Double>> comparators, Function<S, List<Double>> qualityFunction, S example
+    ) implements MultiHomogeneousObjectiveProblem<S, Double>, ProblemWithExampleSolution<S> {}
     if (this instanceof ProblemWithExampleSolution<?> pwes) {
       //noinspection unchecked
       return new MHOProblemWithExample<>(comparators, f, (S) pwes.example());

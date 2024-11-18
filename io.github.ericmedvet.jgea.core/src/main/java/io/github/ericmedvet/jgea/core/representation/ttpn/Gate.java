@@ -24,7 +24,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,7 +36,6 @@
 package io.github.ericmedvet.jgea.core.representation.ttpn;
 
 import io.github.ericmedvet.jgea.core.representation.ttpn.type.Type;
-
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
@@ -140,8 +139,7 @@ public interface Gate {
 
   record Port(Type type, Condition condition, int n) {
     enum Condition {
-      EXACTLY,
-      AT_LEAST
+      EXACTLY, AT_LEAST
     }
 
     public static Port atLeast(Type type, int n) {
@@ -192,8 +190,7 @@ public interface Gate {
         List<Port> inputPorts,
         List<Type> outputTypes,
         UnaryOperator<Data> operator
-    )
-        implements Gate {
+    ) implements Gate {
       @Override
       public String toString() {
         return "(%s)--|%s|-->(%s)"

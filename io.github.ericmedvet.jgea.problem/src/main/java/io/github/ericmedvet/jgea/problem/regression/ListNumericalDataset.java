@@ -33,34 +33,37 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 
-public record ListNumericalDataset(List<Example> examples, List<String> xVarNames, List<String> yVarNames)
-    implements NumericalDataset {
+public record ListNumericalDataset(
+    List<Example> examples, List<String> xVarNames, List<String> yVarNames
+) implements NumericalDataset {
 
   private static final Logger L = Logger.getLogger(ListNumericalDataset.class.getName());
 
   public ListNumericalDataset {
-    List<Integer> xsSizes =
-        examples.stream().map(e -> e.xs().length).distinct().toList();
-    List<Integer> ysSizes =
-        examples.stream().map(e -> e.ys().length).distinct().toList();
+    List<Integer> xsSizes = examples.stream().map(e -> e.xs().length).distinct().toList();
+    List<Integer> ysSizes = examples.stream().map(e -> e.ys().length).distinct().toList();
     if (!examples.isEmpty()) {
       if (xsSizes.size() > 1) {
         throw new IllegalArgumentException(
-            "Size of x is not consistent across examples, found sizes %s".formatted(xsSizes));
+            "Size of x is not consistent across examples, found sizes %s".formatted(xsSizes)
+        );
       }
       if (ysSizes.size() > 1) {
         throw new IllegalArgumentException(
-            "Size of y is not consistent across examples, found sizes %s".formatted(ysSizes));
+            "Size of y is not consistent across examples, found sizes %s".formatted(ysSizes)
+        );
       }
       if (xVarNames.size() != xsSizes.getFirst()) {
         throw new IllegalArgumentException(
             ("Number of names of x vars is different form size of x in examples: %d vs" + " " + "%d")
-                .formatted(xVarNames().size(), xsSizes.getFirst()));
+                .formatted(xVarNames().size(), xsSizes.getFirst())
+        );
       }
       if (yVarNames.size() != ysSizes.getFirst()) {
         throw new IllegalArgumentException(
             ("Number of names of y vars is different form size of y in examples: %d vs" + " " + "%d")
-                .formatted(xVarNames().size(), xsSizes.getFirst()));
+                .formatted(xVarNames().size(), xsSizes.getFirst())
+        );
       }
     }
   }
@@ -69,28 +72,39 @@ public record ListNumericalDataset(List<Example> examples, List<String> xVarName
     this(
         examples,
         MultivariateRealFunction.varNames("x", examples.getFirst().xs().length),
-        MultivariateRealFunction.varNames("y", examples.getFirst().ys().length));
+        MultivariateRealFunction.varNames("y", examples.getFirst().ys().length)
+    );
   }
 
   private static NumericalDataset buildDataset(
-      List<Map<String, String>> data, List<String> xVarNames, List<String> yVarNames) {
+      List<Map<String, String>> data,
+      List<String> xVarNames,
+      List<String> yVarNames
+  ) {
     return new ListNumericalDataset(
-            data.stream()
-                .map(dp -> new Example(
+        data.stream()
+            .map(
+                dp -> new Example(
                     xVarNames.stream()
                         .mapToDouble(n -> Double.parseDouble(dp.get(n)))
                         .toArray(),
                     yVarNames.stream()
                         .mapToDouble(n -> Double.parseDouble(dp.get(n)))
-                        .toArray()))
-                .toList(),
-            xVarNames,
-            yVarNames)
+                        .toArray()
+                )
+            )
+            .toList(),
+        xVarNames,
+        yVarNames
+    )
         .shuffled(1);
   }
 
-  public static NumericalDataset loadFromCSV(InputStream inputStream, List<String> xVarNames, List<String> yVarNames)
-      throws IOException {
+  public static NumericalDataset loadFromCSV(
+      InputStream inputStream,
+      List<String> xVarNames,
+      List<String> yVarNames
+  ) throws IOException {
     List<Map<String, String>> data = loadFromCSV(inputStream, Long.MAX_VALUE);
     if (!data.getFirst().keySet().containsAll(xVarNames)) {
       Set<String> notFoundVars = new LinkedHashSet<>(xVarNames);
@@ -105,14 +119,18 @@ public record ListNumericalDataset(List<Example> examples, List<String> xVarName
     return buildDataset(data, xVarNames, yVarNames);
   }
 
-  public static NumericalDataset loadFromCSV(InputStream inputStream, String xVarNamePattern, String yVarNamePattern)
-      throws IOException {
+  public static NumericalDataset loadFromCSV(
+      InputStream inputStream,
+      String xVarNamePattern,
+      String yVarNamePattern
+  ) throws IOException {
     List<Map<String, String>> data = loadFromCSV(inputStream, Long.MAX_VALUE);
     List<String> varNames = data.getFirst().keySet().stream().toList();
     return buildDataset(
         data,
         varNames.stream().filter(n -> n.matches(xVarNamePattern)).toList(),
-        varNames.stream().filter(n -> n.matches(yVarNamePattern)).toList());
+        varNames.stream().filter(n -> n.matches(yVarNamePattern)).toList()
+    );
   }
 
   public static NumericalDataset loadFromCSV(InputStream inputStream, String yVarName) throws IOException {
@@ -134,8 +152,7 @@ public record ListNumericalDataset(List<Example> examples, List<String> xVarName
 
   private static List<Map<String, String>> loadFromCSV(InputStream inputStream, long limit) throws IOException {
     try (inputStream) {
-      CSVParser parser =
-          CSVFormat.Builder.create().setDelimiter(";").build().parse(new InputStreamReader(inputStream));
+      CSVParser parser = CSVFormat.Builder.create().setDelimiter(";").build().parse(new InputStreamReader(inputStream));
       List<CSVRecord> records = parser.getRecords();
       List<String> varNames = records.getFirst().stream().toList();
       List<Map<String, String>> maps = new ArrayList<>();
@@ -146,13 +163,21 @@ public record ListNumericalDataset(List<Example> examples, List<String> xVarName
         }
         if (lc != 0) {
           if (record.size() != varNames.size()) {
-            L.warning("Line %d/%d has %d items instead of expected %d: skipping it"
-                .formatted(lc, records.size(), record.size(), varNames.size()));
+            L.warning(
+                "Line %d/%d has %d items instead of expected %d: skipping it"
+                    .formatted(lc, records.size(), record.size(), varNames.size())
+            );
           } else {
             Map<String, String> map = IntStream.range(0, varNames.size())
                 .mapToObj(i -> Map.entry(varNames.get(i), record.get(i)))
-                .collect(Collectors.toMap(
-                    Map.Entry::getKey, Map.Entry::getValue, (s1, s2) -> s1, LinkedHashMap::new));
+                .collect(
+                    Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (s1, s2) -> s1,
+                        LinkedHashMap::new
+                    )
+                );
             maps.add(map);
           }
         }
@@ -162,8 +187,11 @@ public record ListNumericalDataset(List<Example> examples, List<String> xVarName
     }
   }
 
-  public static NumericalDataset loadFromCSVResource(String name, List<String> xVarNames, List<String> yVarNames)
-      throws IOException {
+  public static NumericalDataset loadFromCSVResource(
+      String name,
+      List<String> xVarNames,
+      List<String> yVarNames
+  ) throws IOException {
     return loadFromCSV(ListNumericalDataset.class.getResourceAsStream(name), xVarNames, yVarNames);
   }
 
@@ -175,8 +203,11 @@ public record ListNumericalDataset(List<Example> examples, List<String> xVarName
     return loadFromCSV(ListNumericalDataset.class.getResourceAsStream(name), yVarName);
   }
 
-  public static NumericalDataset loadFromCSVResource(String name, String xVarNamePattern, String yVarNamePattern)
-      throws IOException {
+  public static NumericalDataset loadFromCSVResource(
+      String name,
+      String xVarNamePattern,
+      String yVarNamePattern
+  ) throws IOException {
     return loadFromCSV(ListNumericalDataset.class.getResourceAsStream(name), xVarNamePattern, yVarNamePattern);
   }
 

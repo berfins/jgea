@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,7 +21,6 @@ package io.github.ericmedvet.jgea.core.representation.ttpn;
 
 import io.github.ericmedvet.jgea.core.representation.ttpn.type.Type;
 import io.github.ericmedvet.jgea.core.representation.ttpn.type.TypeException;
-
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -57,26 +56,34 @@ public class Runner {
         .filter(g -> g instanceof Gate.InputGate)
         .map(g -> ((Gate.InputGate) g).type())
         .toList();
-    SortedMap<Integer, Type> outputTypes = new TreeMap<>(IntStream.range(0, network.gates().size())
-        .filter(gi -> network.gates().get(gi) instanceof Gate.OutputGate)
-        .boxed()
-        .collect(Collectors.toMap(
-            gi -> gi,
-            gi -> ((Gate.OutputGate) network.gates().get(gi)).type()
-        )));
+    SortedMap<Integer, Type> outputTypes = new TreeMap<>(
+        IntStream.range(0, network.gates().size())
+            .filter(gi -> network.gates().get(gi) instanceof Gate.OutputGate)
+            .boxed()
+            .collect(
+                Collectors.toMap(
+                    gi -> gi,
+                    gi -> ((Gate.OutputGate) network.gates().get(gi)).type()
+                )
+            )
+    );
     if (inputs.size() != inputTypes.size()) {
-      throw new RunnerException("Wrong number of inputs: %d expected, %d found".formatted(
-          inputTypes.size(),
-          inputs.size()
-      ));
+      throw new RunnerException(
+          "Wrong number of inputs: %d expected, %d found".formatted(
+              inputTypes.size(),
+              inputs.size()
+          )
+      );
     }
     for (int i = 0; i < inputTypes.size(); i++) {
       if (!inputTypes.get(i).matches(inputs.get(i))) {
-        throw new RunnerException("Invalid input type for input %d of type %s: %s".formatted(
-            i,
-            inputTypes.get(i),
-            inputs.get(i).getClass()
-        ));
+        throw new RunnerException(
+            "Invalid input type for input %d of type %s: %s".formatted(
+                i,
+                inputTypes.get(i),
+                inputs.get(i).getClass()
+            )
+        );
       }
     }
     // prepare memory
@@ -99,11 +106,20 @@ public class Runner {
     // iterate
     while (k < maxSteps) {
 
-      System.out.printf("BEFORE:%n%s%n".formatted(
-          current.entrySet().stream().map(e -> "\t%s\t%2d : %s".formatted(
-              e.getKey(), e.getValue().size(), e.getValue()
-          )).collect(Collectors.joining("%n"))
-      ));
+      System.out.printf(
+          "BEFORE:%n%s%n".formatted(
+              current.entrySet()
+                  .stream()
+                  .map(
+                      e -> "\t%s\t%2d : %s".formatted(
+                          e.getKey(),
+                          e.getValue().size(),
+                          e.getValue()
+                      )
+                  )
+                  .collect(Collectors.joining("%n"))
+          )
+      );
 
       for (int i = 0; i < network.gates().size(); i++) {
         int gi = i;
@@ -119,22 +135,33 @@ public class Runner {
               .mapToObj(pi -> network.wireTo(gi, pi).map(current::get).orElse(emptyQueue()))
               .toList();
           // check conditions and possibly apply function
-          if (IntStream.range(0, g.inputPorts().size()).allMatch(pi -> inputQueues.get(pi).size() >= g.inputPorts().get(
-              pi).n())) {
-            Gate.Data localIn = Gate.Data.of(IntStream.range(0, g.inputPorts().size())
-                .mapToObj(pi -> switch (g.inputPorts().get(pi).condition()) {
-                  case EXACTLY -> takeExactly(inputQueues.get(pi), g.inputPorts().get(pi).n());
-                  case AT_LEAST -> takeAll(inputQueues.get(pi));
-                })
-                .toList());
+          if (IntStream.range(0, g.inputPorts().size())
+              .allMatch(
+                  pi -> inputQueues.get(pi).size() >= g.inputPorts()
+                      .get(
+                          pi
+                      )
+                      .n()
+              )) {
+            Gate.Data localIn = Gate.Data.of(
+                IntStream.range(0, g.inputPorts().size())
+                    .mapToObj(pi -> switch (g.inputPorts().get(pi).condition()) {
+                      case EXACTLY -> takeExactly(inputQueues.get(pi), g.inputPorts().get(pi).n());
+                      case AT_LEAST -> takeAll(inputQueues.get(pi));
+                    })
+                    .toList()
+            );
             try {
               Gate.Data localOut = g.operator().apply(localIn);
               // check number of outputs
               if (localOut.lines().size() != g.outputTypes().size()) {
-                throw new RunnerException("Unexpected wrong number of outputs: %d expected, %d found".formatted(
-                    g.outputTypes()
-                        .size(), localOut.lines().size()
-                ));
+                throw new RunnerException(
+                    "Unexpected wrong number of outputs: %d expected, %d found".formatted(
+                        g.outputTypes()
+                            .size(),
+                        localOut.lines().size()
+                    )
+                );
               }
               // put outputs
               IntStream.range(0, localOut.lines().size())
@@ -168,18 +195,22 @@ public class Runner {
     }
     // check output
     if (!outputTypes.keySet().equals(outputs.keySet())) {
-      throw new RunnerException("Unexpected output gates: %s expected, %s found".formatted(
-          outputTypes.keySet(),
-          outputs.keySet()
-      ));
+      throw new RunnerException(
+          "Unexpected output gates: %s expected, %s found".formatted(
+              outputTypes.keySet(),
+              outputs.keySet()
+          )
+      );
     }
     for (int gi : outputTypes.keySet()) {
       if (!outputTypes.get(gi).matches(outputs.get(gi))) {
-        throw new RunnerException("Invalid output type for input %d of type %s: %s".formatted(
-            gi,
-            outputTypes.get(gi),
-            outputs.get(gi).getClass()
-        ));
+        throw new RunnerException(
+            "Invalid output type for input %d of type %s: %s".formatted(
+                gi,
+                outputTypes.get(gi),
+                outputs.get(gi).getClass()
+            )
+        );
       }
     }
     return new Outcome(outputs.values().stream().toList(), states);

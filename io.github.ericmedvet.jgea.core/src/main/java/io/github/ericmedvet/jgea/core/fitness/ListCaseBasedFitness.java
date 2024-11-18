@@ -31,7 +31,10 @@ public class ListCaseBasedFitness<S, C, CO, AF> implements CaseBasedFitness<S, C
   private final Function<List<CO>, AF> aggregateFunction;
 
   public ListCaseBasedFitness(
-      List<C> cases, BiFunction<S, C, CO> caseFunction, Function<List<CO>, AF> aggregateFunction) {
+      List<C> cases,
+      BiFunction<S, C, CO> caseFunction,
+      Function<List<CO>, AF> aggregateFunction
+  ) {
     this.cases = cases;
     this.caseFunction = caseFunction;
     this.aggregateFunction = aggregateFunction;
@@ -68,26 +71,17 @@ public class ListCaseBasedFitness<S, C, CO, AF> implements CaseBasedFitness<S, C
 
   @Override
   public boolean equals(Object obj) {
-    if (obj == this) return true;
-    if (obj == null || obj.getClass() != this.getClass()) return false;
-    @SuppressWarnings("rawtypes")
-    var that = (ListCaseBasedFitness) obj;
-    return Objects.equals(this.cases, that.cases)
-        && Objects.equals(this.caseFunction, that.caseFunction)
-        && Objects.equals(this.aggregateFunction, that.aggregateFunction);
+    if (obj == this)
+      return true;
+    if (obj == null || obj.getClass() != this.getClass())
+      return false;
+    @SuppressWarnings("rawtypes") var that = (ListCaseBasedFitness) obj;
+    return Objects.equals(this.cases, that.cases) && Objects.equals(this.caseFunction, that.caseFunction) && Objects
+        .equals(this.aggregateFunction, that.aggregateFunction);
   }
 
   @Override
   public String toString() {
-    return "ListCaseBasedFitness["
-        + "cases="
-        + cases
-        + ", "
-        + "caseFunction="
-        + caseFunction
-        + ", "
-        + "aggregateFunction="
-        + aggregateFunction
-        + ']';
+    return "ListCaseBasedFitness[" + "cases=" + cases + ", " + "caseFunction=" + caseFunction + ", " + "aggregateFunction=" + aggregateFunction + ']';
   }
 }

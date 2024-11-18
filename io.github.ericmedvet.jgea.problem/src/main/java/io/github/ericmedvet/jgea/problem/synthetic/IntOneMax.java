@@ -26,8 +26,7 @@ import io.github.ericmedvet.jgea.core.representation.sequence.integer.IntString;
 import java.util.Collections;
 import java.util.function.Function;
 
-public class IntOneMax
-    implements ComparableQualityBasedProblem<IntString, Double>, ProblemWithExampleSolution<IntString> {
+public class IntOneMax implements ComparableQualityBasedProblem<IntString, Double>, ProblemWithExampleSolution<IntString> {
 
   private final int p;
   private final int upperBound;

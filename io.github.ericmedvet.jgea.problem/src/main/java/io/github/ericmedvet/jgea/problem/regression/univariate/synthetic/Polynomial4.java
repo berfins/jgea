@@ -33,9 +33,11 @@ public class Polynomial4 extends SyntheticUnivariateRegressionProblem {
               double x = v[0];
               return x * x * x * x + x * x * x + x * x + x;
             },
-            1),
+            1
+        ),
         MathUtils.pairwise(MathUtils.equispacedValues(-1, 1, .1)),
         MathUtils.pairwise(MathUtils.equispacedValues(-1, 1, .01)),
-        metric);
+        metric
+    );
   }
 }

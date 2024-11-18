@@ -31,9 +31,7 @@ import java.util.List;
 import java.util.function.Function;
 
 @SuppressWarnings("rawtypes")
-public class MapperGeneration
-    implements GrammarBasedProblem<String, Pair<Tree<Element>, Tree<Element>>>,
-        ProblemWithValidation<Pair<Tree<Element>, Tree<Element>>, List<Double>> {
+public class MapperGeneration implements GrammarBasedProblem<String, Pair<Tree<Element>, Tree<Element>>>, ProblemWithValidation<Pair<Tree<Element>, Tree<Element>>, List<Double>> {
 
   private final StringGrammar<String> grammar;
   private final FitnessFunction learningFitnessFunction;
@@ -51,18 +49,25 @@ public class MapperGeneration
       int validationGenotypeSize,
       int validationMaxMappingDepth,
       List<FitnessFunction.Property> validationProperties,
-      long seed)
-      throws IOException {
+      long seed
+  ) throws IOException {
     this.grammar = StringGrammar.load(StringGrammar.class.getResourceAsStream("/grammars/1d/mapper.bnf"));
     learningFitnessFunction = new FitnessFunction(
-        learningProblems, learningGenotypeSize, learningN, learningMaxMappingDepth, learningProperties, seed);
+        learningProblems,
+        learningGenotypeSize,
+        learningN,
+        learningMaxMappingDepth,
+        learningProperties,
+        seed
+    );
     validationFitnessFunction = new FitnessFunction(
         validationProblems,
         validationGenotypeSize,
         validationN,
         validationMaxMappingDepth,
         validationProperties,
-        seed);
+        seed
+    );
     dimensionality = learningProperties.size();
   }
 

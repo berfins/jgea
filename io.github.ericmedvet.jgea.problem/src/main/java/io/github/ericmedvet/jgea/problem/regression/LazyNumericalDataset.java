@@ -46,11 +46,13 @@ public class LazyNumericalDataset implements NumericalDataset {
     // read just varNames
     NumericalDataset dataset = getDataset(path);
     this.path = path;
-    xVarNames = dataset.xVarNames().stream()
+    xVarNames = dataset.xVarNames()
+        .stream()
         .filter(n -> n.matches(xVarNamePattern))
         .sorted()
         .toList();
-    yVarNames = dataset.yVarNames().stream()
+    yVarNames = dataset.yVarNames()
+        .stream()
         .filter(n -> n.matches(yVarNamePattern))
         .sorted()
         .toList();
@@ -58,8 +60,9 @@ public class LazyNumericalDataset implements NumericalDataset {
 
   private record DatasetKey(String path, List<String> xVarNames, List<String> yVarNames) {}
 
-  private record FilteredNumericalDataset(NumericalDataset dataset, List<String> xVarNames, List<String> yVarNames)
-      implements NumericalDataset {
+  private record FilteredNumericalDataset(
+      NumericalDataset dataset, List<String> xVarNames, List<String> yVarNames
+  ) implements NumericalDataset {
 
     @Override
     public IntFunction<Example> exampleProvider() {
@@ -67,7 +70,8 @@ public class LazyNumericalDataset implements NumericalDataset {
         NamedExample ne = dataset.namedExampleProvider().apply(i);
         return new Example(
             xVarNames.stream().mapToDouble(n -> ne.x().get(n)).toArray(),
-            yVarNames.stream().mapToDouble(n -> ne.y().get(n)).toArray());
+            yVarNames.stream().mapToDouble(n -> ne.y().get(n)).toArray()
+        );
       };
     }
 
@@ -84,7 +88,8 @@ public class LazyNumericalDataset implements NumericalDataset {
             xVarNames.stream()
                 .collect(Collectors.toMap(n -> n, n -> ne.x().get(n))),
             yVarNames.stream()
-                .collect(Collectors.toMap(n -> n, n -> ne.x().get(n))));
+                .collect(Collectors.toMap(n -> n, n -> ne.x().get(n)))
+        );
       };
     }
   }
@@ -143,15 +148,8 @@ public class LazyNumericalDataset implements NumericalDataset {
 
   @Override
   public String toString() {
-    return "LazyDataset{"
-        + "n="
-        + (!FILTERED_DATASETS.containsKey(new DatasetKey(path, xVarNames, yVarNames))
-            ? "NA"
-            : getFilteredDataset().size())
-        + ", xVarNames="
-        + xVarNames
-        + ", yVarNames="
-        + yVarNames
-        + '}';
+    return "LazyDataset{" + "n=" + (!FILTERED_DATASETS.containsKey(
+        new DatasetKey(path, xVarNames, yVarNames)
+    ) ? "NA" : getFilteredDataset().size()) + ", xVarNames=" + xVarNames + ", yVarNames=" + yVarNames + '}';
   }
 }

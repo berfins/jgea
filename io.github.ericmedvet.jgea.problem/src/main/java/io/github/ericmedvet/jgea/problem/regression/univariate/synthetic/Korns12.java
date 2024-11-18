@@ -31,10 +31,13 @@ public class Korns12 extends SyntheticUnivariateRegressionProblem {
         UnivariateRealFunction.from(v -> 2d - 2.1 * Math.cos(9.8 * v[0]) * Math.sin(1.3 * v[1]), 2),
         MathUtils.pairwise(
             MathUtils.uniformSample(-50, 50, 10000, new Random(seed)),
-            MathUtils.uniformSample(-50, 50, 10000, new Random(seed + 1))),
+            MathUtils.uniformSample(-50, 50, 10000, new Random(seed + 1))
+        ),
         MathUtils.pairwise(
             MathUtils.uniformSample(-50, 50, 10000, new Random(seed + 2)),
-            MathUtils.uniformSample(-50, 50, 10000, new Random(seed + 3))),
-        metric);
+            MathUtils.uniformSample(-50, 50, 10000, new Random(seed + 3))
+        ),
+        metric
+    );
   }
 }

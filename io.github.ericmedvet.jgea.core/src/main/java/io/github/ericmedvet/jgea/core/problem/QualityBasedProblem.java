@@ -29,7 +29,9 @@ public interface QualityBasedProblem<S, Q> extends Problem<S>, Function<S, Q> {
   Function<S, Q> qualityFunction();
 
   static <S, Q> QualityBasedProblem<S, Q> create(
-      Function<S, Q> qualityFunction, PartialComparator<Q> qualityComparator) {
+      Function<S, Q> qualityFunction,
+      PartialComparator<Q> qualityComparator
+  ) {
     return new QualityBasedProblem<>() {
       @Override
       public PartialComparator<Q> qualityComparator() {

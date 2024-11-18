@@ -43,13 +43,16 @@ public class MultiModalIntOneMax implements MultiTargetProblem<IntString>, Probl
     distance = (is1, is2) -> innerD.apply(is1, is2) / (double) p;
     int s = p / nOfTargets;
     targets = IntStream.range(0, nOfTargets)
-        .mapToObj(i -> new IntString(
-            IntStream.range(0, p)
-                .map(gi -> (i * s <= gi && gi < (i + 1) * s) ? (upperBound - 1) : 0)
-                .boxed()
-                .toList(),
-            0,
-            upperBound))
+        .mapToObj(
+            i -> new IntString(
+                IntStream.range(0, p)
+                    .map(gi -> (i * s <= gi && gi < (i + 1) * s) ? (upperBound - 1) : 0)
+                    .boxed()
+                    .toList(),
+                0,
+                upperBound
+            )
+        )
         .toList();
   }
 

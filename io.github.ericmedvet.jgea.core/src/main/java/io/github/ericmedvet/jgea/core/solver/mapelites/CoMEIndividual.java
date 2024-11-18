@@ -24,7 +24,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -53,7 +53,8 @@ public interface CoMEIndividual<G1, G2, S1, S2, S, Q> extends Individual<Pair<G1
       long qualityMappingIteration,
       Collection<Long> parentIds,
       MEIndividual<G1, S1, Q> individual1,
-      MEIndividual<G2, S2, Q> individual2) {
+      MEIndividual<G2, S2, Q> individual2
+  ) {
     record HardIndividual<G1, G2, S1, S2, S, Q>(
         long id,
         Pair<G1, G2> genotype,
@@ -63,8 +64,8 @@ public interface CoMEIndividual<G1, G2, S1, S2, S, Q> extends Individual<Pair<G1
         long qualityMappingIteration,
         Collection<Long> parentIds,
         MEIndividual<G1, S1, Q> individual1,
-        MEIndividual<G2, S2, Q> individual2)
-        implements CoMEIndividual<G1, G2, S1, S2, S, Q> {}
+        MEIndividual<G2, S2, Q> individual2
+    ) implements CoMEIndividual<G1, G2, S1, S2, S, Q> {}
     return new HardIndividual<>(
         id,
         new Pair<>(individual1.genotype(), individual2.genotype()),
@@ -74,7 +75,8 @@ public interface CoMEIndividual<G1, G2, S1, S2, S, Q> extends Individual<Pair<G1
         qualityMappingIteration,
         parentIds,
         individual1,
-        individual2);
+        individual2
+    );
   }
 
   default CoMEIndividual<G2, G1, S2, S1, S, Q> swapped() {
@@ -86,6 +88,7 @@ public interface CoMEIndividual<G1, G2, S1, S2, S, Q> extends Individual<Pair<G1
         qualityMappingIteration(),
         parentIds(),
         individual2(),
-        individual1());
+        individual1()
+    );
   }
 }

@@ -34,9 +34,11 @@ public class SimpleComposed extends SyntheticUnivariateRegressionProblem {
               double fx = 1d / (x * x + 1d);
               return 2d * fx - Math.sin(10d * fx) + 0.1d / fx;
             },
-            1),
+            1
+        ),
         MathUtils.pairwise(MathUtils.equispacedValues(-3, 3, .1)),
         MathUtils.pairwise(MathUtils.equispacedValues(-5, 5, .05)),
-        metric);
+        metric
+    );
   }
 }

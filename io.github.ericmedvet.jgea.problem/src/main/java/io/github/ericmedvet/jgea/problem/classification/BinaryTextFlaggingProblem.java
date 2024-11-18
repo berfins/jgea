@@ -29,7 +29,7 @@ import java.util.stream.Stream;
 
 public class BinaryTextFlaggingProblem extends GrammarBasedTextFlaggingProblem {
 
-  private static final String[] REGEXES = new String[] {"101010...010101", "11111...11111", "(11110000)++"};
+  private static final String[] REGEXES = new String[]{"101010...010101", "11111...11111", "(11110000)++"};
   private static final String ALPHABET = "01";
 
   public BinaryTextFlaggingProblem(
@@ -40,7 +40,8 @@ public class BinaryTextFlaggingProblem extends GrammarBasedTextFlaggingProblem {
       int i,
       ClassificationFitness.Metric learningErrorMetric,
       ClassificationFitness.Metric validationErrorMetric,
-      RegexGrammar.Option... options) {
+      RegexGrammar.Option... options
+  ) {
     super(
         new TreeSet<>(ALPHABET.chars().mapToObj(c -> (char) c).collect(Collectors.toSet())),
         new LinkedHashSet<>(Arrays.asList(options)),
@@ -48,11 +49,17 @@ public class BinaryTextFlaggingProblem extends GrammarBasedTextFlaggingProblem {
         folds,
         i,
         learningErrorMetric,
-        validationErrorMetric);
+        validationErrorMetric
+    );
   }
 
   private static List<Pair<String, Label>> buildData(
-      String[] regexes, String alphabet, int length, int size, Random random) {
+      String[] regexes,
+      String alphabet,
+      int length,
+      int size,
+      Random random
+  ) {
     List<String> positives = new ArrayList<>();
     List<String> negatives = new ArrayList<>();
     List<Pattern> patterns = Stream.of(regexes).map(Pattern::compile).toList();

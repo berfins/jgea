@@ -24,7 +24,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -64,41 +64,59 @@ public record Network(List<Gate> gates, Set<Wire> wires) {
     }
     // merge and check
     Map<Generic, Set<Type>> merged = Misc.merge(maps);
-    Optional<Map.Entry<Generic, Set<Type>>> oneWrongEntry =
-        merged.entrySet().stream().filter(e -> e.getValue().size() > 1).findAny();
+    Optional<Map.Entry<Generic, Set<Type>>> oneWrongEntry = merged.entrySet()
+        .stream()
+        .filter(e -> e.getValue().size() > 1)
+        .findAny();
     if (oneWrongEntry.isPresent()) {
-      throw new TypeException("Inconsistent type for %s: %s"
-          .formatted(
-              oneWrongEntry.get().getKey(),
-              oneWrongEntry.get().getValue().stream()
-                  .map(Object::toString)
-                  .collect(Collectors.joining(", "))));
+      throw new TypeException(
+          "Inconsistent type for %s: %s"
+              .formatted(
+                  oneWrongEntry.get().getKey(),
+                  oneWrongEntry.get()
+                      .getValue()
+                      .stream()
+                      .map(Object::toString)
+                      .collect(Collectors.joining(", "))
+              )
+      );
     }
     // map generic to actual types
-    Map<Generic, Type> genericTypeMap = merged.entrySet().stream()
-        .collect(Collectors.toMap(
-            Map.Entry::getKey,
-            e -> e.getValue().stream().findFirst().orElseThrow()));
+    Map<Generic, Type> genericTypeMap = merged.entrySet()
+        .stream()
+        .collect(
+            Collectors.toMap(
+                Map.Entry::getKey,
+                e -> e.getValue().stream().findFirst().orElseThrow()
+            )
+        );
     return srcType.concrete(genericTypeMap);
   }
 
   @Override
   public String toString() {
     return IntStream.range(0, gates.size())
-        .mapToObj(i -> "%3d : %s inputs:%s outputs:%s"
-            .formatted(
-                i,
-                gates.get(i),
-                IntStream.range(0, gates.get(i).inputPorts().size())
-                    .mapToObj(j -> wireTo(new Wire.EndPoint(i, j))
-                        .map(w -> w.src().toString())
-                        .orElse("_"))
-                    .collect(Collectors.joining(",")),
-                IntStream.range(0, gates.get(i).outputTypes().size())
-                    .mapToObj(j -> wiresFrom(new Wire.EndPoint(i, j)).stream()
-                        .map(w -> w.dst().toString())
-                        .collect(Collectors.joining("+")))
-                    .collect(Collectors.joining(","))))
+        .mapToObj(
+            i -> "%3d : %s inputs:%s outputs:%s"
+                .formatted(
+                    i,
+                    gates.get(i),
+                    IntStream.range(0, gates.get(i).inputPorts().size())
+                        .mapToObj(
+                            j -> wireTo(new Wire.EndPoint(i, j))
+                                .map(w -> w.src().toString())
+                                .orElse("_")
+                        )
+                        .collect(Collectors.joining(",")),
+                    IntStream.range(0, gates.get(i).outputTypes().size())
+                        .mapToObj(
+                            j -> wiresFrom(new Wire.EndPoint(i, j)).stream()
+                                .map(w -> w.dst().toString())
+                                .collect(Collectors.joining("+"))
+                        )
+                        .collect(Collectors.joining(","))
+                )
+        )
         .collect(Collectors.joining("\n"));
   }
 
@@ -138,18 +156,23 @@ public record Network(List<Gate> gates, Set<Wire> wires) {
   }
 
   private void validateOutGenerics(int gateIndex) throws NetworkStructureException {
-    Set<Generic> outGenerics = gates.get(gateIndex).outputTypes().stream()
+    Set<Generic> outGenerics = gates.get(gateIndex)
+        .outputTypes()
+        .stream()
         .map(Type::generics)
         .reduce(Misc::union)
         .orElse(Set.of());
-    Set<Generic> inGenerics = gates.get(gateIndex).inputPorts().stream()
+    Set<Generic> inGenerics = gates.get(gateIndex)
+        .inputPorts()
+        .stream()
         .map(Gate.Port::type)
         .map(Type::generics)
         .reduce(Misc::union)
         .orElse(Set.of());
     if (!inGenerics.containsAll(outGenerics)) {
       throw new NetworkStructureException(
-          "Undefined out generics: in=%s out=%s".formatted(inGenerics, outGenerics));
+          "Undefined out generics: in=%s out=%s".formatted(inGenerics, outGenerics)
+      );
     }
   }
 
@@ -166,15 +189,17 @@ public record Network(List<Gate> gates, Set<Wire> wires) {
   }
 
   private void validatePortIndexes(Wire wire) throws NetworkStructureException {
-    if (gates().get(wire.src().gateIndex()).outputTypes().size()
-        <= wire.src().portIndex()) {
-      throw new NetworkStructureException("Not existing out port in src gate (%s)"
-          .formatted(gates().get(wire.src().gateIndex())));
+    if (gates().get(wire.src().gateIndex()).outputTypes().size() <= wire.src().portIndex()) {
+      throw new NetworkStructureException(
+          "Not existing out port in src gate (%s)"
+              .formatted(gates().get(wire.src().gateIndex()))
+      );
     }
-    if (gates().get(wire.dst().gateIndex()).inputPorts().size()
-        <= wire.dst().portIndex()) {
-      throw new NetworkStructureException("Not existing in port in dst gate (%s)"
-          .formatted(gates().get(wire.dst().gateIndex())));
+    if (gates().get(wire.dst().gateIndex()).inputPorts().size() <= wire.dst().portIndex()) {
+      throw new NetworkStructureException(
+          "Not existing in port in dst gate (%s)"
+              .formatted(gates().get(wire.dst().gateIndex()))
+      );
     }
   }
 

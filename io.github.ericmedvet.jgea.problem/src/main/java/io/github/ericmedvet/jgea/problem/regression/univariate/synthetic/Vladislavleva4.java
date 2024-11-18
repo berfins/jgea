@@ -39,19 +39,23 @@ public class Vladislavleva4 extends SyntheticUnivariateRegressionProblem {
               }
               return 10d / (5d + s);
             },
-            5),
+            5
+        ),
         MathUtils.pairwise(
             MathUtils.uniformSample(0.05, 6.05, 1024, new Random(seed)),
             MathUtils.uniformSample(0.05, 6.05, 1024, new Random(seed + 1)),
             MathUtils.uniformSample(0.05, 6.05, 1024, new Random(seed + 2)),
             MathUtils.uniformSample(0.05, 6.05, 1024, new Random(seed + 3)),
-            MathUtils.uniformSample(0.05, 6.05, 1024, new Random(seed + 4))),
+            MathUtils.uniformSample(0.05, 6.05, 1024, new Random(seed + 4))
+        ),
         MathUtils.pairwise(
             MathUtils.uniformSample(-0.25, 6.35, 5000, new Random(seed)),
             MathUtils.uniformSample(-0.25, 6.35, 5000, new Random(seed + 1)),
             MathUtils.uniformSample(-0.25, 6.35, 5000, new Random(seed + 2)),
             MathUtils.uniformSample(-0.25, 6.35, 5000, new Random(seed + 3)),
-            MathUtils.uniformSample(-0.25, 6.35, 5000, new Random(seed + 4))),
-        metric);
+            MathUtils.uniformSample(-0.25, 6.35, 5000, new Random(seed + 4))
+        ),
+        metric
+    );
   }
 }

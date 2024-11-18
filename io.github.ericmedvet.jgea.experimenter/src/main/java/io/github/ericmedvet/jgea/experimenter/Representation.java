@@ -44,13 +44,15 @@ public record Representation<G>(Factory<G> factory, List<Mutation<G>> mutations,
             .toList(),
         r1.crossovers.stream()
             .flatMap(xo1 -> r2.crossovers.stream().map(xo2 -> Crossover.pair(xo1, xo2)))
-            .toList());
+            .toList()
+    );
   }
 
   public Map<GeneticOperator<G>, Double> geneticOperators(double crossoverP) {
     return Stream.concat(
-            mutations.stream().map(m -> Map.entry(m, (1d - crossoverP) / (double) mutations.size())),
-            crossovers.stream().map(c -> Map.entry(c, crossoverP / (double) crossovers.size())))
+        mutations.stream().map(m -> Map.entry(m, (1d - crossoverP) / (double) mutations.size())),
+        crossovers.stream().map(c -> Map.entry(c, crossoverP / (double) crossovers.size()))
+    )
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (p1, p2) -> p1, LinkedHashMap::new));
   }
 }

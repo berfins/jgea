@@ -26,8 +26,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.ToDoubleFunction;
 
-public abstract class AbstractNumericalProblem
-    implements ComparableQualityBasedProblem<List<Double>, Double>, ProblemWithExampleSolution<List<Double>> {
+public abstract class AbstractNumericalProblem implements ComparableQualityBasedProblem<List<Double>, Double>, ProblemWithExampleSolution<List<Double>> {
   private final int p;
   private final ToDoubleFunction<List<Double>> f;
 

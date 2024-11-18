@@ -39,8 +39,8 @@ public class FileTextFlaggingProblem extends GrammarBasedTextFlaggingProblem {
       int i,
       ClassificationFitness.Metric learningErrorMetric,
       ClassificationFitness.Metric validationErrorMetric,
-      RegexGrammar.Option... options)
-      throws IOException {
+      RegexGrammar.Option... options
+  ) throws IOException {
     super(
         null,
         new LinkedHashSet<>(Arrays.asList(options)),
@@ -48,18 +48,25 @@ public class FileTextFlaggingProblem extends GrammarBasedTextFlaggingProblem {
         folds,
         i,
         learningErrorMetric,
-        validationErrorMetric);
+        validationErrorMetric
+    );
   }
 
-  private static List<Pair<String, Label>> buildData(String positiveFileName, String negativeFileName)
-      throws IOException {
+  private static List<Pair<String, Label>> buildData(
+      String positiveFileName,
+      String negativeFileName
+  ) throws IOException {
     List<Pair<String, Label>> data = new ArrayList<>();
-    data.addAll(Files.lines(Paths.get(positiveFileName))
-        .map(s -> new Pair<>(s, Label.FOUND))
-        .toList());
-    data.addAll(Files.lines(Paths.get(negativeFileName))
-        .map(s -> new Pair<>(s, Label.NOT_FOUND))
-        .toList());
+    data.addAll(
+        Files.lines(Paths.get(positiveFileName))
+            .map(s -> new Pair<>(s, Label.FOUND))
+            .toList()
+    );
+    data.addAll(
+        Files.lines(Paths.get(negativeFileName))
+            .map(s -> new Pair<>(s, Label.NOT_FOUND))
+            .toList()
+    );
     return data;
   }
 }

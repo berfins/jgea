@@ -30,8 +30,7 @@ import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.stream.IntStream;
 
-public class UnivariateRegressionFitness
-    implements CaseBasedFitness<NamedUnivariateRealFunction, Map<String, Double>, Double, Double> {
+public class UnivariateRegressionFitness implements CaseBasedFitness<NamedUnivariateRealFunction, Map<String, Double>, Double, Double> {
 
   private final NumericalDataset dataset;
   private final Metric metric;
@@ -45,23 +44,30 @@ public class UnivariateRegressionFitness
   }
 
   public enum Metric implements Function<List<Y>, Double> {
-    MAE(ys -> ys.stream()
-        .mapToDouble(y -> Math.abs(y.predicted - y.actual))
-        .average()
-        .orElse(Double.NaN)),
-    MSE(ys -> ys.stream()
-        .mapToDouble(y -> (y.predicted - y.actual) * (y.predicted - y.actual))
-        .average()
-        .orElse(Double.NaN)),
-    RMSE(ys -> Math.sqrt(ys.stream()
-        .mapToDouble(y -> (y.predicted - y.actual) * (y.predicted - y.actual))
-        .average()
-        .orElse(Double.NaN))),
-    NMSE(ys -> ys.stream()
+    MAE(
+        ys -> ys.stream()
+            .mapToDouble(y -> Math.abs(y.predicted - y.actual))
+            .average()
+            .orElse(Double.NaN)
+    ), MSE(
+        ys -> ys.stream()
             .mapToDouble(y -> (y.predicted - y.actual) * (y.predicted - y.actual))
             .average()
             .orElse(Double.NaN)
-        / ys.stream().mapToDouble(y -> y.actual).average().orElse(1d));
+    ), RMSE(
+        ys -> Math.sqrt(
+            ys.stream()
+                .mapToDouble(y -> (y.predicted - y.actual) * (y.predicted - y.actual))
+                .average()
+                .orElse(Double.NaN)
+        )
+    ), NMSE(
+        ys -> ys.stream()
+            .mapToDouble(y -> (y.predicted - y.actual) * (y.predicted - y.actual))
+            .average()
+            .orElse(Double.NaN) / ys.stream().mapToDouble(y -> y.actual).average().orElse(1d)
+    );
+
     private final Function<List<Y>, Double> function;
 
     Metric(Function<List<Y>, Double> function) {

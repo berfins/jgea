@@ -34,10 +34,12 @@ public class Xor extends SyntheticUnivariateRegressionProblem {
               double x2 = quantize(vs[1]);
               return x1 == x2 ? 0 : 1;
             },
-            2),
-        List.of(new double[] {0d, 0d}, new double[] {0d, 1d}, new double[] {1d, 0d}, new double[] {1d, 1d}),
-        List.of(new double[] {0d, 0d}, new double[] {0d, 1d}, new double[] {1d, 0d}, new double[] {1d, 1d}),
-        metric);
+            2
+        ),
+        List.of(new double[]{0d, 0d}, new double[]{0d, 1d}, new double[]{1d, 0d}, new double[]{1d, 1d}),
+        List.of(new double[]{0d, 0d}, new double[]{0d, 1d}, new double[]{1d, 0d}, new double[]{1d, 1d}),
+        metric
+    );
   }
 
   private static double quantize(double v) {

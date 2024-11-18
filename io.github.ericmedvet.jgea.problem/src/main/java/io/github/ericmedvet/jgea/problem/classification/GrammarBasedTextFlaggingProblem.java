@@ -33,9 +33,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class GrammarBasedTextFlaggingProblem extends TextFlaggingProblem
-    implements GrammarBasedProblem<String, Classifier<String, TextFlaggingProblem.Label>>,
-        QualityBasedProblem<Classifier<String, TextFlaggingProblem.Label>, List<Double>> {
+public class GrammarBasedTextFlaggingProblem extends TextFlaggingProblem implements GrammarBasedProblem<String, Classifier<String, TextFlaggingProblem.Label>>, QualityBasedProblem<Classifier<String, TextFlaggingProblem.Label>, List<Double>> {
 
   private final StringGrammar<String> grammar;
   private final Function<Tree<String>, Classifier<String, TextFlaggingProblem.Label>> solutionMapper;
@@ -47,7 +45,8 @@ public class GrammarBasedTextFlaggingProblem extends TextFlaggingProblem
       int folds,
       int i,
       ClassificationFitness.Metric learningErrorMetric,
-      ClassificationFitness.Metric validationErrorMetric) {
+      ClassificationFitness.Metric validationErrorMetric
+  ) {
     super(data, folds, i, learningErrorMetric, validationErrorMetric);
     solutionMapper = (Tree<String> tree) -> {
       String regex = tree.leaves().stream().map(Tree::content).collect(Collectors.joining());

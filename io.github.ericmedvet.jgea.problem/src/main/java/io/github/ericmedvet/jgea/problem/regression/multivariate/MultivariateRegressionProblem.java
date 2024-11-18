@@ -26,10 +26,7 @@ import io.github.ericmedvet.jgea.core.problem.ProblemWithValidation;
 import io.github.ericmedvet.jgea.core.representation.NamedMultivariateRealFunction;
 import io.github.ericmedvet.jsdynsym.core.numerical.UnivariateRealFunction;
 
-public class MultivariateRegressionProblem<F extends MultivariateRegressionFitness>
-    implements ComparableQualityBasedProblem<NamedMultivariateRealFunction, Double>,
-        ProblemWithValidation<NamedMultivariateRealFunction, Double>,
-        ProblemWithExampleSolution<NamedMultivariateRealFunction> {
+public class MultivariateRegressionProblem<F extends MultivariateRegressionFitness> implements ComparableQualityBasedProblem<NamedMultivariateRealFunction, Double>, ProblemWithValidation<NamedMultivariateRealFunction, Double>, ProblemWithExampleSolution<NamedMultivariateRealFunction> {
   private final F fitness;
   private final F validationFitness;
 
@@ -42,9 +39,12 @@ public class MultivariateRegressionProblem<F extends MultivariateRegressionFitne
   public NamedMultivariateRealFunction example() {
     return NamedMultivariateRealFunction.from(
         UnivariateRealFunction.from(
-            xs -> 0d, fitness.getDataset().xVarNames().size()),
+            xs -> 0d,
+            fitness.getDataset().xVarNames().size()
+        ),
         fitness.getDataset().xVarNames(),
-        fitness.getDataset().yVarNames());
+        fitness.getDataset().yVarNames()
+    );
   }
 
   @Override

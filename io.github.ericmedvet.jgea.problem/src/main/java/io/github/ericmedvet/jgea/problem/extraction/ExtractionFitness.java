@@ -34,13 +34,7 @@ public class ExtractionFitness<S> implements Function<Extractor<S>, List<Double>
   }
 
   public enum Metric {
-    ONE_MINUS_PREC,
-    ONE_MINUS_REC,
-    ONE_MINUS_FM,
-    SYMBOL_FNR,
-    SYMBOL_FPR,
-    SYMBOL_ERROR,
-    SYMBOL_WEIGHTED_ERROR
+    ONE_MINUS_PREC, ONE_MINUS_REC, ONE_MINUS_FM, SYMBOL_FNR, SYMBOL_FPR, SYMBOL_ERROR, SYMBOL_WEIGHTED_ERROR
   }
 
   private static class Aggregator<S> implements Function<Set<IntRange>, List<Double>> {
@@ -62,9 +56,9 @@ public class ExtractionFitness<S> implements Function<Extractor<S>, List<Double>
     @Override
     public List<Double> apply(Set<IntRange> extractions) {
       Map<Metric, Double> values = new EnumMap<>(Metric.class);
-      if (metrics.contains(Metric.ONE_MINUS_FM)
-          || metrics.contains(Metric.ONE_MINUS_PREC)
-          || metrics.contains(Metric.ONE_MINUS_REC)) {
+      if (metrics.contains(Metric.ONE_MINUS_FM) || metrics.contains(Metric.ONE_MINUS_PREC) || metrics.contains(
+          Metric.ONE_MINUS_REC
+      )) {
         // precision and recall
         Set<IntRange> correctExtractions = new LinkedHashSet<>(extractions);
         correctExtractions.retainAll(desiredExtractions);
@@ -75,29 +69,27 @@ public class ExtractionFitness<S> implements Function<Extractor<S>, List<Double>
         values.put(Metric.ONE_MINUS_REC, 1 - recall);
         values.put(Metric.ONE_MINUS_FM, 1 - fMeasure);
       }
-      if (metrics.contains(Metric.SYMBOL_ERROR)
-          || metrics.contains(Metric.SYMBOL_FNR)
-          || metrics.contains(Metric.SYMBOL_FPR)
-          || metrics.contains(Metric.SYMBOL_WEIGHTED_ERROR)) {
+      if (metrics.contains(Metric.SYMBOL_ERROR) || metrics.contains(Metric.SYMBOL_FNR) || metrics.contains(
+          Metric.SYMBOL_FPR
+      ) || metrics.contains(Metric.SYMBOL_WEIGHTED_ERROR)) {
         BitSet extractionMask = buildMask(extractions, sequence.size());
         int extractedSymbols = extractionMask.cardinality();
         extractionMask.and(desiredExtractionMask);
         double truePositiveSymbols = extractionMask.cardinality();
         double falseNegativeSymbols = positiveSymbols - truePositiveSymbols;
         double falsePositiveSymbols = extractedSymbols - truePositiveSymbols;
-        double trueNegativeChars = desiredExtractionMask.length()
-            - falsePositiveSymbols
-            - truePositiveSymbols
-            - falseNegativeSymbols;
+        double trueNegativeChars = desiredExtractionMask
+            .length() - falsePositiveSymbols - truePositiveSymbols - falseNegativeSymbols;
         values.put(Metric.SYMBOL_FPR, falsePositiveSymbols / (trueNegativeChars + falsePositiveSymbols));
         values.put(Metric.SYMBOL_FNR, falseNegativeSymbols / (truePositiveSymbols + falseNegativeSymbols));
         values.put(
-            Metric.SYMBOL_ERROR, (falsePositiveSymbols + falseNegativeSymbols) / (double) sequence.size());
+            Metric.SYMBOL_ERROR,
+            (falsePositiveSymbols + falseNegativeSymbols) / (double) sequence.size()
+        );
         values.put(
             Metric.SYMBOL_WEIGHTED_ERROR,
-            (falsePositiveSymbols / (trueNegativeChars + falsePositiveSymbols)
-                    + falseNegativeSymbols / (truePositiveSymbols + falseNegativeSymbols))
-                / 2d);
+            (falsePositiveSymbols / (trueNegativeChars + falsePositiveSymbols) + falseNegativeSymbols / (truePositiveSymbols + falseNegativeSymbols)) / 2d
+        );
       }
       List<Double> results = new ArrayList<>(metrics.size());
       for (Metric metric : metrics) {

@@ -32,6 +32,7 @@ public class Nguyen7 extends SyntheticUnivariateRegressionProblem {
         UnivariateRealFunction.from(v -> Math.log(v[0] + 1d) + Math.log(v[0] * v[0] + 1d), 1),
         MathUtils.pairwise(MathUtils.uniformSample(0, 2, 20, new Random(seed))),
         MathUtils.pairwise(MathUtils.uniformSample(0, 2, 100, new Random(seed))),
-        metric);
+        metric
+    );
   }
 }

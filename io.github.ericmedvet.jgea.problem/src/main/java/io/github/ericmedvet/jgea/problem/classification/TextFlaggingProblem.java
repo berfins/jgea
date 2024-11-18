@@ -30,12 +30,12 @@ public class TextFlaggingProblem extends ClassificationProblem<String, TextFlagg
       int folds,
       int i,
       ClassificationFitness.Metric learningErrorMetric,
-      ClassificationFitness.Metric validationErrorMetric) {
+      ClassificationFitness.Metric validationErrorMetric
+  ) {
     super(data, folds, i, learningErrorMetric, validationErrorMetric);
   }
 
   public enum Label {
-    FOUND,
-    NOT_FOUND
+    FOUND, NOT_FOUND
   }
 }

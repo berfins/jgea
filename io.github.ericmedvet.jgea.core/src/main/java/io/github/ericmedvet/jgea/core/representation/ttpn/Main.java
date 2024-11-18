@@ -22,9 +22,7 @@ package io.github.ericmedvet.jgea.core.representation.ttpn;
 import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
 import io.github.ericmedvet.jgea.core.representation.ttpn.type.Base;
 import io.github.ericmedvet.jgea.core.representation.ttpn.type.Composed;
-
 import java.util.*;
-import java.util.stream.IntStream;
 
 public class Main {
   public static void main(String[] args) throws NetworkStructureException, RunnerException {
@@ -52,7 +50,8 @@ public class Main {
     n.validate();
     Runner runner = new Runner(1000, 1000);
     Runner.Outcome outcome = runner.run(
-        n, List.of(
+        n,
+        List.of(
             List.of(1d, 2d),
             List.of(3d, 4d)
         )

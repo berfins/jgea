@@ -23,10 +23,7 @@ import java.util.Map;
 import java.util.Set;
 
 public enum Base implements Type {
-  BOOLEAN(Boolean.class),
-  INT(Integer.class),
-  REAL(Double.class),
-  STRING(String.class);
+  BOOLEAN(Boolean.class), INT(Integer.class), REAL(Double.class), STRING(String.class);
 
   private final Class<?> javaClass;
 

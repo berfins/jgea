@@ -20,7 +20,6 @@
 package io.github.ericmedvet.jgea.core.representation.ttpn.type;
 
 import io.github.ericmedvet.jgea.core.util.Misc;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -31,7 +30,7 @@ public record Tuple(List<Type> types) implements Composed {
 
   @Override
   public boolean canTakeValuesOf(Type other) {
-    if (other instanceof Tuple(List<Type> otherTypes)) {
+    if (other instanceof Tuple(List<Type>otherTypes)) {
       if (otherTypes.size() != types.size()) {
         for (int i = 0; i < types.size(); i++) {
           if (!types.get(i).canTakeValuesOf(otherTypes.get(i))) {
@@ -78,20 +77,26 @@ public record Tuple(List<Type> types) implements Composed {
         maps.add(types.get(i).resolveGenerics(otherTypes.get(i)));
       }
       Map<Generic, Set<Type>> merged = Misc.merge(maps);
-      Optional<Map.Entry<Generic, Set<Type>>> oneWrongEntry = merged.entrySet().stream()
+      Optional<Map.Entry<Generic, Set<Type>>> oneWrongEntry = merged.entrySet()
+          .stream()
           .filter(e -> e.getValue().size() > 1)
           .findAny();
       if (oneWrongEntry.isPresent()) {
-        throw new TypeException("Inconsistent types for %s: %s".formatted(
-            oneWrongEntry.get().getKey(),
-            oneWrongEntry.get().getValue().stream().map(Object::toString).collect(Collectors.joining(", "))
-        ));
+        throw new TypeException(
+            "Inconsistent types for %s: %s".formatted(
+                oneWrongEntry.get().getKey(),
+                oneWrongEntry.get().getValue().stream().map(Object::toString).collect(Collectors.joining(", "))
+            )
+        );
       }
-      return merged.entrySet().stream()
-          .collect(Collectors.toMap(
-              Map.Entry::getKey,
-              e -> e.getValue().stream().findFirst().orElseThrow()
-          ));
+      return merged.entrySet()
+          .stream()
+          .collect(
+              Collectors.toMap(
+                  Map.Entry::getKey,
+                  e -> e.getValue().stream().findFirst().orElseThrow()
+              )
+          );
     }
     throw new TypeException("Wrong concrete type %s".formatted(concreteType));
   }

@@ -29,8 +29,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
-public class MultiObjectiveIntOneMax
-    implements MultiHomogeneousObjectiveProblem<IntString, Double>, ProblemWithExampleSolution<IntString> {
+public class MultiObjectiveIntOneMax implements MultiHomogeneousObjectiveProblem<IntString, Double>, ProblemWithExampleSolution<IntString> {
   private final int p;
   private final int upperBound;
 
@@ -52,11 +51,12 @@ public class MultiObjectiveIntOneMax
   @Override
   public Function<IntString, List<Double>> qualityFunction() {
     return is -> IntStream.range(1, upperBound)
-        .mapToObj(i -> 1d
-            - (double) is.genes().stream()
-                    .filter(gi -> gi.equals(i))
-                    .count()
-                / (double) is.size())
+        .mapToObj(
+            i -> 1d - (double) is.genes()
+                .stream()
+                .filter(gi -> gi.equals(i))
+                .count() / (double) is.size()
+        )
         .toList();
   }
 }

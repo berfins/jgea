@@ -27,8 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-public class ClassificationFitness<O, L extends Enum<L>>
-    extends ListCaseBasedFitness<Classifier<O, L>, O, L, List<Double>> {
+public class ClassificationFitness<O, L extends Enum<L>> extends ListCaseBasedFitness<Classifier<O, L>, O, L, List<Double>> {
 
   private final List<Pair<O, L>> data;
 
@@ -36,18 +35,18 @@ public class ClassificationFitness<O, L extends Enum<L>>
     super(
         data.stream().map(Pair::first).toList(),
         Classifier::classify,
-        getAggregator(data.stream().map(Pair::second).toList(), errorMetric));
+        getAggregator(data.stream().map(Pair::second).toList(), errorMetric)
+    );
     this.data = data;
   }
 
   public enum Metric {
-    CLASS_ERROR_RATE,
-    ERROR_RATE,
-    BALANCED_ERROR_RATE
+    CLASS_ERROR_RATE, ERROR_RATE, BALANCED_ERROR_RATE
   }
 
-  private record ClassErrorRate<E extends Enum<E>>(List<E> actualLabels)
-      implements Function<List<E>, List<Pair<Integer, Integer>>> {
+  private record ClassErrorRate<E extends Enum<E>>(
+      List<E> actualLabels
+  ) implements Function<List<E>, List<Pair<Integer, Integer>>> {
 
     @SuppressWarnings("unchecked")
     @Override
@@ -71,7 +70,9 @@ public class ClassificationFitness<O, L extends Enum<L>>
   }
 
   private static <E extends Enum<E>> Function<List<E>, List<Double>> getAggregator(
-      List<E> actualLabels, Metric metric) {
+      List<E> actualLabels,
+      Metric metric
+  ) {
     final ClassErrorRate<E> classErrorRate = new ClassErrorRate<>(actualLabels);
     if (metric.equals(Metric.CLASS_ERROR_RATE)) {
       return (List<E> predictedLabels) -> {
@@ -98,11 +99,13 @@ public class ClassificationFitness<O, L extends Enum<L>>
     if (metric.equals(Metric.BALANCED_ERROR_RATE)) {
       return (List<E> predictedLabels) -> {
         List<Pair<Integer, Integer>> pairs = classErrorRate.apply(predictedLabels);
-        return List.of(pairs.stream()
-            .map(p -> ((double) p.first() / (double) p.second()))
-            .mapToDouble(Double::doubleValue)
-            .average()
-            .orElse(Double.NaN));
+        return List.of(
+            pairs.stream()
+                .map(p -> ((double) p.first() / (double) p.second()))
+                .mapToDouble(Double::doubleValue)
+                .average()
+                .orElse(Double.NaN)
+        );
       };
     }
     return null;

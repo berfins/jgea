@@ -36,17 +36,19 @@ public class RegexGrammar extends StringGrammar<String> {
             .map(s -> s.chars().mapToObj(c -> (char) c).collect(Collectors.toSet()))
             .reduce(Misc::union)
             .orElse(Set.of()),
-        options);
+        options
+    );
   }
 
   public RegexGrammar(ExtractionFitness<Character> fitness, Set<Option> options) {
     this(
-        fitness.getDesiredExtractions().stream()
-            .map(r -> (Set<Character>)
-                (new HashSet<>(fitness.getSequence().subList(r.min(), r.max()))))
+        fitness.getDesiredExtractions()
+            .stream()
+            .map(r -> (Set<Character>) (new HashSet<>(fitness.getSequence().subList(r.min(), r.max()))))
             .reduce(Misc::union)
             .orElse(Set.of()),
-        options);
+        options
+    );
   }
 
   public RegexGrammar(Set<Character> alphabet, Set<Option> options) {
@@ -101,15 +103,7 @@ public class RegexGrammar extends StringGrammar<String> {
   }
 
   public enum Option {
-    OR,
-    QUANTIFIERS,
-    NON_EMPTY_QUANTIFIER,
-    BOUNDED_QUANTIFIERS,
-    CHAR_CLASS,
-    NEGATED_CHAR_CLASS,
-    NON_CAPTURING_GROUP,
-    ANY,
-    ENHANCED_CONCATENATION
+    OR, QUANTIFIERS, NON_EMPTY_QUANTIFIER, BOUNDED_QUANTIFIERS, CHAR_CLASS, NEGATED_CHAR_CLASS, NON_CAPTURING_GROUP, ANY, ENHANCED_CONCATENATION
   }
 
   private String escape(String c) {

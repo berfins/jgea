@@ -46,7 +46,8 @@ public class Archive<T> {
       Archive<T> archive,
       Collection<T> ts,
       Function<? super T, ? extends List<Integer>> binsF,
-      PartialComparator<? super T> partialComparator) {
+      PartialComparator<? super T> partialComparator
+  ) {
     this(archive);
     ts.forEach(t -> put(binsF.apply(t), t, partialComparator));
   }
@@ -54,7 +55,8 @@ public class Archive<T> {
   public Archive<T> updated(
       Collection<T> ts,
       Function<? super T, ? extends List<Integer>> binsF,
-      PartialComparator<? super T> partialComparator) {
+      PartialComparator<? super T> partialComparator
+  ) {
     return new Archive<>(this, ts, binsF, partialComparator);
   }
 

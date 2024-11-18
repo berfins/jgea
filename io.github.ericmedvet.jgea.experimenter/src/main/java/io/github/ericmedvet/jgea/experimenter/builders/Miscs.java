@@ -45,7 +45,8 @@ import java.util.stream.IntStream;
 @Discoverable(prefixTemplate = "ea.misc")
 public class Miscs {
 
-  private Miscs() {}
+  private Miscs() {
+  }
 
   @SuppressWarnings("unused")
   public static VideoBuilder<MultivariateRealGridCellularAutomaton> caVideo(
@@ -55,12 +56,16 @@ public class Miscs {
       @Param(value = "sizeRate", dI = 10) int sizeRate,
       @Param(value = "marginRate", dD = 0d) double marginRate,
       @Param(value = "frameRate", dD = 10d) double frameRate,
-      @Param(value = "fontSize", dD = 10d) double fontSize) {
-    DoubleGridDrawer gDrawer = new DoubleGridDrawer(new DoubleGridDrawer.Configuration(
-        gray ? DoubleGridDrawer.Configuration.ColorType.GRAY : DoubleGridDrawer.Configuration.ColorType.RGB,
-        caStateRange,
-        sizeRate,
-        marginRate));
+      @Param(value = "fontSize", dD = 10d) double fontSize
+  ) {
+    DoubleGridDrawer gDrawer = new DoubleGridDrawer(
+        new DoubleGridDrawer.Configuration(
+            gray ? DoubleGridDrawer.Configuration.ColorType.GRAY : DoubleGridDrawer.Configuration.ColorType.RGB,
+            caStateRange,
+            sizeRate,
+            marginRate
+        )
+    );
     Drawer<Pair<Integer, Grid<double[]>>> pDrawer = new Drawer<>() {
       @Override
       public void draw(Graphics2D g, Pair<Integer, Grid<double[]>> p) {
@@ -113,7 +118,8 @@ public class Miscs {
       @Param(value = "bgColor", dNPM = "ea.misc.colorByName(name = black)") Color bgColor,
       @Param(value = "w", dI = 15) int w,
       @Param(value = "h", dI = 15) int h,
-      @Param(value = "marginRate", dD = 0.1) double marginRate) {
+      @Param(value = "marginRate", dD = 0.1) double marginRate
+  ) {
     return ImageUtils.imageDrawer(bgColor, marginRate)
         .build(new ImageBuilder.ImageInfo(w, h), ImageUtils.loadFromResource(name));
   }
@@ -126,7 +132,8 @@ public class Miscs {
       @Param(value = "bgColor", dNPM = "ea.misc.colorByName(name = black)") Color bgColor,
       @Param(value = "w", dI = 159) int w,
       @Param(value = "h", dI = 15) int h,
-      @Param(value = "marginRate", dD = 0.1) double marginRate) {
+      @Param(value = "marginRate", dD = 0.1) double marginRate
+  ) {
     return ImageUtils.stringDrawer(fgColor, bgColor, marginRate).build(new ImageBuilder.ImageInfo(w, h), s);
   }
 

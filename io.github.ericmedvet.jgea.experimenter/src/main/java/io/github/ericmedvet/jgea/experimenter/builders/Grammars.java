@@ -29,7 +29,8 @@ import java.io.IOException;
 @Discoverable(prefixTemplate = "ea.grammar")
 public class Grammars {
 
-  private Grammars() {}
+  private Grammars() {
+  }
 
   @SuppressWarnings("unused")
   @Cacheable

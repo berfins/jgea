@@ -36,9 +36,11 @@ public class Keijzer6 extends SyntheticUnivariateRegressionProblem {
               }
               return s;
             },
-            1),
+            1
+        ),
         MathUtils.pairwise(MathUtils.equispacedValues(1, 50, 1)),
         MathUtils.pairwise(MathUtils.equispacedValues(1, 120, 1)),
-        metric);
+        metric
+    );
   }
 }

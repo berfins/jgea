@@ -28,8 +28,7 @@ import io.github.ericmedvet.jnb.datastructure.Pair;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ClassificationProblem<O, L extends Enum<L>>
-    implements ProblemWithValidation<Classifier<O, L>, List<Double>> {
+public class ClassificationProblem<O, L extends Enum<L>> implements ProblemWithValidation<Classifier<O, L>, List<Double>> {
 
   // TODO fix this: currently, it enforces just one objective/metric
   private static final PartialComparator<List<Double>> COMPARATOR = ParetoDominance.build(Double.class, 1);
@@ -44,7 +43,8 @@ public class ClassificationProblem<O, L extends Enum<L>>
       int folds,
       int i,
       ClassificationFitness.Metric learningMetric,
-      ClassificationFitness.Metric validationMetric) {
+      ClassificationFitness.Metric validationMetric
+  ) {
     validationData = DataUtils.fold(data, i, folds);
     learningData = new ArrayList<>(data);
     learningData.removeAll(validationData);
