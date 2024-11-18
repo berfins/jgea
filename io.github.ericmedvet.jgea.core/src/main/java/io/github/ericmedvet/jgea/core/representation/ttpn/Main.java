@@ -22,6 +22,7 @@ package io.github.ericmedvet.jgea.core.representation.ttpn;
 import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
 import io.github.ericmedvet.jgea.core.representation.ttpn.type.Base;
 import io.github.ericmedvet.jgea.core.representation.ttpn.type.Composed;
+
 import java.util.List;
 import java.util.Set;
 
@@ -52,6 +53,6 @@ public class Main {
     n.validate();
     Runner runner = new Runner(1000, 1000);
     Runner.Outcome outcome = runner.run(n, List.of(List.of(1d, 2d), List.of(3d, 4d)));
-    System.out.println(outcome);
+    System.out.println(outcome.outputs());
   }
 }
