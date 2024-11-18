@@ -35,10 +35,8 @@
 
 package io.github.ericmedvet.jgea.core.representation.ttpn;
 
-import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
 import io.github.ericmedvet.jgea.core.representation.ttpn.type.*;
 import io.github.ericmedvet.jgea.core.util.Misc;
-
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -66,20 +64,21 @@ public record Network(List<Gate> gates, Set<Wire> wires) {
     }
     // merge and check
     Map<Generic, Set<Type>> merged = Misc.merge(maps);
-    Optional<Map.Entry<Generic, Set<Type>>> oneWrongEntry = merged.entrySet().stream()
-        .filter(e -> e.getValue().size() > 1)
-        .findAny();
+    Optional<Map.Entry<Generic, Set<Type>>> oneWrongEntry =
+        merged.entrySet().stream().filter(e -> e.getValue().size() > 1).findAny();
     if (oneWrongEntry.isPresent()) {
-      throw new TypeException("Inconsistent type for %s: %s".formatted(
-          oneWrongEntry.get().getKey(),
-          oneWrongEntry.get().getValue().stream().map(Object::toString).collect(Collectors.joining(", "))
-      ));
+      throw new TypeException("Inconsistent type for %s: %s"
+          .formatted(
+              oneWrongEntry.get().getKey(),
+              oneWrongEntry.get().getValue().stream()
+                  .map(Object::toString)
+                  .collect(Collectors.joining(", "))));
     }
     // map generic to actual types
-    Map<Generic, Type> genericTypeMap = merged.entrySet().stream().collect(Collectors.toMap(
-        Map.Entry::getKey,
-        e -> e.getValue().stream().findFirst().orElseThrow()
-    ));
+    Map<Generic, Type> genericTypeMap = merged.entrySet().stream()
+        .collect(Collectors.toMap(
+            Map.Entry::getKey,
+            e -> e.getValue().stream().findFirst().orElseThrow()));
     return srcType.concrete(genericTypeMap);
   }
 
@@ -99,8 +98,7 @@ public record Network(List<Gate> gates, Set<Wire> wires) {
                     .mapToObj(j -> wiresFrom(new Wire.EndPoint(i, j)).stream()
                         .map(w -> w.dst().toString())
                         .collect(Collectors.joining("+")))
-                    .collect(Collectors.joining(","))
-            ))
+                    .collect(Collectors.joining(","))))
         .collect(Collectors.joining("\n"));
   }
 
@@ -140,24 +138,18 @@ public record Network(List<Gate> gates, Set<Wire> wires) {
   }
 
   private void validateOutGenerics(int gateIndex) throws NetworkStructureException {
-    Set<Generic> outGenerics = gates.get(gateIndex)
-        .outputTypes()
-        .stream()
+    Set<Generic> outGenerics = gates.get(gateIndex).outputTypes().stream()
         .map(Type::generics)
         .reduce(Misc::union)
         .orElse(Set.of());
-    Set<Generic> inGenerics = gates.get(gateIndex)
-        .inputPorts()
-        .stream()
+    Set<Generic> inGenerics = gates.get(gateIndex).inputPorts().stream()
         .map(Gate.Port::type)
         .map(Type::generics)
         .reduce(Misc::union)
         .orElse(Set.of());
     if (!inGenerics.containsAll(outGenerics)) {
-      throw new NetworkStructureException("Undefined out generics: in=%s out=%s".formatted(
-          inGenerics,
-          outGenerics
-      ));
+      throw new NetworkStructureException(
+          "Undefined out generics: in=%s out=%s".formatted(inGenerics, outGenerics));
     }
   }
 
@@ -194,8 +186,7 @@ public record Network(List<Gate> gates, Set<Wire> wires) {
     try {
       Type srcType = actualType(wire);
       if (!dstType.canTakeValuesOf(srcType)) {
-        throw new NetworkStructureException("Not consistent types: src=%s, dst=%s"
-            .formatted(srcType, dstType));
+        throw new NetworkStructureException("Not consistent types: src=%s, dst=%s".formatted(srcType, dstType));
       }
     } catch (TypeException e) {
       throw new NetworkStructureException("Cannot infer actual type", e);
@@ -217,5 +208,4 @@ public record Network(List<Gate> gates, Set<Wire> wires) {
   public List<Wire> wiresFrom(int gateIndex, int portIntex) {
     return wiresFrom(new Wire.EndPoint(gateIndex, portIntex));
   }
-
 }
