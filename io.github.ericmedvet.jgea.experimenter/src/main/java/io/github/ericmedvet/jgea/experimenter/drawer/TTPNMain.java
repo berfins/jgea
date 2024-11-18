@@ -1,3 +1,22 @@
+/*-
+ * ========================LICENSE_START=================================
+ * jgea-experimenter
+ * %%
+ * Copyright (C) 2018 - 2024 Eric Medvet
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =========================LICENSE_END==================================
+ */
 /*
  * Copyright 2024 eric
  *
@@ -5,7 +24,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +38,6 @@ import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
 import io.github.ericmedvet.jgea.core.representation.ttpn.*;
 import io.github.ericmedvet.jgea.core.representation.ttpn.type.Base;
 import io.github.ericmedvet.jgea.core.representation.ttpn.type.Composed;
-
 import java.util.List;
 import java.util.Set;
 
@@ -51,7 +69,7 @@ public class TTPNMain {
     Runner runner = new Runner(1000, 1000);
     Runner.Outcome outcome = runner.run(n, List.of(List.of(1d, 2d), List.of(3d, 4d)));
     System.out.println(outcome.outputs());
-    TTPNDrawer drawer = new TTPNDrawer(new TTPNDrawer.Configuration());
-    drawer.draw(null, n);
+    TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
+    drawer.show(n);
   }
 }

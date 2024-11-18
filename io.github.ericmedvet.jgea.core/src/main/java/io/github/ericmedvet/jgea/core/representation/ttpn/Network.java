@@ -39,7 +39,6 @@ import io.github.ericmedvet.jgea.core.representation.ttpn.type.Generic;
 import io.github.ericmedvet.jgea.core.representation.ttpn.type.Type;
 import io.github.ericmedvet.jgea.core.representation.ttpn.type.TypeException;
 import io.github.ericmedvet.jgea.core.util.Misc;
-
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -47,7 +46,7 @@ import java.util.stream.IntStream;
 public record Network(List<Gate> gates, Set<Wire> wires) {
   public Network(List<Gate> gates, Set<Wire> wires) {
     this.gates = Collections.unmodifiableList(gates);
-    this.wires = Collections.unmodifiableSortedSet(new TreeSet<>(wires)); // TODO add a comparator
+    this.wires = Collections.unmodifiableSortedSet(new TreeSet<>(wires));
   }
 
   public Type actualType(Wire wire) throws TypeException {
