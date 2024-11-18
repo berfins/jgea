@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public interface Gate {
   record Data(List<List<Object>> lines) {
@@ -90,6 +91,18 @@ public interface Gate {
     public <T> List<T> ones(Class<T> clazz) {
       return ones().stream().map(clazz::cast).toList();
     }
+
+    @Override
+    public String toString() {
+      return IntStream.range(0, lines().size())
+          .mapToObj(
+              i -> "%d:%s".formatted(
+                  i,
+                  all(i).stream().map(t -> "o").collect(Collectors.joining())
+              )
+          )
+          .collect(Collectors.joining(","));
+    }
   }
 
   record InputGate(Type type) implements Gate {
@@ -99,13 +112,13 @@ public interface Gate {
     }
 
     @Override
-    public List<Type> outputTypes() {
-      return List.of(type);
+    public UnaryOperator<Data> operator() {
+      return input -> Data.empty();
     }
 
     @Override
-    public UnaryOperator<Data> operator() {
-      return input -> Data.empty();
+    public List<Type> outputTypes() {
+      return List.of(type);
     }
 
     @Override
@@ -122,13 +135,13 @@ public interface Gate {
     }
 
     @Override
-    public List<Type> outputTypes() {
-      return List.of();
+    public UnaryOperator<Data> operator() {
+      return input -> Data.empty();
     }
 
     @Override
-    public UnaryOperator<Data> operator() {
-      return input -> Data.empty();
+    public List<Type> outputTypes() {
+      return List.of();
     }
 
     @Override

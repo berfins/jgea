@@ -30,6 +30,13 @@ public class Runner {
   private final int maxSteps;
   private final int maxTokens;
 
+  public Runner(int maxSteps, int maxTokens) {
+    this.maxSteps = maxSteps;
+    this.maxTokens = maxTokens;
+  }
+
+  public record Outcome(List<Object> outputs, List<State> states) {}
+
   public record State(List<WireState> wireStates) {
     public record WireState(Wire wire, Type type, int nOfTokens) {}
 
@@ -42,11 +49,25 @@ public class Runner {
     }
   }
 
-  public record Outcome(List<Object> outputs, List<State> states) {}
+  private static <T> Queue<T> emptyQueue() {
+    return new ArrayDeque<>();
+  }
 
-  public Runner(int maxSteps, int maxTokens) {
-    this.maxSteps = maxSteps;
-    this.maxTokens = maxTokens;
+  private static <T> List<T> takeAll(Queue<T> queue) {
+    List<T> list = new ArrayList<>(queue);
+    queue.clear();
+    return list;
+  }
+
+  private static <T> List<T> takeExactly(Queue<T> queue, int n) {
+    return IntStream.range(0, n).mapToObj(i -> queue.remove()).toList();
+  }
+
+  private static <T> Optional<T> takeOne(Queue<T> queue) {
+    if (queue.isEmpty()) {
+      return Optional.empty();
+    }
+    return Optional.of(queue.remove());
   }
 
   public Outcome run(Network network, List<Object> inputs) throws RunnerException {
@@ -60,12 +81,7 @@ public class Runner {
         IntStream.range(0, network.gates().size())
             .filter(gi -> network.gates().get(gi) instanceof Gate.OutputGate)
             .boxed()
-            .collect(
-                Collectors.toMap(
-                    gi -> gi,
-                    gi -> ((Gate.OutputGate) network.gates().get(gi)).type()
-                )
-            )
+            .collect(Collectors.toMap(gi -> gi, gi -> ((Gate.OutputGate) network.gates().get(gi)).type()))
     );
     if (inputs.size() != inputTypes.size()) {
       throw new RunnerException(
@@ -110,13 +126,7 @@ public class Runner {
           "BEFORE:%n%s%n".formatted(
               current.entrySet()
                   .stream()
-                  .map(
-                      e -> "\t%s\t%2d : %s".formatted(
-                          e.getKey(),
-                          e.getValue().size(),
-                          e.getValue()
-                      )
-                  )
+                  .map(e -> "\t%s\t%2d : %s".formatted(e.getKey(), e.getValue().size(), e.getValue()))
                   .collect(Collectors.joining("%n"))
           )
       );
@@ -132,7 +142,12 @@ public class Runner {
           network.wireTo(gi, 0).flatMap(w -> takeOne(current.get(w))).ifPresent(token -> outputs.put(gi, token));
         } else {
           List<Queue<Object>> inputQueues = IntStream.range(0, g.inputPorts().size())
-              .mapToObj(pi -> network.wireTo(gi, pi).map(current::get).orElse(emptyQueue()))
+              .mapToObj(
+                  pi -> network.wireTo(
+                      gi,
+                      pi
+                  ).map(current::get).orElse(emptyQueue())
+              )
               .toList();
           // check conditions and possibly apply function
           if (IntStream.range(0, g.inputPorts().size())
@@ -153,6 +168,9 @@ public class Runner {
             );
             try {
               Gate.Data localOut = g.operator().apply(localIn);
+
+              System.out.printf("\t\tk=%3d\t%s\t%s -> %s%n", k, g, localIn, localOut);
+
               // check number of outputs
               if (localOut.lines().size() != g.outputTypes().size()) {
                 throw new RunnerException(
@@ -165,7 +183,10 @@ public class Runner {
               }
               // put outputs
               IntStream.range(0, localOut.lines().size())
-                  .forEach(pi -> network.wiresFrom(gi, pi).forEach(w -> next.put(w, localOut.lines().get(pi))));
+                  .forEach(
+                      pi -> network.wiresFrom(gi, pi)
+                          .forEach(w -> next.put(w, localOut.lines().get(pi)))
+                  );
             } catch (RuntimeException e) {
               throw new RunnerException("Cannot run %s on %s".formatted(g, localIn), e);
             }
@@ -196,9 +217,14 @@ public class Runner {
     // check output
     if (!outputTypes.keySet().equals(outputs.keySet())) {
       throw new RunnerException(
-          "Unexpected output gates: %s expected, %s found".formatted(
-              outputTypes.keySet(),
-              outputs.keySet()
+          "Missing outputs on gates: %s".formatted(
+              outputTypes.keySet()
+                  .stream()
+                  .filter(gi -> !outputs.containsKey(gi))
+                  .map(gi -> Integer.toString(gi))
+                  .collect(
+                      Collectors.joining(",")
+                  )
           )
       );
     }
@@ -214,27 +240,6 @@ public class Runner {
       }
     }
     return new Outcome(outputs.values().stream().toList(), states);
-  }
-
-  private static <T> Optional<T> takeOne(Queue<T> queue) {
-    if (queue.isEmpty()) {
-      return Optional.empty();
-    }
-    return Optional.of(queue.remove());
-  }
-
-  private static <T> List<T> takeExactly(Queue<T> queue, int n) {
-    return IntStream.range(0, n).mapToObj(i -> queue.remove()).toList();
-  }
-
-  private static <T> List<T> takeAll(Queue<T> queue) {
-    List<T> list = new ArrayList<>(queue);
-    queue.clear();
-    return list;
-  }
-
-  private static <T> Queue<T> emptyQueue() {
-    return new ArrayDeque<>();
   }
 
 }

@@ -241,10 +241,11 @@ public class Gates {
   }
 
   public static Gate splitter() {
+    //noinspection unchecked
     return Gate.of(
         List.of(Gate.Port.single(Composed.sequence(Generic.of("t")))),
         List.of(Generic.of("t")),
-        NamedFunction.from(in -> Gate.Data.single(in.all(0)), "splitter")
+        NamedFunction.from(in -> Gate.Data.single(in.one(0, List.class)), "splitter")
     );
   }
 

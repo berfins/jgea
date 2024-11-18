@@ -22,7 +22,8 @@ package io.github.ericmedvet.jgea.core.representation.ttpn;
 import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
 import io.github.ericmedvet.jgea.core.representation.ttpn.type.Base;
 import io.github.ericmedvet.jgea.core.representation.ttpn.type.Composed;
-import java.util.*;
+import java.util.List;
+import java.util.Set;
 
 public class Main {
   public static void main(String[] args) throws NetworkStructureException, RunnerException {
@@ -33,7 +34,8 @@ public class Main {
             Gates.splitter(),
             Gates.splitter(),
             Gates.rPMathOperator(Element.Operator.MULTIPLICATION),
-            Gates.rPMathOperator(Element.Operator.ADDITION),
+            //Gates.rPMathOperator(Element.Operator.ADDITION),
+            Gates.rSPSum(),
             Gate.output(Base.REAL)
         ),
         Set.of(
@@ -49,13 +51,7 @@ public class Main {
     System.out.println(n);
     n.validate();
     Runner runner = new Runner(1000, 1000);
-    Runner.Outcome outcome = runner.run(
-        n,
-        List.of(
-            List.of(1d, 2d),
-            List.of(3d, 4d)
-        )
-    );
+    Runner.Outcome outcome = runner.run(n, List.of(List.of(1d, 2d), List.of(3d, 4d)));
     System.out.println(outcome);
   }
 }
