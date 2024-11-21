@@ -26,6 +26,7 @@ import io.github.ericmedvet.jgea.core.representation.NamedUnivariateRealFunction
 import io.github.ericmedvet.jgea.core.representation.grammar.Chooser;
 import io.github.ericmedvet.jgea.core.representation.grammar.Developer;
 import io.github.ericmedvet.jgea.core.representation.grammar.grid.*;
+import io.github.ericmedvet.jgea.core.representation.grammar.string.GrammarBasedProblem;
 import io.github.ericmedvet.jgea.core.representation.graph.Graph;
 import io.github.ericmedvet.jgea.core.representation.graph.Node;
 import io.github.ericmedvet.jgea.core.representation.graph.numeric.functiongraph.FunctionGraph;
@@ -38,6 +39,7 @@ import io.github.ericmedvet.jgea.core.representation.tree.numeric.TreeBasedMulti
 import io.github.ericmedvet.jgea.core.representation.tree.numeric.TreeBasedUnivariateRealFunction;
 import io.github.ericmedvet.jgea.core.util.Naming;
 import io.github.ericmedvet.jgea.problem.ca.MultivariateRealGridCellularAutomaton;
+import io.github.ericmedvet.jgea.problem.regression.FormulaMapper;
 import io.github.ericmedvet.jnb.core.Cacheable;
 import io.github.ericmedvet.jnb.core.Discoverable;
 import io.github.ericmedvet.jnb.core.Param;
@@ -273,6 +275,23 @@ public class Mappers {
             .andThen(toOperator(postOperator)),
         nmrf -> FunctionGraph.sampleFor(nmrf.xVarNames(), nmrf.yVarNames()),
         "fGraphToNmrf[po=%s]".formatted(postOperator)));
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  public static <X, N, S> InvertibleMapper<X, S> grammarTreeBP(
+      @Param(value = "of", dNPM = "ea.m.identity()") InvertibleMapper<X, Tree<N>> beforeM,
+      @Param("problem") GrammarBasedProblem<N, S> problem) {
+    return beforeM.andThen(
+        InvertibleMapper.from((eS, t) -> problem.getSolutionMapper().apply(t), es -> null, "problem.specific"));
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  public static <X> InvertibleMapper<X, Tree<Element>> grammarTreeRegression(
+      @Param(value = "of", dNPM = "ea.m.identity()") InvertibleMapper<X, Tree<String>> beforeM) {
+    FormulaMapper mapper = new FormulaMapper();
+    return beforeM.andThen(InvertibleMapper.from((eS, t) -> mapper.apply(t), es -> null, "problem.specific"));
   }
 
   @SuppressWarnings("unused")
