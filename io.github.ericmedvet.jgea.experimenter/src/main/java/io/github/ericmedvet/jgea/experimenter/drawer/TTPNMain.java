@@ -51,7 +51,11 @@ public class TTPNMain {
             Gates.splitter(),
             Gates.splitter(),
             Gates.rPMathOperator(Element.Operator.MULTIPLICATION),
-            //Gates.rPMathOperator(Element.Operator.ADDITION),
+            Gates.rSPSum(),
+            Gate.output(Base.REAL),
+            //new ones
+            Gates.rSPSum(),
+            Gates.rSPSum(),
             Gates.rSPSum(),
             Gate.output(Base.REAL)
         ),
@@ -62,7 +66,15 @@ public class TTPNMain {
             Wire.of(3, 0, 4, 1),
             Wire.of(4, 0, 5, 0),
             Wire.of(5, 0, 5, 1),
-            Wire.of(5, 0, 6, 0)
+            Wire.of(5, 0, 6, 0),
+            //new ones
+            Wire.of(2, 0, 7, 0),
+            Wire.of(9, 0, 7, 1),
+            Wire.of(7, 0, 8, 0),
+            Wire.of(9, 0, 8, 1),
+            Wire.of(8, 0, 9, 0),
+            Wire.of(8, 0, 9, 1),
+            Wire.of(9, 0, 10, 0)
         )
     );
     System.out.println(n);
@@ -70,6 +82,7 @@ public class TTPNMain {
     Runner runner = new Runner(1000, 1000);
     Runner.Outcome outcome = runner.run(n, List.of(List.of(1d, 2d), List.of(3d, 4d)));
     System.out.println(outcome.outputs());
+    System.out.println(outcome);
     TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
     drawer.show(n);
     drawer.show(new ImageBuilder.ImageInfo(600, 300), n);

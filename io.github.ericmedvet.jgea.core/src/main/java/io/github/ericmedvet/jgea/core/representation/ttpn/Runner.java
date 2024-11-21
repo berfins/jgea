@@ -35,7 +35,24 @@ public class Runner {
     this.maxTokens = maxTokens;
   }
 
-  public record Outcome(List<Object> outputs, List<State> states) {}
+  public record Outcome(List<Object> outputs, List<State> states) {
+    public double avgNOfTokens(Type type) {
+      return states.stream().mapToDouble(s -> (double) s.nOfTokens(type)).average().orElse(0d);
+    }
+
+    public double avgNOfTokens() {
+      return states.stream().mapToDouble(s -> (double) s.nOfTokens()).average().orElse(0d);
+    }
+
+    @Override
+    public String toString() {
+      return "Out[n=%d;k=%d;nt.avg=%.1f]".formatted(
+          outputs.stream().filter(Objects::nonNull).count(),
+          states.size(),
+          avgNOfTokens()
+      );
+    }
+  }
 
   public record State(List<WireState> wireStates) {
     public record WireState(Wire wire, Type type, int nOfTokens) {}

@@ -164,7 +164,21 @@ public class TTPNDrawer implements Drawer<Network> {
         .forEach(
             pi -> network.wiresFrom(gi, pi)
                 .forEach(
-                    w -> fillGatesPoints(network, w.dst().gateIndex(), new Point(currentX + 1, currentY + pi), map)
+                    w -> fillGatesPoints(
+                        network,
+                        w.dst().gateIndex(),
+                        new Point(
+                            currentX + 1,
+                            map.values()
+                                .stream()
+                                .filter(p -> p.x == currentX + 1)
+                                .filter(p -> p.y >= currentY)
+                                .mapToInt(Point::y)
+                                .min()
+                                .orElse(currentY - 1) + 1
+                        ),
+                        map
+                    )
                 )
         );
   }
@@ -368,7 +382,7 @@ public class TTPNDrawer implements Drawer<Network> {
   }
 
   private DoubleRange gapYRange(int y, Metrics m) {
-    return new DoubleRange(gateYRange(y, m).max(), gateXRange(y + 1, m).min());
+    return new DoubleRange(gateYRange(y, m).max(), gateYRange(y + 1, m).min());
   }
 
   private DoubleRange gateXRange(int x, Metrics m) {
