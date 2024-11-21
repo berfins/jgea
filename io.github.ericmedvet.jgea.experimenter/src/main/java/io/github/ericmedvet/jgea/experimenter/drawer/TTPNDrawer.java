@@ -103,17 +103,18 @@ public class TTPNDrawer implements Drawer<Network> {
       List<SequencedSet<Wire>> yGapWires = IntStream.range(0, iH)
           .mapToObj(i -> (SequencedSet<Wire>) (new LinkedHashSet<Wire>()))
           .toList();
-      network.wires().stream().filter(wire -> !isDirect(wire, gatePoints)).forEach(wire -> {
-        Point srcPoint = gatePoints.get(wire.src().gateIndex());
-        Point dstPoint = gatePoints.get(wire.dst().gateIndex());
-        if (srcPoint.x + 1 == dstPoint.x) {
-          xGapWires.get(srcPoint.x).add(wire);
-        } else {
-          xGapWires.get(srcPoint.x).add(wire);
-          xGapWires.get(dstPoint.x - 1).add(wire);
-          yGapWires.get(dstPoint.y).add(wire);
-        }
-      });
+      network.wires()
+          .forEach(wire -> {
+            Point srcPoint = gatePoints.get(wire.src().gateIndex());
+            Point dstPoint = gatePoints.get(wire.dst().gateIndex());
+            if (srcPoint.x + 1 == dstPoint.x) {
+              xGapWires.get(srcPoint.x).add(wire);
+            } else {
+              xGapWires.get(srcPoint.x).add(wire);
+              xGapWires.get(dstPoint.x - 1).add(wire);
+              yGapWires.get(dstPoint.y).add(wire);
+            }
+          });
       return new Metrics(w, h, iW, iH, gatePoints, xGapWires, yGapWires);
     }
   }
@@ -187,34 +188,7 @@ public class TTPNDrawer implements Drawer<Network> {
     return -1;
   }
 
-  private static boolean isDirect(Wire wire, List<Point> gatePoints) {
-    return gatePoints.get(wire.src().gateIndex()).x == gatePoints.get(wire.dst().gateIndex()).x - 1 && gatePoints.get(
-        wire.src().gateIndex()
-    ).y == gatePoints.get(wire.dst().gateIndex()).y;
-  }
-
-  private Path2D computeDirectWirePath(Metrics m, Wire w, Network network) {
-    Point srcPoint = m.gatePoints.get(w.src().gateIndex());
-    Point dstPoint = m.gatePoints.get(w.dst().gateIndex());
-    double srcX = gateXRange(srcPoint.x, m).max();
-    double srcY = nThPos(
-        w.src().portIndex(),
-        network.gates().get(w.src().gateIndex()).outputTypes().size(),
-        gateYRange(srcPoint.y, m)
-    );
-    double dstX = gateXRange(dstPoint.x, m).min();
-    double dstY = nThPos(
-        w.dst().portIndex(),
-        network.gates().get(w.dst().gateIndex()).inputPorts().size(),
-        gateYRange(dstPoint.y, m)
-    );
-    Path2D p = new Path2D.Double();
-    p.moveTo(srcX, srcY);
-    p.lineTo(dstX, dstY);
-    return p;
-  }
-
-  private Path2D computeIndirectWirePath(Metrics m, Wire w, Network network) {
+  private Path2D computeWirePath(Metrics m, Wire w, Network network) {
     Point srcPoint = m.gatePoints.get(w.src().gateIndex());
     Point dstPoint = m.gatePoints.get(w.dst().gateIndex());
     double srcX = gateXRange(srcPoint.x, m).max();
@@ -266,15 +240,7 @@ public class TTPNDrawer implements Drawer<Network> {
     //draw wires
     g.setColor(configuration.fgColor);
     network.wires()
-        .forEach(
-            w -> g.draw(
-                isDirect(w, m.gatePoints) ? computeDirectWirePath(
-                    m,
-                    w,
-                    network
-                ) : computeIndirectWirePath(m, w, network)
-            )
-        );
+        .forEach(w -> g.draw(computeWirePath(m, w, network)));
   }
 
   private void drawGate(Graphics2D g, Metrics m, int gi, Network network) {
