@@ -36,8 +36,34 @@ public class ImageUtils {
   private ImageUtils() {
   }
 
-  private static Rectangle2D bounds(String s, Font f, Graphics2D g) {
+  public static Rectangle2D bounds(String s, Font f, Graphics2D g) {
     return f.createGlyphVector(g.getFontRenderContext(), s).getOutline().getBounds2D();
+  }
+
+  public static Drawer<BufferedImage> imageDrawer(Color bgColor, double marginRate) {
+    return (g, img) -> {
+      double gW = g.getClipBounds().getWidth();
+      double gH = g.getClipBounds().getHeight();
+      g.setColor(bgColor);
+      g.fill(g.getClipBounds());
+      double gX0 = g.getClipBounds().getMinX();
+      double gY0 = g.getClipBounds().getMinY();
+      double iW = img.getWidth();
+      double iH = img.getHeight();
+      double s = Math.min((gW * (1d - 2d * marginRate) / iW), (gH * (1d - 2d * marginRate) / iH));
+      g.drawImage(img, new AffineTransform(s, 0, 0, s, gX0 + gW * marginRate, gY0 + gH * marginRate), null);
+    };
+  }
+
+  public static BufferedImage loadFromResource(String name) {
+    try (InputStream is = ImageUtils.class.getResourceAsStream("/images/" + name)) {
+      if (is == null) {
+        throw new IllegalArgumentException("Cannot find image '%s'".formatted(name));
+      }
+      return ImageIO.read(is);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public static BufferedImage render(UnivariateRealFunction f, int w, int h, boolean normalize) {
@@ -99,31 +125,5 @@ public class ImageUtils {
       Color c = new Color(img.getRGB(x, y));
       return new double[]{(double) c.getRed() / 255d, (double) c.getGreen() / 255d, (double) c.getBlue() / 255d};
     });
-  }
-
-  public static Drawer<BufferedImage> imageDrawer(Color bgColor, double marginRate) {
-    return (g, img) -> {
-      double gW = g.getClipBounds().getWidth();
-      double gH = g.getClipBounds().getHeight();
-      g.setColor(bgColor);
-      g.fill(g.getClipBounds());
-      double gX0 = g.getClipBounds().getMinX();
-      double gY0 = g.getClipBounds().getMinY();
-      double iW = img.getWidth();
-      double iH = img.getHeight();
-      double s = Math.min((gW * (1d - 2d * marginRate) / iW), (gH * (1d - 2d * marginRate) / iH));
-      g.drawImage(img, new AffineTransform(s, 0, 0, s, gX0 + gW * marginRate, gY0 + gH * marginRate), null);
-    };
-  }
-
-  public static BufferedImage loadFromResource(String name) {
-    try (InputStream is = ImageUtils.class.getResourceAsStream("/images/" + name)) {
-      if (is == null) {
-        throw new IllegalArgumentException("Cannot find image '%s'".formatted(name));
-      }
-      return ImageIO.read(is);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
   }
 }

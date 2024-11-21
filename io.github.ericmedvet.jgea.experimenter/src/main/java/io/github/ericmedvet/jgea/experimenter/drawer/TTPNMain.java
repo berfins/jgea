@@ -38,6 +38,7 @@ import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
 import io.github.ericmedvet.jgea.core.representation.ttpn.*;
 import io.github.ericmedvet.jgea.core.representation.ttpn.type.Base;
 import io.github.ericmedvet.jgea.core.representation.ttpn.type.Composed;
+import io.github.ericmedvet.jviz.core.drawer.ImageBuilder;
 import java.util.List;
 import java.util.Set;
 
@@ -71,5 +72,6 @@ public class TTPNMain {
     System.out.println(outcome.outputs());
     TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
     drawer.show(n);
+    drawer.show(new ImageBuilder.ImageInfo(600, 300), n);
   }
 }
