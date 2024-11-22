@@ -24,6 +24,9 @@ import java.util.Map;
 import java.util.Set;
 
 public record Sequence(Type type) implements Composed {
+  public static final String STRING_PREFIX = "[";
+  public static final String STRING_SUFFIX = "]";
+
   @Override
   public boolean canTakeValuesOf(Type other) {
     if (other instanceof Sequence(Type otherType)) {
@@ -71,6 +74,6 @@ public record Sequence(Type type) implements Composed {
 
   @Override
   public String toString() {
-    return "[%s]".formatted(type);
+    return (STRING_PREFIX + "%s" + STRING_SUFFIX).formatted(type);
   }
 }

@@ -81,6 +81,9 @@ public class TTPNMain {
     );
     System.out.println(n);
     n.validate();
+
+    System.exit(0);
+
     Runner runner = new Runner(1000, 1000);
     InstrumentedProgram iProgram = runner.asInstrumentedProgram(n);
     InstrumentedProgram.Outcome o = iProgram.runInstrumented(List.of(List.of(1d, 2d), List.of(3d, 4d)));

@@ -25,6 +25,10 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public record Tuple(List<Type> types) implements Composed {
+  public static final String STRING_PREFIX = "<";
+  public static final String STRING_SUFFIX = ">";
+  public static final String STRING_SEPARATOR = ",";
+
   public Tuple(List<Type> types) {
     this.types = Collections.unmodifiableList(types);
   }
@@ -129,6 +133,10 @@ public record Tuple(List<Type> types) implements Composed {
 
   @Override
   public String toString() {
-    return "<%s>".formatted(types.stream().map(Object::toString).collect(Collectors.joining(",")));
+    return (STRING_PREFIX + "%s" + STRING_SUFFIX).formatted(
+        types.stream()
+            .map(Object::toString)
+            .collect(Collectors.joining(STRING_SEPARATOR))
+    );
   }
 }

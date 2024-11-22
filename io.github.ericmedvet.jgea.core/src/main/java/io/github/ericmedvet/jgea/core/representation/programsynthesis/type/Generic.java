@@ -64,4 +64,5 @@ public record Generic(String name) implements Type {
   public String toString() {
     return name;
   }
+
 }

@@ -55,4 +55,5 @@ public interface Type {
   default boolean isGenerics() {
     return !generics().isEmpty();
   }
+
 }
