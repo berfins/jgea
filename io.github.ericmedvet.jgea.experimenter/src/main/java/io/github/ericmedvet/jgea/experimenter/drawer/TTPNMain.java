@@ -39,6 +39,7 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.ProgramExe
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.*;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Base;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Composed;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.StringParser;
 import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
 import io.github.ericmedvet.jviz.core.drawer.ImageBuilder;
 import java.util.List;
@@ -81,6 +82,9 @@ public class TTPNMain {
     );
     System.out.println(n);
     n.validate();
+
+
+    System.out.println(StringParser.parse("[R]"));
 
     System.exit(0);
 
