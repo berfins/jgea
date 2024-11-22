@@ -22,6 +22,9 @@ package io.github.ericmedvet.jgea.experimenter.builders;
 import io.github.ericmedvet.jgea.core.IndependentFactory;
 import io.github.ericmedvet.jgea.core.operator.Crossover;
 import io.github.ericmedvet.jgea.core.operator.Mutation;
+import io.github.ericmedvet.jgea.core.representation.grammar.string.StringGrammar;
+import io.github.ericmedvet.jgea.core.representation.grammar.string.cfggp.GrammarBasedSubtreeMutation;
+import io.github.ericmedvet.jgea.core.representation.grammar.string.cfggp.GrammarRampedHalfAndHalf;
 import io.github.ericmedvet.jgea.core.representation.sequence.FixedLengthListFactory;
 import io.github.ericmedvet.jgea.core.representation.sequence.bit.BitString;
 import io.github.ericmedvet.jgea.core.representation.sequence.bit.BitStringFactory;
@@ -63,6 +66,18 @@ public class Representations {
                 .andThen(new BitStringFlipMutation(pMutRate / (double) g.size()))
         )
     );
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  public static <N> Function<Tree<N>, Representation<Tree<N>>> cfgTree(
+      @Param("grammar") StringGrammar<N> grammar,
+      @Param(value = "minTreeH", dI = 4) int minTreeH,
+      @Param(value = "maxTreeH", dI = 16) int maxTreeH) {
+    return g -> new Representation<>(
+        new GrammarRampedHalfAndHalf<>(minTreeH, maxTreeH, grammar),
+        List.of(new GrammarBasedSubtreeMutation<>(maxTreeH, grammar)),
+        List.of());
   }
 
   @SuppressWarnings("unused")
