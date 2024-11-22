@@ -35,18 +35,22 @@
 package io.github.ericmedvet.jgea.experimenter.drawer;
 
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.InstrumentedProgram;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.Program;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.ProgramExecutionException;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.*;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Base;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Composed;
-import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.StringParser;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Typed;
 import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
 import io.github.ericmedvet.jviz.core.drawer.ImageBuilder;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.IntStream;
 
 public class TTPNMain {
-  public static void main(String[] args) throws NetworkStructureException, ProgramExecutionException {
+  public static void main(
+      String[] args
+  ) throws NetworkStructureException, ProgramExecutionException, NoSuchMethodException {
     Network n = new Network(
         List.of(
             Gate.input(Composed.sequence(Base.REAL)),
@@ -83,17 +87,23 @@ public class TTPNMain {
     System.out.println(n);
     n.validate();
 
-
-    System.out.println(StringParser.parse("[<S,[I]>]"));
-
-    System.exit(0);
-
-    Runner runner = new Runner(1000, 1000);
-    InstrumentedProgram iProgram = runner.asInstrumentedProgram(n);
-    InstrumentedProgram.Outcome o = iProgram.runInstrumented(List.of(List.of(1d, 2d), List.of(3d, 4d)));
+    Program tProgram = Program.from(TTPNMain.class.getMethod("vProduct", List.class, List.class));
+    System.out.println(tProgram);
+    InstrumentedProgram ttpnProgram = new Runner(1000, 1000).asInstrumentedProgram(n);
+    List<Object> inputs = List.of(List.of(1d, 2d), List.of(3d, 4d));
+    System.out.println(tProgram.run(inputs));
+    InstrumentedProgram.Outcome o = ttpnProgram.runInstrumented(inputs);
     System.out.println(o);
     TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
     drawer.show(n);
     drawer.show(new ImageBuilder.ImageInfo(600, 300), n);
+  }
+
+  @Typed("R")
+  public static Double vProduct(@Typed("[R]") List<Double> v1, @Typed("[R]") List<Double> v2) {
+    if (v1.size() != v2.size()) {
+      throw new IllegalArgumentException("Input sizes are different: %d and %d".formatted(v1.size(), v2.size()));
+    }
+    return IntStream.range(0, v1.size()).mapToDouble(i -> v1.get(i) * v2.get(i)).sum();
   }
 }

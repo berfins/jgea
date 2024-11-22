@@ -19,8 +19,15 @@
  */
 package io.github.ericmedvet.jgea.core.representation.programsynthesis;
 
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.StringParser;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Typed;
 import io.github.ericmedvet.jnb.datastructure.NamedFunction;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -69,4 +76,43 @@ public interface Program {
       throw new ProgramExecutionException(e);
     }
   }
+
+  static Program from(Method method) {
+    if (!Modifier.isStatic(method.getModifiers())) {
+      throw new IllegalArgumentException("Method %s is not static".formatted(method));
+    }
+    if (!Modifier.isPublic(method.getModifiers())) {
+      throw new IllegalArgumentException("Method %s is not public".formatted(method));
+    }
+    Typed outTyped = method.getAnnotation(Typed.class);
+    if (outTyped == null) {
+      throw new IllegalArgumentException("Method return is not annotated");
+    }
+    List<Parameter> parameters = Arrays.stream(method.getParameters()).toList();
+    if (parameters.stream().anyMatch(p -> p.getAnnotation(Typed.class) == null)) {
+      throw new IllegalArgumentException(
+          "Parameter %s is not annotated".formatted(
+              parameters.stream().filter(p -> p.getAnnotation(Typed.class) == null).findFirst().orElseThrow()
+          )
+      );
+    }
+    List<Type> inputTypes = parameters.stream()
+        .map(p -> StringParser.parse(p.getAnnotation(Typed.class).value()))
+        .toList();
+    return Program.from(
+        NamedFunction.from(
+            inputs -> {
+              try {
+                return List.of(method.invoke(null, inputs.toArray()));
+              } catch (IllegalAccessException | InvocationTargetException e) {
+                throw new RuntimeException(new ProgramExecutionException(e));
+              }
+            },
+            method.getName()
+        ),
+        inputTypes,
+        List.of(StringParser.parse(outTyped.value()))
+    );
+  }
+
 }

@@ -111,7 +111,7 @@ public class Runner {
     SortedMap<Integer, Object> outputs = new TreeMap<>();
     // iterate
     while (k < maxSteps) {
-
+      /*
       System.out.printf(
           "BEFORE:%n%s%n".formatted(
               current.entrySet()
@@ -120,7 +120,7 @@ public class Runner {
                   .collect(Collectors.joining("%n"))
           )
       );
-
+      */
       for (int i = 0; i < network.gates().size(); i++) {
         int gi = i;
         Gate g = network.gates().get(gi);
@@ -158,9 +158,9 @@ public class Runner {
             );
             try {
               Gate.Data localOut = g.operator().apply(localIn);
-
+              /*
               System.out.printf("\t\tk=%3d\t%s\t%s -> %s%n", k, g, localIn, localOut);
-
+              */
               // check number of outputs
               if (localOut.lines().size() != g.outputTypes().size()) {
                 throw new ProgramExecutionException(

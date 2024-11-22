@@ -119,4 +119,5 @@ public interface NamedProgram extends Program {
         outputNamedTypes.keySet().stream().sorted().toList()
     );
   }
+
 }
