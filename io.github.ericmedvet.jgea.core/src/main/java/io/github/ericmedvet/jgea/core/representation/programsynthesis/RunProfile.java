@@ -27,11 +27,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public record RunProfile(List<State> states) {
-  record State(
+  public record State(
       Map<Type, Integer> counts,
       Map<Type, Integer> sizes
   ) {
-    static State from(Map<Type, Collection<Object>> data) {
+    public static State from(Map<Type, Collection<Object>> data) {
       return new State(
           Misc.transformValues(data, Collection::size),
           data.entrySet()
@@ -68,5 +68,10 @@ public record RunProfile(List<State> states) {
 
   public double maxSize() {
     return states.stream().mapToDouble(State::size).max().orElse(0d);
+  }
+
+  @Override
+  public String toString() {
+    return "{steps=%d, avg.count=%.1f, avg.size=%.1f}".formatted(states.size(), avgCount(), avgSize());
   }
 }

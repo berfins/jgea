@@ -19,15 +19,51 @@
  */
 package io.github.ericmedvet.jgea.core.representation.programsynthesis;
 
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
+import io.github.ericmedvet.jnb.datastructure.NamedFunction;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public interface InstrumentedProgram extends Program {
-  record Outcome(List<Object> outputs, RunProfile profile) {}
+  record Outcome(List<Object> outputs, RunProfile profile) {
+    @Override
+    public String toString() {
+      return "%s with %s".formatted(outputs, profile);
+    }
+  }
 
-  Outcome runInstrumented(List<Object> inputs);
+  Outcome runInstrumented(List<Object> inputs) throws ProgramExecutionException;
 
   @Override
-  default List<Object> run(List<Object> inputs) {
+  default List<Object> run(List<Object> inputs) throws ProgramExecutionException {
     return runInstrumented(inputs).outputs;
+  }
+
+  static InstrumentedProgram from(
+      Function<List<Object>, Outcome> function,
+      List<Type> inputTypes,
+      List<Type> outputTypes
+  ) {
+    record HardInstrumentedProgram(
+        Function<List<Object>, Outcome> function,
+        List<Type> inputTypes,
+        List<Type> outputTypes
+    ) implements InstrumentedProgram {
+      @Override
+      public Outcome runInstrumented(List<Object> inputs) throws ProgramExecutionException {
+        return Program.safelyRunFunction(function, inputs);
+      }
+
+      @Override
+      public String toString() {
+        return "%s(%s)->(%s)".formatted(
+            NamedFunction.name(function),
+            inputTypes.stream().map(Object::toString).collect(Collectors.joining(",")),
+            outputTypes.stream().map(Object::toString).collect(Collectors.joining(","))
+        );
+      }
+    }
+    return new HardInstrumentedProgram(function, inputTypes, outputTypes);
   }
 }

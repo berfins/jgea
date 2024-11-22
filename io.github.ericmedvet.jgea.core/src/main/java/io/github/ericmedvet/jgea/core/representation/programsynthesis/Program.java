@@ -30,7 +30,7 @@ public interface Program {
 
   List<Type> outputTypes();
 
-  List<Object> run(List<Object> inputs);
+  List<Object> run(List<Object> inputs) throws ProgramExecutionException;
 
   static Program from(
       Function<List<Object>, List<Object>> function,
@@ -43,8 +43,8 @@ public interface Program {
         List<Type> outputTypes
     ) implements Program {
       @Override
-      public List<Object> run(List<Object> inputs) {
-        return function.apply(inputs);
+      public List<Object> run(List<Object> inputs) throws ProgramExecutionException {
+        return safelyRunFunction(function, inputs);
       }
 
       @Override
@@ -57,5 +57,16 @@ public interface Program {
       }
     }
     return new HardProgram(function, inputTypes, outputTypes);
+  }
+
+  static <I, O> O safelyRunFunction(Function<I, O> f, I input) throws ProgramExecutionException {
+    try {
+      return f.apply(input);
+    } catch (RuntimeException e) {
+      if (e.getCause() instanceof ProgramExecutionException pex) {
+        throw pex;
+      }
+      throw new ProgramExecutionException(e);
+    }
   }
 }

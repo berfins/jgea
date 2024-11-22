@@ -17,14 +17,18 @@
  * limitations under the License.
  * =========================LICENSE_END==================================
  */
-package io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn;
+package io.github.ericmedvet.jgea.core.representation.programsynthesis;
 
-public class RunnerException extends Exception {
-  public RunnerException(String message) {
+public class ProgramExecutionException extends Exception {
+  public ProgramExecutionException(String message) {
     super(message);
   }
 
-  public RunnerException(String message, Throwable cause) {
+  public ProgramExecutionException(String message, Throwable cause) {
     super(message, cause);
+  }
+
+  public ProgramExecutionException(Throwable cause) {
+    super(cause);
   }
 }

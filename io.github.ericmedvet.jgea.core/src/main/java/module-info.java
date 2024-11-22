@@ -38,8 +38,9 @@ module io.github.ericmedvet.jgea.core {
   exports io.github.ericmedvet.jgea.core.representation.tree;
   exports io.github.ericmedvet.jgea.core.representation.tree.numeric;
   exports io.github.ericmedvet.jgea.core.representation.tree.booleanfunction;
-  exports io.github.ericmedvet.jgea.core.representation.ttpn;
-  exports io.github.ericmedvet.jgea.core.representation.ttpn.type;
+  exports io.github.ericmedvet.jgea.core.representation.programsynthesis;
+  exports io.github.ericmedvet.jgea.core.representation.programsynthesis.type;
+  exports io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn;
   exports io.github.ericmedvet.jgea.core.representation.grammar.grid;
   exports io.github.ericmedvet.jgea.core.representation;
   exports io.github.ericmedvet.jgea.core.selector;
@@ -55,8 +56,6 @@ module io.github.ericmedvet.jgea.core {
   exports io.github.ericmedvet.jgea.core.solver.es;
   exports io.github.ericmedvet.jgea.core.solver.cooperative;
   exports io.github.ericmedvet.jgea.core.solver.mapelites.strategy;
-  exports io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn;
-  exports io.github.ericmedvet.jgea.core.representation.programsynthesis.type;
 
   requires io.github.ericmedvet.jsdynsym.core;
   requires io.github.ericmedvet.jnb.datastructure;

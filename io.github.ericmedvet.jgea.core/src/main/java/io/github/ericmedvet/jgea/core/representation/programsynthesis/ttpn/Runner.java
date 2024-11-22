@@ -19,11 +19,15 @@
  */
 package io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn;
 
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.InstrumentedProgram;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.ProgramExecutionException;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.RunProfile;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class Runner {
 
@@ -33,47 +37,6 @@ public class Runner {
   public Runner(int maxSteps, int maxTokens) {
     this.maxSteps = maxSteps;
     this.maxTokens = maxTokens;
-  }
-
-  public record Outcome(List<Object> outputs, List<State> states) {
-    public double avgNOfTokens(Type type) {
-      return states.stream().mapToDouble(s -> (double) s.nOfTokens(type)).average().orElse(0d);
-    }
-
-    public double avgNOfTokens() {
-      return states.stream().mapToDouble(s -> (double) s.nOfTokens()).average().orElse(0d);
-    }
-
-    @Override
-    public String toString() {
-      return "Out[n=%d;k=%d;nt.avg=%.1f]".formatted(
-          outputs.stream().filter(Objects::nonNull).count(),
-          states.size(),
-          avgNOfTokens()
-      );
-    }
-  }
-
-  public record State(List<WireState> wireStates) {
-    public record WireState(Wire wire, Type type, int nOfTokens) {}
-
-    public int nOfTokens(Type type) {
-      return wireStates.stream().filter(ws -> ws.type.equals(type)).mapToInt(ws -> ws.nOfTokens).sum();
-    }
-
-    public int nOfTokens() {
-      return wireStates.stream().mapToInt(ws -> ws.nOfTokens).sum();
-    }
-  }
-
-  private static <T> Queue<T> emptyQueue() {
-    return new ArrayDeque<>();
-  }
-
-  private static <T> List<T> takeAll(Queue<T> queue) {
-    List<T> list = new ArrayList<>(queue);
-    queue.clear();
-    return list;
   }
 
   private static <T> List<T> takeExactly(Queue<T> queue, int n) {
@@ -87,7 +50,17 @@ public class Runner {
     return Optional.of(queue.remove());
   }
 
-  public Outcome run(Network network, List<Object> inputs) throws RunnerException {
+  private static <T> Queue<T> emptyQueue() {
+    return new ArrayDeque<>();
+  }
+
+  private static <T> List<T> takeAll(Queue<T> queue) {
+    List<T> list = new ArrayList<>(queue);
+    queue.clear();
+    return list;
+  }
+
+  public InstrumentedProgram.Outcome run(Network network, List<Object> inputs) throws ProgramExecutionException {
     // check validity
     List<Type> inputTypes = network.gates()
         .stream()
@@ -101,7 +74,7 @@ public class Runner {
             .collect(Collectors.toMap(gi -> gi, gi -> ((Gate.OutputGate) network.gates().get(gi)).type()))
     );
     if (inputs.size() != inputTypes.size()) {
-      throw new RunnerException(
+      throw new ProgramExecutionException(
           "Wrong number of inputs: %d expected, %d found".formatted(
               inputTypes.size(),
               inputs.size()
@@ -110,7 +83,7 @@ public class Runner {
     }
     for (int i = 0; i < inputTypes.size(); i++) {
       if (!inputTypes.get(i).matches(inputs.get(i))) {
-        throw new RunnerException(
+        throw new ProgramExecutionException(
             "Invalid input type for input %d of type %s: %s".formatted(
                 i,
                 inputTypes.get(i),
@@ -128,12 +101,12 @@ public class Runner {
       try {
         actualTypes.put(w, network.actualType(w));
       } catch (TypeException e) {
-        throw new RunnerException("Cannot get actual type for wire %s".formatted(w), e);
+        throw new ProgramExecutionException("Cannot get actual type for wire %s".formatted(w), e);
       }
     }
     // prepare state, counter, and output map
     int k = 0;
-    List<State> states = new ArrayList<>();
+    List<RunProfile.State> states = new ArrayList<>();
     Queue<Object> networkInputsQueue = new ArrayDeque<>(inputs);
     SortedMap<Integer, Object> outputs = new TreeMap<>();
     // iterate
@@ -190,7 +163,7 @@ public class Runner {
 
               // check number of outputs
               if (localOut.lines().size() != g.outputTypes().size()) {
-                throw new RunnerException(
+                throw new ProgramExecutionException(
                     "Unexpected wrong number of outputs: %d expected, %d found".formatted(
                         g.outputTypes()
                             .size(),
@@ -205,7 +178,7 @@ public class Runner {
                           .forEach(w -> next.put(w, localOut.lines().get(pi)))
                   );
             } catch (RuntimeException e) {
-              throw new RunnerException("Cannot run %s on %s".formatted(g, localIn), e);
+              throw new ProgramExecutionException("Cannot run %s on %s".formatted(g, localIn), e);
             }
           }
         }
@@ -218,14 +191,19 @@ public class Runner {
       next.forEach((w, ts) -> current.get(w).addAll(ts));
       next.clear();
       // build state
-      State state = new State(
+      RunProfile.State state = RunProfile.State.from(
           current.entrySet()
               .stream()
-              .map(e -> new State.WireState(e.getKey(), actualTypes.get(e.getKey()), e.getValue().size()))
-              .toList()
+              .collect(
+                  Collectors.toMap(
+                      e -> actualTypes.get(e.getKey()),
+                      Map.Entry::getValue,
+                      (c1, c2) -> Stream.concat(c1.stream(), c2.stream()).toList()
+                  )
+              )
       );
-      if (state.nOfTokens() > maxTokens) {
-        throw new RunnerException("Exceeded number of tokens: %d > %d".formatted(state.nOfTokens(), maxTokens));
+      if (state.count() > maxTokens) {
+        throw new ProgramExecutionException("Exceeded number of tokens: %d > %d".formatted(state.count(), maxTokens));
       }
       states.add(state);
       // increment k
@@ -233,7 +211,7 @@ public class Runner {
     }
     // check output
     if (!outputTypes.keySet().equals(outputs.keySet())) {
-      throw new RunnerException(
+      throw new ProgramExecutionException(
           "Missing outputs on gates: %s".formatted(
               outputTypes.keySet()
                   .stream()
@@ -247,7 +225,7 @@ public class Runner {
     }
     for (int gi : outputTypes.keySet()) {
       if (!outputTypes.get(gi).matches(outputs.get(gi))) {
-        throw new RunnerException(
+        throw new ProgramExecutionException(
             "Invalid output type for input %d of type %s: %s".formatted(
                 gi,
                 outputTypes.get(gi),
@@ -256,7 +234,20 @@ public class Runner {
         );
       }
     }
-    return new Outcome(outputs.values().stream().toList(), states);
+    return new InstrumentedProgram.Outcome(outputs.values().stream().toList(), new RunProfile(states));
   }
 
+  public InstrumentedProgram asInstrumentedProgram(Network network) {
+    return InstrumentedProgram.from(
+        inputs -> {
+          try {
+            return run(network, inputs);
+          } catch (ProgramExecutionException e) {
+            throw new RuntimeException(e);
+          }
+        },
+        List.of(),
+        List.of()
+    );
+  }
 }

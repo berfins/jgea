@@ -32,7 +32,7 @@ public interface NamedProgram extends Program {
 
   Map<String, Type> outputNamedTypes();
 
-  Map<String, Object> run(Map<String, Object> inputs);
+  Map<String, Object> run(Map<String, Object> inputs) throws ProgramExecutionException;
 
   default List<String> inputNames() {
     return inputNamedTypes().keySet().stream().sorted().toList();
@@ -53,9 +53,9 @@ public interface NamedProgram extends Program {
   }
 
   @Override
-  default List<Object> run(List<Object> inputs) {
+  default List<Object> run(List<Object> inputs) throws ProgramExecutionException {
     if (inputs.size() != inputNamedTypes().size()) {
-      throw new IllegalArgumentException(
+      throw new ProgramExecutionException(
           "Wrong number of input arguments: %d expected, %d found".formatted(
               inputNamedTypes().size(),
               inputs.size()
@@ -63,7 +63,6 @@ public interface NamedProgram extends Program {
       );
     }
     List<String> iNames = inputNames();
-    List<String> oNames = outputNames();
     Map<String, Object> mInputs = IntStream.range(0, iNames.size())
         .boxed()
         .collect(
@@ -74,7 +73,7 @@ public interface NamedProgram extends Program {
         );
     Map<String, Object> mOutputs = run(mInputs);
     if (!mOutputs.keySet().containsAll(outputNames())) {
-      throw new IllegalArgumentException(
+      throw new ProgramExecutionException(
           "Wrong output arguments: %s expected, %s found".formatted(
               outputNames(),
               mOutputs.keySet()
@@ -97,8 +96,8 @@ public interface NamedProgram extends Program {
         List<String> outputNames
     ) implements NamedProgram {
       @Override
-      public Map<String, Object> run(Map<String, Object> inputs) {
-        return function.apply(inputs);
+      public Map<String, Object> run(Map<String, Object> inputs) throws ProgramExecutionException {
+        return Program.safelyRunFunction(function, inputs);
       }
 
       @Override

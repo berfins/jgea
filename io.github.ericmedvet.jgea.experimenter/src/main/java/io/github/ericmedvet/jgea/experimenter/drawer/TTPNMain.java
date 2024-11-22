@@ -34,6 +34,8 @@
  */
 package io.github.ericmedvet.jgea.experimenter.drawer;
 
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.InstrumentedProgram;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.ProgramExecutionException;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.*;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Base;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Composed;
@@ -43,7 +45,7 @@ import java.util.List;
 import java.util.Set;
 
 public class TTPNMain {
-  public static void main(String[] args) throws NetworkStructureException, RunnerException {
+  public static void main(String[] args) throws NetworkStructureException, ProgramExecutionException {
     Network n = new Network(
         List.of(
             Gate.input(Composed.sequence(Base.REAL)),
@@ -80,9 +82,9 @@ public class TTPNMain {
     System.out.println(n);
     n.validate();
     Runner runner = new Runner(1000, 1000);
-    Runner.Outcome outcome = runner.run(n, List.of(List.of(1d, 2d), List.of(3d, 4d)));
-    System.out.println(outcome.outputs());
-    System.out.println(outcome);
+    InstrumentedProgram iProgram = runner.asInstrumentedProgram(n);
+    InstrumentedProgram.Outcome o = iProgram.runInstrumented(List.of(List.of(1d, 2d), List.of(3d, 4d)));
+    System.out.println(o);
     TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
     drawer.show(n);
     drawer.show(new ImageBuilder.ImageInfo(600, 300), n);
