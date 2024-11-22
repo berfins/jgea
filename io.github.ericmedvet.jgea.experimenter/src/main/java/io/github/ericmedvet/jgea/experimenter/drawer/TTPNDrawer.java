@@ -35,11 +35,11 @@
 
 package io.github.ericmedvet.jgea.experimenter.drawer;
 
-import io.github.ericmedvet.jgea.core.representation.ttpn.Gate;
-import io.github.ericmedvet.jgea.core.representation.ttpn.Network;
-import io.github.ericmedvet.jgea.core.representation.ttpn.Wire;
-import io.github.ericmedvet.jgea.core.representation.ttpn.type.Base;
-import io.github.ericmedvet.jgea.core.representation.ttpn.type.Type;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Gate;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Network;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Wire;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Base;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.problem.image.ImageUtils;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
 import io.github.ericmedvet.jviz.core.drawer.Drawer;

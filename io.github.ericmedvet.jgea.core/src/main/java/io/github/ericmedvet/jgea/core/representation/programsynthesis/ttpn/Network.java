@@ -33,11 +33,11 @@
  * limitations under the License.
  */
 
-package io.github.ericmedvet.jgea.core.representation.ttpn;
+package io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn;
 
-import io.github.ericmedvet.jgea.core.representation.ttpn.type.Generic;
-import io.github.ericmedvet.jgea.core.representation.ttpn.type.Type;
-import io.github.ericmedvet.jgea.core.representation.ttpn.type.TypeException;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Generic;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import java.util.*;
 import java.util.stream.Collectors;

@@ -33,7 +33,7 @@
  * limitations under the License.
  */
 
-package io.github.ericmedvet.jgea.core.representation.ttpn.type;
+package io.github.ericmedvet.jgea.core.representation.programsynthesis.type;
 
 import java.util.Map;
 import java.util.Set;

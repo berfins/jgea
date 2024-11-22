@@ -17,17 +17,14 @@
  * limitations under the License.
  * =========================LICENSE_END==================================
  */
-package io.github.ericmedvet.jgea.core.representation.ttpn.type;
+package io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn;
 
-import java.util.List;
-
-public interface Composed extends Type {
-
-  static Tuple tuple(List<Type> types) {
-    return new Tuple(types);
+public class NetworkStructureException extends Exception {
+  public NetworkStructureException(String message) {
+    super(message);
   }
 
-  static Sequence sequence(Type type) {
-    return new Sequence(type);
+  public NetworkStructureException(String message, Throwable cause) {
+    super(message, cause);
   }
 }

@@ -34,10 +34,10 @@
  */
 package io.github.ericmedvet.jgea.experimenter.drawer;
 
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.*;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Base;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Composed;
 import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
-import io.github.ericmedvet.jgea.core.representation.ttpn.*;
-import io.github.ericmedvet.jgea.core.representation.ttpn.type.Base;
-import io.github.ericmedvet.jgea.core.representation.ttpn.type.Composed;
 import io.github.ericmedvet.jviz.core.drawer.ImageBuilder;
 import java.util.List;
 import java.util.Set;

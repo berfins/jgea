@@ -17,52 +17,47 @@
  * limitations under the License.
  * =========================LICENSE_END==================================
  */
-package io.github.ericmedvet.jgea.core.representation.ttpn.type;
+package io.github.ericmedvet.jgea.core.representation.programsynthesis.type;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public record Sequence(Type type) implements Composed {
+public enum Base implements Type {
+  BOOLEAN(Boolean.class), INT(Integer.class), REAL(Double.class), STRING(String.class);
+
+  private final Class<?> javaClass;
+
+  Base(Class<?> javaClass) {
+    this.javaClass = javaClass;
+  }
+
   @Override
   public boolean canTakeValuesOf(Type other) {
-    if (other instanceof Sequence(Type otherType)) {
-      return type.canTakeValuesOf(otherType);
-    }
-    return false;
+    return equals(other);
   }
 
   @Override
   public Set<Generic> generics() {
-    return type.generics();
+    return Set.of();
   }
 
   @Override
   public boolean matches(Object o) {
-    if (o instanceof List<?> list) {
-      return list.stream().allMatch(lO -> type().matches(lO));
-    }
-    return false;
+    return javaClass.isInstance(o);
   }
 
   @Override
-  public Map<Generic, Type> resolveGenerics(Type concreteType) throws TypeException {
-    if (concreteType instanceof Sequence(Type otherType)) {
-      return type.resolveGenerics(otherType);
-    }
-    throw new TypeException("Wrong concrete type %s".formatted(concreteType));
+  public Map<Generic, Type> resolveGenerics(Type concreteType) {
+    return Map.of();
   }
 
   @Override
-  public Type concrete(Map<Generic, Type> genericTypeMap) throws TypeException {
-    if (!isGenerics()) {
-      return this;
-    }
-    return Composed.sequence(type.concrete(genericTypeMap));
+  public Type concrete(Map<Generic, Type> genericTypeMap) {
+    return this;
   }
 
   @Override
   public String toString() {
-    return "[%s]".formatted(type);
+    return "%s".formatted(name().substring(0, 1));
   }
 }

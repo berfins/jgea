@@ -17,14 +17,17 @@
  * limitations under the License.
  * =========================LICENSE_END==================================
  */
-package io.github.ericmedvet.jgea.core.representation.ttpn;
+package io.github.ericmedvet.jgea.core.representation.programsynthesis.type;
 
-public class RunnerException extends Exception {
-  public RunnerException(String message) {
-    super(message);
+import java.util.List;
+
+public interface Composed extends Type {
+
+  static Tuple tuple(List<Type> types) {
+    return new Tuple(types);
   }
 
-  public RunnerException(String message, Throwable cause) {
-    super(message, cause);
+  static Sequence sequence(Type type) {
+    return new Sequence(type);
   }
 }

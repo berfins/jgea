@@ -55,6 +55,8 @@ module io.github.ericmedvet.jgea.core {
   exports io.github.ericmedvet.jgea.core.solver.es;
   exports io.github.ericmedvet.jgea.core.solver.cooperative;
   exports io.github.ericmedvet.jgea.core.solver.mapelites.strategy;
+  exports io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn;
+  exports io.github.ericmedvet.jgea.core.representation.programsynthesis.type;
 
   requires io.github.ericmedvet.jsdynsym.core;
   requires io.github.ericmedvet.jnb.datastructure;

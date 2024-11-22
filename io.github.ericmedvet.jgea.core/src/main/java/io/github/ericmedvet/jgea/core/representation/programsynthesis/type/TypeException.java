@@ -17,7 +17,7 @@
  * limitations under the License.
  * =========================LICENSE_END==================================
  */
-package io.github.ericmedvet.jgea.core.representation.ttpn.type;
+package io.github.ericmedvet.jgea.core.representation.programsynthesis.type;
 
 public class TypeException extends Exception {
   public TypeException(String message) {

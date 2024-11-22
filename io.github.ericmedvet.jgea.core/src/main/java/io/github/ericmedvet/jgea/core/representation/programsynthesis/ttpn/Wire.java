@@ -17,7 +17,7 @@
  * limitations under the License.
  * =========================LICENSE_END==================================
  */
-package io.github.ericmedvet.jgea.core.representation.ttpn;
+package io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn;
 
 import java.util.Comparator;
 

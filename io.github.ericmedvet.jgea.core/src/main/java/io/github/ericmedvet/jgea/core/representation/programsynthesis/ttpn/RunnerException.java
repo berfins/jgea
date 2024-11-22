@@ -17,14 +17,14 @@
  * limitations under the License.
  * =========================LICENSE_END==================================
  */
-package io.github.ericmedvet.jgea.core.representation.ttpn;
+package io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn;
 
-public class NetworkStructureException extends Exception {
-  public NetworkStructureException(String message) {
+public class RunnerException extends Exception {
+  public RunnerException(String message) {
     super(message);
   }
 
-  public NetworkStructureException(String message, Throwable cause) {
+  public RunnerException(String message, Throwable cause) {
     super(message, cause);
   }
 }

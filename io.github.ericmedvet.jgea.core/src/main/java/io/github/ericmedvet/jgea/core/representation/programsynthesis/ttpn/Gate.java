@@ -33,9 +33,9 @@
  * limitations under the License.
  */
 
-package io.github.ericmedvet.jgea.core.representation.ttpn;
+package io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn;
 
-import io.github.ericmedvet.jgea.core.representation.ttpn.type.Type;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;

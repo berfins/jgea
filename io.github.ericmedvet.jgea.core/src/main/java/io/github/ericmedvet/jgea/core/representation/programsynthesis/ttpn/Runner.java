@@ -17,10 +17,10 @@
  * limitations under the License.
  * =========================LICENSE_END==================================
  */
-package io.github.ericmedvet.jgea.core.representation.ttpn;
+package io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn;
 
-import io.github.ericmedvet.jgea.core.representation.ttpn.type.Type;
-import io.github.ericmedvet.jgea.core.representation.ttpn.type.TypeException;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;

@@ -33,12 +33,12 @@
  * limitations under the License.
  */
 
-package io.github.ericmedvet.jgea.core.representation.ttpn;
+package io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn;
 
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Base;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Composed;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Generic;
 import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
-import io.github.ericmedvet.jgea.core.representation.ttpn.type.Base;
-import io.github.ericmedvet.jgea.core.representation.ttpn.type.Composed;
-import io.github.ericmedvet.jgea.core.representation.ttpn.type.Generic;
 import io.github.ericmedvet.jnb.datastructure.NamedFunction;
 import java.util.Collections;
 import java.util.List;
