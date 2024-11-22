@@ -84,7 +84,7 @@ public class TTPNMain {
     n.validate();
 
 
-    System.out.println(StringParser.parse("[R]"));
+    System.out.println(StringParser.parse("[<S,[I]>]"));
 
     System.exit(0);
 

@@ -59,14 +59,11 @@ public class Grammars {
   @Cacheable
   public static StringGrammar<String> regression(
       @Param(
-              value = "constants",
-              dDs = {0.1, 1, 10})
-          List<Double> constants,
+          value = "constants", dDs = {0.1, 1, 10}) List<Double> constants,
       @Param(
-              value = "operators",
-              dSs = {"addition", "subtraction", "multiplication", "prot_division", "prot_log"})
-          List<Element.Operator> operators,
-      @Param("problem") SyntheticUnivariateRegressionProblem problem) {
+          value = "operators", dSs = {"addition", "subtraction", "multiplication", "prot_division", "prot_log"}) List<Element.Operator> operators,
+      @Param("problem") SyntheticUnivariateRegressionProblem problem
+  ) {
     return new SymbolicRegressionGrammar(operators, problem.example().xVarNames(), constants);
   }
 }

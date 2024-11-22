@@ -73,11 +73,13 @@ public class Representations {
   public static <N> Function<Tree<N>, Representation<Tree<N>>> cfgTree(
       @Param("grammar") StringGrammar<N> grammar,
       @Param(value = "minTreeH", dI = 4) int minTreeH,
-      @Param(value = "maxTreeH", dI = 16) int maxTreeH) {
+      @Param(value = "maxTreeH", dI = 16) int maxTreeH
+  ) {
     return g -> new Representation<>(
         new GrammarRampedHalfAndHalf<>(minTreeH, maxTreeH, grammar),
         List.of(new GrammarBasedSubtreeMutation<>(maxTreeH, grammar)),
-        List.of());
+        List.of()
+    );
   }
 
   @SuppressWarnings("unused")

@@ -1,9 +1,25 @@
+/*-
+ * ========================LICENSE_START=================================
+ * jgea-core
+ * %%
+ * Copyright (C) 2018 - 2024 Eric Medvet
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =========================LICENSE_END==================================
+ */
 package io.github.ericmedvet.jgea.core.representation.programsynthesis.type;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.function.IntFunction;
-import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -74,6 +90,11 @@ public record StringParser(String s) {
     } catch (ParseException e) {
       // ignore
     }
+    try {
+      return parseTuple(i);
+    } catch (ParseException e) {
+      // ignore
+    }
     throw ex(i, "No valid nodes found");
   }
 
@@ -102,12 +123,21 @@ public record StringParser(String s) {
     List<Node> nodes = new ArrayList<>();
     Token oParT = find(i, Pattern.quote(Tuple.STRING_PREFIX));
     nodes.add(parseType(oParT.end));
-    Token lastToken = nodes.getLast().token;
+    Token lastT = nodes.getLast().token;
     while (true) {
-      break;
+      try {
+        lastT = find(lastT.end, Pattern.quote(Tuple.STRING_SEPARATOR));
+        nodes.add(parseType(lastT.end));
+        lastT = nodes.getLast().token;
+      } catch (ParseException e) {
+        break;
+      }
     }
-    Token cParT = find(lastToken.end, Pattern.quote(Tuple.STRING_SUFFIX));
-    return n(Composed.tuple(List.of()), t(oParT.start, cParT.end));
+    if (!lastT.equals(nodes.getLast().token)) {
+      throw ex(i, "Invalid last token");
+    }
+    Token cParT = find(lastT.end, Pattern.quote(Tuple.STRING_SUFFIX));
+    return n(Composed.tuple(nodes.stream().map(n -> n.type).toList()), t(oParT.start, cParT.end));
   }
 
   private Token find(int i, String regex) throws ParseException {

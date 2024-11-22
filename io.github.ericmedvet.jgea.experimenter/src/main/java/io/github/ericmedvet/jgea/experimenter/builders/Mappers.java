@@ -334,15 +334,18 @@ public class Mappers {
   @Cacheable
   public static <X, N, S> InvertibleMapper<X, S> grammarTreeBP(
       @Param(value = "of", dNPM = "ea.m.identity()") InvertibleMapper<X, Tree<N>> beforeM,
-      @Param("problem") GrammarBasedProblem<N, S> problem) {
+      @Param("problem") GrammarBasedProblem<N, S> problem
+  ) {
     return beforeM.andThen(
-        InvertibleMapper.from((eS, t) -> problem.getSolutionMapper().apply(t), es -> null, "problem.specific"));
+        InvertibleMapper.from((eS, t) -> problem.getSolutionMapper().apply(t), es -> null, "problem.specific")
+    );
   }
 
   @SuppressWarnings("unused")
   @Cacheable
   public static <X> InvertibleMapper<X, Tree<Element>> grammarTreeRegression(
-      @Param(value = "of", dNPM = "ea.m.identity()") InvertibleMapper<X, Tree<String>> beforeM) {
+      @Param(value = "of", dNPM = "ea.m.identity()") InvertibleMapper<X, Tree<String>> beforeM
+  ) {
     FormulaMapper mapper = new FormulaMapper();
     return beforeM.andThen(InvertibleMapper.from((eS, t) -> mapper.apply(t), es -> null, "problem.specific"));
   }
