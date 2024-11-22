@@ -33,8 +33,11 @@ public record Generic(String name) implements Type {
   }
 
   @Override
-  public boolean matches(Object o) {
-    return true;
+  public Type concrete(Map<Generic, Type> genericTypeMap) throws TypeException {
+    if (genericTypeMap.containsKey(this)) {
+      return genericTypeMap.get(this).concrete(genericTypeMap);
+    }
+    throw new TypeException("Undefined generics %s".formatted(this));
   }
 
   @Override
@@ -43,8 +46,8 @@ public record Generic(String name) implements Type {
   }
 
   @Override
-  public String toString() {
-    return name;
+  public boolean matches(Object o) {
+    return true;
   }
 
   @Override
@@ -53,10 +56,12 @@ public record Generic(String name) implements Type {
   }
 
   @Override
-  public Type concrete(Map<Generic, Type> genericTypeMap) throws TypeException {
-    if (genericTypeMap.containsKey(this)) {
-      return genericTypeMap.get(this).concrete(genericTypeMap);
-    }
-    throw new TypeException("Undefined generics %s".formatted(this));
+  public int sizeOf(Object o) {
+    throw new UnsupportedOperationException("Cannot compute size of generic type");
+  }
+
+  @Override
+  public String toString() {
+    return name;
   }
 }

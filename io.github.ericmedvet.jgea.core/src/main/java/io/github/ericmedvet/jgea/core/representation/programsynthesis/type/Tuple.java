@@ -22,6 +22,7 @@ package io.github.ericmedvet.jgea.core.representation.programsynthesis.type;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public record Tuple(List<Type> types) implements Composed {
   public Tuple(List<Type> types) {
@@ -41,6 +42,18 @@ public record Tuple(List<Type> types) implements Composed {
       }
     }
     return false;
+  }
+
+  @Override
+  public Type concrete(Map<Generic, Type> genericTypeMap) throws TypeException {
+    if (!isGenerics()) {
+      return this;
+    }
+    List<Type> concreteTypes = new ArrayList<>(types.size());
+    for (Type type : types) {
+      concreteTypes.add(type.concrete(genericTypeMap));
+    }
+    return Composed.tuple(concreteTypes);
   }
 
   @Override
@@ -102,15 +115,16 @@ public record Tuple(List<Type> types) implements Composed {
   }
 
   @Override
-  public Type concrete(Map<Generic, Type> genericTypeMap) throws TypeException {
-    if (!isGenerics()) {
-      return this;
+  public int sizeOf(Object o) {
+    if (o instanceof List<?> list) {
+      if (list.size() == types.size()) {
+        return IntStream.range(0, types.size())
+            .map(i -> types.get(i).sizeOf(list.get(i)))
+            .sum();
+      }
+      throw new IllegalArgumentException("Inconsistent tuple size: %d != %d".formatted(types.size(), list.size()));
     }
-    List<Type> concreteTypes = new ArrayList<>(types.size());
-    for (Type type : types) {
-      concreteTypes.add(type.concrete(genericTypeMap));
-    }
-    return Composed.tuple(concreteTypes);
+    throw new IllegalArgumentException("Unsupported object type %s".formatted(o.getClass()));
   }
 
   @Override

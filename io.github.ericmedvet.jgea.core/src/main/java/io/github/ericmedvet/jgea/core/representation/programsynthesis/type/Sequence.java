@@ -33,6 +33,14 @@ public record Sequence(Type type) implements Composed {
   }
 
   @Override
+  public Type concrete(Map<Generic, Type> genericTypeMap) throws TypeException {
+    if (!isGenerics()) {
+      return this;
+    }
+    return Composed.sequence(type.concrete(genericTypeMap));
+  }
+
+  @Override
   public Set<Generic> generics() {
     return type.generics();
   }
@@ -54,11 +62,11 @@ public record Sequence(Type type) implements Composed {
   }
 
   @Override
-  public Type concrete(Map<Generic, Type> genericTypeMap) throws TypeException {
-    if (!isGenerics()) {
-      return this;
+  public int sizeOf(Object o) {
+    if (o instanceof List<?> list) {
+      return list.stream().mapToInt(type::sizeOf).sum();
     }
-    return Composed.sequence(type.concrete(genericTypeMap));
+    throw new IllegalArgumentException("Unsupported object type %s".formatted(o.getClass()));
   }
 
   @Override

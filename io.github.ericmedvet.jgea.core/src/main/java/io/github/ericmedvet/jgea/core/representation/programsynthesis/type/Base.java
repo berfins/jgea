@@ -21,19 +21,30 @@ package io.github.ericmedvet.jgea.core.representation.programsynthesis.type;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.function.ToIntFunction;
 
 public enum Base implements Type {
-  BOOLEAN(Boolean.class), INT(Integer.class), REAL(Double.class), STRING(String.class);
+  BOOLEAN(Boolean.class, o -> 1), INT(Integer.class, o -> 1), REAL(Double.class, o -> 1), STRING(
+      String.class,
+      o -> ((String) o).length()
+  );
 
   private final Class<?> javaClass;
+  private final ToIntFunction<Object> sizer;
 
-  Base(Class<?> javaClass) {
+  Base(Class<?> javaClass, ToIntFunction<Object> sizer) {
     this.javaClass = javaClass;
+    this.sizer = sizer;
   }
 
   @Override
   public boolean canTakeValuesOf(Type other) {
     return equals(other);
+  }
+
+  @Override
+  public Type concrete(Map<Generic, Type> genericTypeMap) {
+    return this;
   }
 
   @Override
@@ -52,12 +63,13 @@ public enum Base implements Type {
   }
 
   @Override
-  public Type concrete(Map<Generic, Type> genericTypeMap) {
-    return this;
+  public int sizeOf(Object o) {
+    return sizer.applyAsInt(o);
   }
 
   @Override
   public String toString() {
     return "%s".formatted(name().substring(0, 1));
   }
+
 }

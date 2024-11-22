@@ -291,6 +291,17 @@ public class Misc {
     return ranges;
   }
 
+  public static <K, V, U> Map<K, U> transformValues(Map<K, V> map, Function<? super V, ? extends U> transformer) {
+    return map.entrySet()
+        .stream()
+        .collect(
+            Collectors.toMap(
+                Map.Entry::getKey,
+                e -> transformer.apply(e.getValue())
+            )
+        );
+  }
+
   public static <T> Set<T> union(Set<T> set1, Set<T> set2) {
     return Stream.of(set1, set2).flatMap(Set::stream).collect(Collectors.toSet());
   }

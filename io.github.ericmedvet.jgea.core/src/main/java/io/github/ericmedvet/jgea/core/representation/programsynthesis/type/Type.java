@@ -42,15 +42,17 @@ public interface Type {
 
   boolean canTakeValuesOf(Type other);
 
+  Type concrete(Map<Generic, Type> genericTypeMap) throws TypeException;
+
   Set<Generic> generics();
 
   boolean matches(Object o);
 
   Map<Generic, Type> resolveGenerics(Type concreteType) throws TypeException;
 
+  int sizeOf(Object o);
+
   default boolean isGenerics() {
     return !generics().isEmpty();
   }
-
-  Type concrete(Map<Generic, Type> genericTypeMap) throws TypeException;
 }
