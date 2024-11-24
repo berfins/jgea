@@ -23,15 +23,67 @@ import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
 import io.github.ericmedvet.jgea.core.problem.ProblemWithValidation;
 import io.github.ericmedvet.jgea.core.problem.TotalOrderQualityBasedProblem;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.Program;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.ProgramExecutionException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
+import java.util.random.RandomGenerator;
+import java.util.stream.Stream;
 
 public class ProgramSynthesisProblem implements TotalOrderQualityBasedProblem<Program, Double>, ProblemWithValidation<Program, Double>, ProblemWithExampleSolution<Program> {
 
   private final Program targetProgram;
   private final ProgramSynthesisFitness fitness;
   private final ProgramSynthesisFitness validationFitness;
+
+  public ProgramSynthesisProblem(
+      int nOfCases,
+      int nOfValidationCases,
+      double maxExceptionCaseRate,
+      DataFactory dataFactory,
+      RandomGenerator rnd,
+      Program targetProgram,
+      ProgramSynthesisFitness.Metric metric
+  ) {
+    this(
+        buildRandomCases(dataFactory, targetProgram, nOfCases, maxExceptionCaseRate, rnd),
+        buildRandomCases(dataFactory, targetProgram, nOfValidationCases, maxExceptionCaseRate, rnd),
+        targetProgram,
+        metric
+    );
+  }
+
+  private static List<List<Object>> buildRandomCases(
+      DataFactory df,
+      Program targetProgram,
+      int n,
+      double maxExceptionCaseRate,
+      RandomGenerator rnd
+  ) {
+    return Stream.concat(
+        Stream.generate(() -> buildRandomCase(df, targetProgram, false, rnd))
+            .limit((long) (n * (1d - maxExceptionCaseRate))),
+        Stream.generate(() -> buildRandomCase(df, targetProgram, true, rnd)).limit((long) (n * maxExceptionCaseRate))
+    ).toList();
+  }
+
+  private static List<Object> buildRandomCase(
+      DataFactory df,
+      Program targetProgram,
+      boolean acceptException,
+      RandomGenerator rnd
+  ) {
+    List<Object> inputs = targetProgram.inputTypes().stream().map(t -> df.apply(t, rnd)).toList();
+    if (acceptException) {
+      return inputs;
+    }
+    try {
+      targetProgram.run(inputs);
+      return inputs;
+    } catch (ProgramExecutionException e) {
+      return buildRandomCase(df, targetProgram, acceptException, rnd);
+    }
+  }
 
   public ProgramSynthesisProblem(
       List<List<Object>> cases,

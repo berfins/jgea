@@ -34,6 +34,7 @@
  */
 package io.github.ericmedvet.jgea.experimenter.drawer;
 
+import io.github.ericmedvet.jgea.core.fitness.CaseBasedFitness;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.InstrumentedProgram;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.Program;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.ProgramExecutionException;
@@ -45,11 +46,14 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Typed
 import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
 import io.github.ericmedvet.jgea.core.util.IntRange;
 import io.github.ericmedvet.jgea.problem.programsynthesis.DataFactory;
+import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisFitness;
+import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisProblem;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
 import io.github.ericmedvet.jviz.core.drawer.ImageBuilder;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.function.IntFunction;
 import java.util.random.RandomGenerator;
 import java.util.stream.IntStream;
 
@@ -112,9 +116,25 @@ public class TTPNMain {
     System.out.println(tProgram.run(inputs));
     InstrumentedProgram.Outcome o = ttpnProgram.runInstrumented(inputs);
     System.out.println(o);
+
+    ProgramSynthesisProblem psp = new ProgramSynthesisProblem(
+        10,
+        10,
+        0.1,
+        df,
+        rnd,
+        tProgram,
+        ProgramSynthesisFitness.Metric.SUCCESS_RATE
+    );
+    IntFunction<List<Object>> caseProvider = ((CaseBasedFitness<Program, List<Object>, Double, Double>) psp.qualityFunction()).caseProvider();
+    IntStream.range(0, 10).forEach(i -> System.out.println(caseProvider.apply(i)));
+
+    System.exit(0);
+
     TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
     drawer.show(n);
     drawer.show(new ImageBuilder.ImageInfo(600, 300), n);
+
   }
 
   @Typed("R")
