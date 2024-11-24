@@ -61,8 +61,12 @@ public record Generic(String name) implements Type {
   }
 
   @Override
+  public double dissimilarity(Object o1, Object o2) {
+    throw new UnsupportedOperationException("Cannot compute dissimilarity of generic type");
+  }
+
+  @Override
   public String toString() {
     return name;
   }
-
 }

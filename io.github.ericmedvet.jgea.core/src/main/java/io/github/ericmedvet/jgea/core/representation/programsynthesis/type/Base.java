@@ -19,22 +19,43 @@
  */
 package io.github.ericmedvet.jgea.core.representation.programsynthesis.type;
 
+import io.github.ericmedvet.jgea.core.distance.Edit;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.ToDoubleBiFunction;
 import java.util.function.ToIntFunction;
 
 public enum Base implements Type {
-  BOOLEAN(Boolean.class, o -> 1), INT(Integer.class, o -> 1), REAL(Double.class, o -> 1), STRING(
+
+  BOOLEAN(
+      Boolean.class,
+      o -> 1,
+      (o1, o2) -> o1.equals(o2) ? 0d : 1d
+  ), INT(
+      Integer.class,
+      o -> 1,
+      (o1, o2) -> Math.abs((Integer) o1 - (Integer) o2)
+  ), REAL(
+      Double.class,
+      o -> 1,
+      (o1, o2) -> Math.abs((Double) o1 - (Double) o2)
+  ), STRING(
       String.class,
-      o -> ((String) o).length()
+      o -> ((String) o).length(),
+      (o1, o2) -> Edit.compute(
+          ((String) o1).chars().boxed().toList(),
+          ((String) o2).chars().boxed().toList()
+      )
   );
 
   private final Class<?> javaClass;
   private final ToIntFunction<Object> sizer;
+  private final ToDoubleBiFunction<Object, Object> dissimilarity;
 
-  Base(Class<?> javaClass, ToIntFunction<Object> sizer) {
+  Base(Class<?> javaClass, ToIntFunction<Object> sizer, ToDoubleBiFunction<Object, Object> dissimilarity) {
     this.javaClass = javaClass;
     this.sizer = sizer;
+    this.dissimilarity = dissimilarity;
   }
 
   @Override
@@ -65,6 +86,11 @@ public enum Base implements Type {
   @Override
   public int sizeOf(Object o) {
     return sizer.applyAsInt(o);
+  }
+
+  @Override
+  public double dissimilarity(Object o1, Object o2) {
+    return dissimilarity.applyAsDouble(o1, o2);
   }
 
   @Override

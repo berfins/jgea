@@ -40,11 +40,17 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.ProgramExe
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.*;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Base;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Composed;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.StringParser;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Typed;
 import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
+import io.github.ericmedvet.jgea.core.util.IntRange;
+import io.github.ericmedvet.jgea.problem.programsynthesis.DataFactory;
+import io.github.ericmedvet.jnb.datastructure.DoubleRange;
 import io.github.ericmedvet.jviz.core.drawer.ImageBuilder;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
+import java.util.random.RandomGenerator;
 import java.util.stream.IntStream;
 
 public class TTPNMain {
@@ -86,6 +92,18 @@ public class TTPNMain {
     );
     System.out.println(n);
     n.validate();
+
+    DataFactory df = new DataFactory(
+        List.of(1, 2, 3),
+        List.of(1d, 2d, 3d, 1.5, 2.5, 3.14),
+        List.of("cat", "dog", "hello world!", "mummy"),
+        new IntRange(-10, 100),
+        new DoubleRange(-10, 10),
+        new IntRange(2, 20),
+        new IntRange(3, 8)
+    );
+    RandomGenerator rnd = new Random(1);
+    System.out.println(df.apply(StringParser.parse("[<S,[I],R>]"), rnd));
 
     Program tProgram = Program.from(TTPNMain.class.getMethod("vProduct", List.class, List.class));
     System.out.println(tProgram);

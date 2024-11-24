@@ -52,6 +52,8 @@ public interface Type {
 
   int sizeOf(Object o);
 
+  double dissimilarity(Object o1, Object o2);
+
   default boolean isGenerics() {
     return !generics().isEmpty();
   }

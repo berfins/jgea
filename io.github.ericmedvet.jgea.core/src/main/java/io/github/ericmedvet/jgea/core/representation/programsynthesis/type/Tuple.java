@@ -132,6 +132,15 @@ public record Tuple(List<Type> types) implements Composed {
   }
 
   @Override
+  public double dissimilarity(Object o1, Object o2) {
+    @SuppressWarnings("unchecked") List<Object> os1 = (List<Object>) o1;
+    @SuppressWarnings("unchecked") List<Object> os2 = (List<Object>) o2;
+    return IntStream.range(0, types.size())
+        .mapToDouble(i -> types.get(i).dissimilarity(os1.get(i), os2.get(i)))
+        .sum();
+  }
+
+  @Override
   public String toString() {
     return (STRING_PREFIX + "%s" + STRING_SUFFIX).formatted(
         types.stream()
