@@ -148,41 +148,38 @@ public class SinglePlots {
   }
 
   @SuppressWarnings("unused")
-  public static <X, P extends QualityBasedProblem<S, Double>, S>
+  public static <X, Q, P extends QualityBasedProblem<S, Q>, S>
       LandscapeSEPAF<
-              POCPopulationState<Individual<List<Double>, S, Double>, List<Double>, S, Double, P>,
-              Run<?, List<Double>, S, Double>,
+              POCPopulationState<Individual<List<Double>, S, Q>, List<Double>, S, Q, P>,
+              Run<?, List<Double>, S, Q>,
               X,
-              Individual<List<Double>, S, Double>>
+              Individual<List<Double>, S, Q>>
           landscape(
               @Param(
                       value = "title",
                       dNPM =
                           "ea.f.runString(name=title;s=\"{run.solver.name} on {run.problem.name} (seed={run.randomGenerator"
                               + ".seed})\")")
-                  Function<? super Run<?, List<Double>, S, Double>, String> titleFunction,
+                  Function<? super Run<?, List<Double>, S, Q>, String> titleFunction,
               @Param(
                       value = "predicateValue",
                       dNPM =
                           "f.quantized(of=ea.f.rate(of=ea.f.progress());q=0.05;format=\"%.2f\")")
                   Function<
                           POCPopulationState<
-                              Individual<List<Double>, S, Double>,
-                              List<Double>,
-                              S,
-                              Double,
-                              P>,
+                              Individual<List<Double>, S, Q>, List<Double>, S, Q, P>,
                           X>
                       predicateValueFunction,
               @Param(value = "condition", dNPM = "predicate.inD(values=[0;0.1;0.25;0.50;1])")
                   Predicate<X> condition,
               @Param(value = "mapper", dNPM = "ea.m.identity()") InvertibleMapper<List<Double>, S> mapper,
+              @Param(value = "q", dNPM = "ea.m.identity()") Function<Q, Double> qFunction,
               @Param(value = "xRange", dNPM = "m.range(min=-Infinity;max=Infinity)") DoubleRange xRange,
               @Param(value = "yRange", dNPM = "m.range(min=-Infinity;max=Infinity)") DoubleRange yRange,
               @Param(value = "xF", dNPM = "f.nTh(of=ea.f.genotype();n=0)")
-                  Function<Individual<List<Double>, S, Double>, Double> xF,
+                  Function<Individual<List<Double>, S, Q>, Double> xF,
               @Param(value = "yF", dNPM = "f.nTh(of=ea.f.genotype();n=1)")
-                  Function<Individual<List<Double>, S, Double>, Double> yF,
+                  Function<Individual<List<Double>, S, Q>, Double> yF,
               @Param(value = "valueRange", dNPM = "m.range(min=-Infinity;max=Infinity)")
                   DoubleRange valueRange,
               @Param(value = "unique", dB = true) boolean unique) {
@@ -196,6 +193,7 @@ public class SinglePlots {
         yF,
         s -> (x, y) -> s.problem()
             .qualityFunction()
+            .andThen(qFunction)
             .apply(mapper.mapperFor(s.pocPopulation()
                     .all()
                     .iterator()
