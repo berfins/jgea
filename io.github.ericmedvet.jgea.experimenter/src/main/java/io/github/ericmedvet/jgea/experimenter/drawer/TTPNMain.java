@@ -126,7 +126,8 @@ public class TTPNMain {
         tProgram,
         ProgramSynthesisFitness.Metric.SUCCESS_RATE
     );
-    IntFunction<List<Object>> caseProvider = ((CaseBasedFitness<Program, List<Object>, Double, Double>) psp.qualityFunction()).caseProvider();
+    IntFunction<List<Object>> caseProvider = ((CaseBasedFitness<Program, List<Object>, Double, Double>) psp
+        .qualityFunction()).caseProvider();
     IntStream.range(0, 10).forEach(i -> System.out.println(caseProvider.apply(i)));
 
     System.exit(0);

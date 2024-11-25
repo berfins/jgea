@@ -241,11 +241,11 @@ public class SyntheticProblems {
       @Param(value = "name", iS = "pointsAiming") String name,
       @Param(value = "targetY", dD = 2d) double targetY,
       @Param(
-              value = "targetXs",
-              dDs = {-2d, 2d})
-          List<Double> targetXs) {
+          value = "targetXs", dDs = {-2d, 2d}) List<Double> targetXs
+  ) {
     return new PointsAiming(
-        targetXs.stream().map(targetX -> List.of(targetX, targetY)).toList());
+        targetXs.stream().map(targetX -> List.of(targetX, targetY)).toList()
+    );
   }
 
   @SuppressWarnings("unused")
