@@ -130,6 +130,20 @@ public class Misc {
     return all.get(all.size() / 2);
   }
 
+  public static <K, V> Map<K, Set<V>> merge(Collection<? extends Map<K, V>> maps) {
+    return maps.stream()
+        .map(Map::entrySet)
+        .flatMap(Set::stream)
+        .map(e -> Map.entry(e.getKey(), Set.of(e.getValue())))
+        .collect(
+            Collectors.toMap(
+                Map.Entry::getKey,
+                Map.Entry::getValue,
+                Misc::union
+            )
+        );
+  }
+
   public static <K> K percentile(Collection<K> ks, Comparator<? super K> comparator, double p) {
     List<K> collection = ks.stream().sorted(comparator).toList();
     int i = (int) Math.max(Math.min(((double) collection.size()) * p, collection.size() - 1), 0);
@@ -252,6 +266,17 @@ public class Misc {
       offset = offset + j;
     }
     return ranges;
+  }
+
+  public static <K, V, U> Map<K, U> transformValues(Map<K, V> map, Function<? super V, ? extends U> transformer) {
+    return map.entrySet()
+        .stream()
+        .collect(
+            Collectors.toMap(
+                Map.Entry::getKey,
+                e -> transformer.apply(e.getValue())
+            )
+        );
   }
 
   public static <T> Set<T> union(Set<T> set1, Set<T> set2) {
