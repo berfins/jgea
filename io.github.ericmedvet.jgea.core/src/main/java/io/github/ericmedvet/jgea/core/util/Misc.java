@@ -158,6 +158,7 @@ public class Misc {
     Path path = Path.of(pathName);
     Path filePath = path.getFileName();
     Path dirsPath;
+    boolean exist = false;
     if (path.getNameCount() > 1) {
       // create directories
       dirsPath = path.subpath(0, path.getNameCount() - 1);
@@ -168,6 +169,7 @@ public class Misc {
     if (!overwrite) {
       // check file existence
       while (dirsPath.resolve(filePath).toFile().exists()) {
+        exist = true;
         String newName = null;
         Matcher mNum = Pattern.compile("\\((?<n>[0-9]+)\\)\\.\\w+$").matcher(filePath.toString());
         if (mNum.find()) {
@@ -187,11 +189,12 @@ public class Misc {
         }
         filePath = Path.of(newName);
       }
-      if (!path.equals(dirsPath.resolve(filePath))) {
+      if (exist) {
         L.log(
             Level.WARNING,
             String.format(
-                "Given file path '%s' exists; will write on '%s'", path, dirsPath.resolve(filePath)));
+                "Given file path '%s' exists; will write on '%s'",
+                dirsPath.resolve(path), dirsPath.resolve(filePath)));
       }
     }
     return dirsPath.resolve(filePath).toFile();
