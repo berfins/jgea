@@ -1,60 +1,82 @@
-/*-
- * ========================LICENSE_START=================================
- * jgea-problem
- * %%
- * Copyright (C) 2018 - 2024 Eric Medvet
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =========================LICENSE_END==================================
- */
-
 package io.github.ericmedvet.jgea.problem.regression.univariate;
 
-import io.github.ericmedvet.jgea.core.problem.ComparableQualityBasedProblem;
+import io.github.ericmedvet.jgea.core.fitness.ExampleBasedFitness;
+import io.github.ericmedvet.jgea.core.problem.ExampleBasedProblem;
 import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
-import io.github.ericmedvet.jgea.core.problem.ProblemWithValidation;
+import io.github.ericmedvet.jgea.core.problem.TotalOrderQualityBasedProblem;
 import io.github.ericmedvet.jgea.core.representation.NamedUnivariateRealFunction;
+import io.github.ericmedvet.jgea.core.util.IndexedProvider;
 import io.github.ericmedvet.jsdynsym.core.numerical.UnivariateRealFunction;
 
-public class UnivariateRegressionProblem<F extends UnivariateRegressionFitness> implements ComparableQualityBasedProblem<NamedUnivariateRealFunction, Double>, ProblemWithValidation<NamedUnivariateRealFunction, Double>, ProblemWithExampleSolution<NamedUnivariateRealFunction> {
+import java.util.Comparator;
+import java.util.Map;
 
-  private final F fitness;
-  private final F validationFitness;
-
-  public UnivariateRegressionProblem(F fitness, F validationFitness) {
-    this.fitness = fitness;
-    this.validationFitness = validationFitness;
-  }
+public interface UnivariateRegressionProblem extends ExampleBasedProblem<NamedUnivariateRealFunction, Map<String,
+    Double>, Map.Entry<String, Double>, UnivariateRegressionFitness.Outcome,
+    Double>, TotalOrderQualityBasedProblem<NamedUnivariateRealFunction, Double>,
+    ProblemWithExampleSolution<NamedUnivariateRealFunction> {
 
   @Override
-  public NamedUnivariateRealFunction example() {
+  UnivariateRegressionFitness qualityFunction();
+
+  @Override
+  UnivariateRegressionFitness validationQualityFunction();
+
+  @Override
+  default NamedUnivariateRealFunction example() {
+    ExampleBasedFitness.Example<Map<String, Double>, Map.Entry<String, Double>> example =
+        qualityFunction().caseProvider()
+            .first();
     return NamedUnivariateRealFunction.from(
-        UnivariateRealFunction.from(
-            xs -> 0d,
-            fitness.getDataset().xVarNames().size()
-        ),
-        fitness.getDataset().xVarNames(),
-        fitness.getDataset().yVarNames().getFirst()
+        UnivariateRealFunction.from(inputs -> 0d, example.input().size()),
+        example.input().keySet().stream().sorted().toList(),
+        example.output().getKey()
     );
   }
 
   @Override
-  public F qualityFunction() {
-    return fitness;
+  default Comparator<Double> totalOrderComparator() {
+    return Double::compareTo;
   }
 
-  @Override
-  public F validationQualityFunction() {
-    return validationFitness;
+  static UnivariateRegressionProblem from(
+      UnivariateRegressionFitness qualityFunction,
+      UnivariateRegressionFitness validationQualityFunction
+  ) {
+    record HardUnivariateRegressionProblem(
+        UnivariateRegressionFitness qualityFunction,
+        UnivariateRegressionFitness validationQualityFunction
+    ) implements UnivariateRegressionProblem {}
+    return new HardUnivariateRegressionProblem(qualityFunction, validationQualityFunction);
+  }
+
+  static UnivariateRegressionProblem from(
+      UnivariateRegressionFitness.Metric metric,
+      IndexedProvider<ExampleBasedFitness.Example<Map<String, Double>, Map.Entry<String, Double>>> caseProvider,
+      IndexedProvider<ExampleBasedFitness.Example<Map<String, Double>, Map.Entry<String, Double>>> validationCaseProvider
+  ) {
+    return from(
+        UnivariateRegressionFitness.from(metric, caseProvider),
+        UnivariateRegressionFitness.from(metric, validationCaseProvider)
+    );
+  }
+
+  static UnivariateRegressionProblem from(
+      UnivariateRegressionFitness.Metric metric,
+      NamedUnivariateRealFunction target,
+      IndexedProvider<Map<String, Double>> inputProvider,
+      IndexedProvider<Map<String, Double>> validationInputProvider
+  ) {
+    return from(
+        metric,
+        inputProvider.then(i -> new ExampleBasedFitness.Example<>(
+            i,
+            Map.entry(target.yVarName(), target.computeAsDouble(i))
+        )),
+        validationInputProvider.then(i -> new ExampleBasedFitness.Example<>(
+            i,
+            Map.entry(target.yVarName(), target.computeAsDouble(i))
+        ))
+    );
   }
 }

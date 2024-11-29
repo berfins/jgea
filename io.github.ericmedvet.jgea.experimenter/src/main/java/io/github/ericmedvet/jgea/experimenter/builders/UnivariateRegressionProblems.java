@@ -22,8 +22,7 @@ package io.github.ericmedvet.jgea.experimenter.builders;
 
 import io.github.ericmedvet.jgea.problem.regression.ListNumericalDataset;
 import io.github.ericmedvet.jgea.problem.regression.NumericalDataset;
-import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitness;
-import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionProblem;
+import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionProblemOLD;
 import io.github.ericmedvet.jgea.problem.regression.univariate.synthetic.*;
 import io.github.ericmedvet.jnb.core.Cacheable;
 import io.github.ericmedvet.jnb.core.Discoverable;
@@ -39,9 +38,9 @@ public class UnivariateRegressionProblems {
 
   @SuppressWarnings("unused")
   @Cacheable
-  public static UnivariateRegressionProblem<UnivariateRegressionFitness> bundled(
+  public static UnivariateRegressionProblemOLD<UnivariateRegressionFitnessOLD> bundled(
       @Param("name") String name,
-      @Param(value = "metric", dS = "mse") UnivariateRegressionFitness.Metric metric,
+      @Param(value = "metric", dS = "mse") UnivariateRegressionFitnessOLD.Metric metric,
       @Param(value = "xScaling", dS = "none") NumericalDataset.Scaling xScaling,
       @Param(value = "yScaling", dS = "none") NumericalDataset.Scaling yScaling
   ) {
@@ -66,13 +65,13 @@ public class UnivariateRegressionProblems {
     }
     dataset = dataset.xScaled(xScaling).yScaled(yScaling);
     return switch (name) {
-      case "concrete", "energy-efficiency", "wine" -> new UnivariateRegressionProblem<>(
-          new UnivariateRegressionFitness(dataset.folds(List.of(0, 1, 2, 3), 5), metric),
-          new UnivariateRegressionFitness(dataset.folds(List.of(4), 5), metric)
+      case "concrete", "energy-efficiency", "wine" -> new UnivariateRegressionProblemOLD<>(
+          new UnivariateRegressionFitnessOLD(dataset.folds(List.of(0, 1, 2, 3), 5), metric),
+          new UnivariateRegressionFitnessOLD(dataset.folds(List.of(4), 5), metric)
       );
-      case "xor" -> new UnivariateRegressionProblem<>(
-          new UnivariateRegressionFitness(dataset, metric),
-          new UnivariateRegressionFitness(dataset, metric)
+      case "xor" -> new UnivariateRegressionProblemOLD<>(
+          new UnivariateRegressionFitnessOLD(dataset, metric),
+          new UnivariateRegressionFitnessOLD(dataset, metric)
       );
       default -> throw new IllegalArgumentException("Unknown bundled dataset: %s".formatted(name));
     };
@@ -80,20 +79,20 @@ public class UnivariateRegressionProblems {
 
   @SuppressWarnings("unused")
   @Cacheable
-  public static UnivariateRegressionProblem<UnivariateRegressionFitness> fromData(
+  public static UnivariateRegressionProblemOLD<UnivariateRegressionFitnessOLD> fromData(
       @Param(value = "name", dS = "dataset") String name,
       @Param("trainingDataset") Supplier<NumericalDataset> trainingDataset,
       @Param(value = "testDataset", dNPM = "ea.d.num.empty()") Supplier<NumericalDataset> testDataset,
-      @Param(value = "metric", dS = "mse") UnivariateRegressionFitness.Metric metric,
+      @Param(value = "metric", dS = "mse") UnivariateRegressionFitnessOLD.Metric metric,
       @Param(value = "xScaling", dS = "none") NumericalDataset.Scaling xScaling,
       @Param(value = "yScaling", dS = "none") NumericalDataset.Scaling yScaling
   ) {
-    return new UnivariateRegressionProblem<>(
-        new UnivariateRegressionFitness(
+    return new UnivariateRegressionProblemOLD<>(
+        new UnivariateRegressionFitnessOLD(
             trainingDataset.get().xScaled(xScaling).yScaled(yScaling),
             metric
         ),
-        testDataset != null ? new UnivariateRegressionFitness(testDataset.get(), metric) : null
+        testDataset != null ? new UnivariateRegressionFitnessOLD(testDataset.get(), metric) : null
     );
   }
 
@@ -101,7 +100,7 @@ public class UnivariateRegressionProblems {
   @Cacheable
   public static SyntheticUnivariateRegressionProblem synthetic(
       @Param("name") String name,
-      @Param(value = "metric", dS = "mse") UnivariateRegressionFitness.Metric metric,
+      @Param(value = "metric", dS = "mse") UnivariateRegressionFitnessOLD.Metric metric,
       @Param(value = "seed", dI = 1) int seed
   ) {
     return switch (name) {

@@ -23,7 +23,7 @@ package io.github.ericmedvet.jgea.problem.regression.multivariate;
 import io.github.ericmedvet.jgea.core.fitness.CaseBasedFitness;
 import io.github.ericmedvet.jgea.core.representation.NamedMultivariateRealFunction;
 import io.github.ericmedvet.jgea.problem.regression.NumericalDataset;
-import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitness;
+
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -34,11 +34,11 @@ import java.util.stream.IntStream;
 
 public class MultivariateRegressionFitness implements CaseBasedFitness<NamedMultivariateRealFunction, Map<String, Double>, Map<String, Double>, Double> {
   private final NumericalDataset dataset;
-  private final UnivariateRegressionFitness.Metric metric;
+  private final UnivariateRegressionFitnessOLD.Metric metric;
 
   private Map<String, List<Double>> actualYs;
 
-  public MultivariateRegressionFitness(NumericalDataset dataset, UnivariateRegressionFitness.Metric metric) {
+  public MultivariateRegressionFitness(NumericalDataset dataset, UnivariateRegressionFitnessOLD.Metric metric) {
     this.dataset = dataset;
     this.metric = metric;
     actualYs = null;
@@ -74,7 +74,7 @@ public class MultivariateRegressionFitness implements CaseBasedFitness<NamedMult
           );
       return predictedYs.entrySet()
           .stream()
-          .mapToDouble(e -> metric.apply(UnivariateRegressionFitness.pairs(e.getValue(), actualYs.get(e.getKey()))))
+          .mapToDouble(e -> metric.apply(UnivariateRegressionFitnessOLD.pairs(e.getValue(), actualYs.get(e.getKey()))))
           .average()
           .orElse(Double.NaN);
     };
@@ -99,7 +99,7 @@ public class MultivariateRegressionFitness implements CaseBasedFitness<NamedMult
     return dataset;
   }
 
-  public UnivariateRegressionFitness.Metric getMetric() {
+  public UnivariateRegressionFitnessOLD.Metric getMetric() {
     return metric;
   }
 }

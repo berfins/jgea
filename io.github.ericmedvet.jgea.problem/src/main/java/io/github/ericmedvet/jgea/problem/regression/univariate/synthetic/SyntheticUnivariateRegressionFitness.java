@@ -22,11 +22,10 @@ package io.github.ericmedvet.jgea.problem.regression.univariate.synthetic;
 
 import io.github.ericmedvet.jgea.problem.regression.ListNumericalDataset;
 import io.github.ericmedvet.jgea.problem.regression.NumericalDataset;
-import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitness;
 import io.github.ericmedvet.jsdynsym.core.numerical.UnivariateRealFunction;
 import java.util.List;
 
-public class SyntheticUnivariateRegressionFitness extends UnivariateRegressionFitness {
+public class SyntheticUnivariateRegressionFitness extends UnivariateRegressionFitnessOLD {
 
   private final UnivariateRealFunction targetFunction;
 

@@ -23,7 +23,6 @@ package io.github.ericmedvet.jgea.experimenter.builders;
 import io.github.ericmedvet.jgea.problem.regression.NumericalDataset;
 import io.github.ericmedvet.jgea.problem.regression.multivariate.MultivariateRegressionFitness;
 import io.github.ericmedvet.jgea.problem.regression.multivariate.MultivariateRegressionProblem;
-import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitness;
 import io.github.ericmedvet.jnb.core.Cacheable;
 import io.github.ericmedvet.jnb.core.Discoverable;
 import io.github.ericmedvet.jnb.core.Param;
@@ -39,7 +38,7 @@ public class MultivariateRegressionProblems {
   public static MultivariateRegressionProblem<MultivariateRegressionFitness> fromData(
       @Param("trainingDataset") Supplier<NumericalDataset> trainingDataset,
       @Param(value = "testDataset", dNPM = "ea.d.num.empty()") Supplier<NumericalDataset> testDataset,
-      @Param(value = "metric", dS = "mse") UnivariateRegressionFitness.Metric metric
+      @Param(value = "metric", dS = "mse") UnivariateRegressionFitnessOLD.Metric metric
   ) {
     return new MultivariateRegressionProblem<>(
         new MultivariateRegressionFitness(trainingDataset.get(), metric),

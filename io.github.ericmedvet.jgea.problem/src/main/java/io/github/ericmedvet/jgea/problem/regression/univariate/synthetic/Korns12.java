@@ -21,12 +21,11 @@
 package io.github.ericmedvet.jgea.problem.regression.univariate.synthetic;
 
 import io.github.ericmedvet.jgea.problem.regression.MathUtils;
-import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitness;
 import io.github.ericmedvet.jsdynsym.core.numerical.UnivariateRealFunction;
 import java.util.Random;
 
 public class Korns12 extends SyntheticUnivariateRegressionProblem {
-  public Korns12(UnivariateRegressionFitness.Metric metric, long seed) {
+  public Korns12(UnivariateRegressionFitnessOLD.Metric metric, long seed) {
     super(
         UnivariateRealFunction.from(v -> 2d - 2.1 * Math.cos(9.8 * v[0]) * Math.sin(1.3 * v[1]), 2),
         MathUtils.pairwise(

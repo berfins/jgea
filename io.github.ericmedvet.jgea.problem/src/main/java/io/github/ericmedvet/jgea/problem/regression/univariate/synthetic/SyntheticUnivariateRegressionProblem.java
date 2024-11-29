@@ -20,12 +20,11 @@
 
 package io.github.ericmedvet.jgea.problem.regression.univariate.synthetic;
 
-import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitness;
-import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionProblem;
+import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionProblemOLD;
 import io.github.ericmedvet.jsdynsym.core.numerical.UnivariateRealFunction;
 import java.util.List;
 
-public class SyntheticUnivariateRegressionProblem extends UnivariateRegressionProblem<SyntheticUnivariateRegressionFitness> {
+public class SyntheticUnivariateRegressionProblem extends UnivariateRegressionProblemOLD<SyntheticUnivariateRegressionFitness> {
 
   private final UnivariateRealFunction targetFunction;
 
@@ -33,7 +32,7 @@ public class SyntheticUnivariateRegressionProblem extends UnivariateRegressionPr
       UnivariateRealFunction targetFunction,
       List<double[]> trainingPoints,
       List<double[]> validationPoints,
-      UnivariateRegressionFitness.Metric metric
+      UnivariateRegressionFitnessOLD.Metric metric
   ) {
     super(
         new SyntheticUnivariateRegressionFitness(targetFunction, trainingPoints, metric),
