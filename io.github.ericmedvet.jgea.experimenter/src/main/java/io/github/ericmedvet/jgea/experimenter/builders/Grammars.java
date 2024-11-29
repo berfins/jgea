@@ -41,7 +41,7 @@ public class Grammars {
   @SuppressWarnings("unused")
   @Cacheable
   public static <N> StringGrammar<N> fromProblem(@Param("problem") GrammarBasedProblem<N, ?> problem) {
-    return problem.getGrammar();
+    return problem.grammar();
   }
 
   @SuppressWarnings("unused")

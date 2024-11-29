@@ -79,12 +79,12 @@ public class EvenParity implements GrammarBasedProblem<String, List<Tree<Element
   }
 
   @Override
-  public StringGrammar<String> getGrammar() {
+  public StringGrammar<String> grammar() {
     return grammar;
   }
 
   @Override
-  public Function<Tree<String>, List<Tree<Element>>> getSolutionMapper() {
+  public Function<Tree<String>, List<Tree<Element>>> solutionMapper() {
     return solutionMapper;
   }
 

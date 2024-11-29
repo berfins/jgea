@@ -337,7 +337,7 @@ public class Mappers {
       @Param("problem") GrammarBasedProblem<N, S> problem
   ) {
     return beforeM.andThen(
-        InvertibleMapper.from((eS, t) -> problem.getSolutionMapper().apply(t), es -> null, "problem.specific")
+        InvertibleMapper.from((eS, t) -> problem.solutionMapper().apply(t), es -> null, "problem.specific")
     );
   }
 

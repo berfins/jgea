@@ -227,12 +227,12 @@ public class KLandscapes implements GrammarBasedProblem<String, Tree<String>>, C
   }
 
   @Override
-  public StringGrammar<String> getGrammar() {
+  public StringGrammar<String> grammar() {
     return grammar;
   }
 
   @Override
-  public Function<Tree<String>, Tree<String>> getSolutionMapper() {
+  public Function<Tree<String>, Tree<String>> solutionMapper() {
     return solutionMapper;
   }
 

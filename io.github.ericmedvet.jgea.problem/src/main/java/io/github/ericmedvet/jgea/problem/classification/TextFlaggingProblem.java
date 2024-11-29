@@ -20,22 +20,48 @@
 
 package io.github.ericmedvet.jgea.problem.classification;
 
-import io.github.ericmedvet.jnb.datastructure.Pair;
+import io.github.ericmedvet.jgea.core.problem.TotalOrderQualityBasedProblem;
+
+import java.util.Comparator;
 import java.util.List;
 
-public class TextFlaggingProblem extends OLDClassificationProblem<String, TextFlaggingProblem.Label> {
+public interface TextFlaggingProblem extends ClassificationProblem<String, TextFlaggingProblem.Label>,
+    TotalOrderQualityBasedProblem<Classifier<String, TextFlaggingProblem.Label>, Double> {
 
-  public TextFlaggingProblem(
-      List<Pair<String, Label>> data,
-      int folds,
-      int i,
-      ClassificationFitnessCL.Metric learningErrorMetric,
-      ClassificationFitnessCL.Metric validationErrorMetric
-  ) {
-    super(data, folds, i, learningErrorMetric, validationErrorMetric);
-  }
-
-  public enum Label {
+  enum Label {
     FOUND, NOT_FOUND
   }
+
+  static TextFlaggingProblem from(
+      ClassificationFitness<String, Label> qualityFunction,
+      ClassificationFitness<String, Label> validationQualityFunction
+  ) {
+    record HardTextFlaggingProblem(
+        ClassificationFitness<String, Label> qualityFunction,
+        ClassificationFitness<String, Label> validationQualityFunction
+    ) implements TextFlaggingProblem {}
+    return new HardTextFlaggingProblem(qualityFunction, validationQualityFunction);
+  }
+
+  static TextFlaggingProblem from(
+      ClassificationFitness.Metric metric,
+      List<ClassificationFitness.Example<String, Label>> cases,
+      List<ClassificationFitness.Example<String, Label>> validationCases
+  ) {
+    return from(
+        ClassificationFitness.from(metric, cases),
+        ClassificationFitness.from(metric, validationCases)
+    );
+  }
+
+  @Override
+  default Classifier<String, Label> example() {
+    return s -> Label.NOT_FOUND;
+  }
+
+  @Override
+  default Comparator<Double> totalOrderComparator() {
+    return Double::compareTo;
+  }
+
 }

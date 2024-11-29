@@ -20,11 +20,13 @@
 
 package io.github.ericmedvet.jgea.problem.classification;
 
+import io.github.ericmedvet.jgea.core.fitness.ExampleBasedFitness;
 import io.github.ericmedvet.jgea.core.problem.QualityBasedProblem;
 import io.github.ericmedvet.jgea.core.representation.grammar.string.GrammarBasedProblem;
 import io.github.ericmedvet.jgea.core.representation.grammar.string.StringGrammar;
 import io.github.ericmedvet.jgea.core.representation.tree.Tree;
 import io.github.ericmedvet.jgea.problem.extraction.string.RegexGrammar;
+import io.github.ericmedvet.jgea.problem.regression.NumericalDataset;
 import io.github.ericmedvet.jnb.datastructure.Pair;
 import java.util.List;
 import java.util.Set;
@@ -33,42 +35,44 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class GrammarBasedTextFlaggingProblem extends TextFlaggingProblem implements GrammarBasedProblem<String, Classifier<String, TextFlaggingProblem.Label>>, QualityBasedProblem<Classifier<String, TextFlaggingProblem.Label>, List<Double>> {
+public interface GrammarBasedTextFlaggingProblem extends TextFlaggingProblem, GrammarBasedProblem<String, Classifier<String, TextFlaggingProblem.Label>> {
 
-  private final StringGrammar<String> grammar;
-  private final Function<Tree<String>, Classifier<String, TextFlaggingProblem.Label>> solutionMapper;
-
-  public GrammarBasedTextFlaggingProblem(
-      Set<Character> alphabet,
-      Set<RegexGrammar.Option> options,
-      List<Pair<String, Label>> data,
-      int folds,
-      int i,
-      ClassificationFitnessCL.Metric learningErrorMetric,
-      ClassificationFitnessCL.Metric validationErrorMetric
+  static TextFlaggingProblem from(
+      ClassificationFitness<String, Label> qualityFunction,
+      ClassificationFitness<String, Label> validationQualityFunction,
+      StringGrammar<String> grammar
   ) {
-    super(data, folds, i, learningErrorMetric, validationErrorMetric);
-    solutionMapper = (Tree<String> tree) -> {
-      String regex = tree.leaves().stream().map(Tree::content).collect(Collectors.joining());
-      return (Classifier<String, Label>) s -> {
-        Matcher matcher = Pattern.compile(regex).matcher(s);
-        return matcher.find() ? Label.FOUND : Label.NOT_FOUND;
-      };
-    };
-    if (alphabet == null) {
-      grammar = new RegexGrammar(data.stream().map(Pair::first).toList(), options);
-    } else {
-      grammar = new RegexGrammar(alphabet, options);
-    }
+    record HardGrammarBasedTextFlaggingProblem(
+        ClassificationFitness<String, Label> qualityFunction,
+        ClassificationFitness<String, Label> validationQualityFunction,
+        StringGrammar<String> grammar,
+        Function<Tree<String>, Classifier<String, TextFlaggingProblem.Label>> solutionMapper
+    ) implements GrammarBasedTextFlaggingProblem {}
+    return new HardGrammarBasedTextFlaggingProblem(
+        qualityFunction,
+        validationQualityFunction,
+        grammar,
+        tree -> {
+          String regex =tree.leaves().stream().map(Tree::content).collect(Collectors.joining());
+          return s -> {
+            Matcher matcher = Pattern.compile(regex).matcher(s);
+            return matcher.find() ? Label.FOUND : Label.NOT_FOUND;
+          };
+        }
+    );
   }
 
-  @Override
-  public StringGrammar<String> getGrammar() {
-    return grammar;
+  static TextFlaggingProblem from(
+      ClassificationFitness.Metric metric,
+      List<ExampleBasedFitness.Example<String, Label>> cases,
+      List<ExampleBasedFitness.Example<String, Label>> validationCases,
+      StringGrammar<String> grammar
+  ) {
+    return from(
+        ClassificationFitness.from(metric,cases),
+        ClassificationFitness.from(metric,validationCases),
+        grammar
+    );
   }
 
-  @Override
-  public Function<Tree<String>, Classifier<String, Label>> getSolutionMapper() {
-    return solutionMapper;
-  }
 }

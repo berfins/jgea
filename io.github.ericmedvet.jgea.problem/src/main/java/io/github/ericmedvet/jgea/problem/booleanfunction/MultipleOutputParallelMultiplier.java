@@ -93,12 +93,12 @@ public class MultipleOutputParallelMultiplier implements GrammarBasedProblem<Str
   }
 
   @Override
-  public StringGrammar<String> getGrammar() {
+  public StringGrammar<String> grammar() {
     return grammar;
   }
 
   @Override
-  public Function<Tree<String>, List<Tree<Element>>> getSolutionMapper() {
+  public Function<Tree<String>, List<Tree<Element>>> solutionMapper() {
     return solutionMapper;
   }
 

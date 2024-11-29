@@ -108,12 +108,12 @@ public class FitnessFunction implements Function<Pair<Tree<Element>, Tree<Elemen
         pair.second(),
         maxMappingDepth,
         EXPRESSIVENESS_DEPTH,
-        problem.problem().getGrammar()
+        problem.problem().grammar()
     );
     // map
     List<S> solutions = genotypes.stream()
         .map(recursiveMapper)
-        .map(t -> problem.problem().getSolutionMapper().apply(t))
+        .map(t -> problem.problem().solutionMapper().apply(t))
         .toList();
     Multiset<S> multiset = new LinkedHashMultiset<>(solutions);
     multiset.addAll(solutions);

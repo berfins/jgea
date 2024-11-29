@@ -49,12 +49,12 @@ public class TreeSize implements GrammarBasedProblem<Boolean, Tree<Boolean>>, Co
   }
 
   @Override
-  public StringGrammar<Boolean> getGrammar() {
+  public StringGrammar<Boolean> grammar() {
     return grammar;
   }
 
   @Override
-  public Function<Tree<Boolean>, Tree<Boolean>> getSolutionMapper() {
+  public Function<Tree<Boolean>, Tree<Boolean>> solutionMapper() {
     return Function.identity();
   }
 

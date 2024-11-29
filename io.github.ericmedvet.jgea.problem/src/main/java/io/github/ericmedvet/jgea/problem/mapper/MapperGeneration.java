@@ -72,12 +72,12 @@ public class MapperGeneration implements GrammarBasedProblem<String, Pair<Tree<E
   }
 
   @Override
-  public StringGrammar<String> getGrammar() {
+  public StringGrammar<String> grammar() {
     return grammar;
   }
 
   @Override
-  public Function<Tree<String>, Pair<Tree<Element>, Tree<Element>>> getSolutionMapper() {
+  public Function<Tree<String>, Pair<Tree<Element>, Tree<Element>>> solutionMapper() {
     return (Tree<String> rawMappingTree) -> {
       Tree<Element> optionChooser = MapperUtils.transform(rawMappingTree.child(0));
       Tree<Element> genoAssigner = MapperUtils.transform(rawMappingTree.child(1));

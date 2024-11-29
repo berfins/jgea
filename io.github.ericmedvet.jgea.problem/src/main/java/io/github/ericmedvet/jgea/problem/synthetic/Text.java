@@ -55,12 +55,12 @@ public class Text implements GrammarBasedProblem<String, String>, ComparableQual
   }
 
   @Override
-  public StringGrammar<String> getGrammar() {
+  public StringGrammar<String> grammar() {
     return grammar;
   }
 
   @Override
-  public Function<Tree<String>, String> getSolutionMapper() {
+  public Function<Tree<String>, String> solutionMapper() {
     return solutionMapper;
   }
 
