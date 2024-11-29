@@ -39,8 +39,7 @@ public class Misc {
 
   private static final Logger L = Logger.getLogger(Misc.class.getName());
 
-  private Misc() {
-  }
+  private Misc() {}
 
   private record Point(double x, double y) {}
 
@@ -54,13 +53,10 @@ public class Misc {
 
   private static <T> List<List<T>> cartesian(List<List<T>> tss, List<List<T>> lists) {
     if (tss.size() == 1) {
-      return tss.getFirst()
-          .stream()
-          .map(
-              t -> lists.stream()
-                  .map(l -> Stream.concat(l.stream(), Stream.of(t)).toList())
-                  .toList()
-          )
+      return tss.getFirst().stream()
+          .map(t -> lists.stream()
+              .map(l -> Stream.concat(l.stream(), Stream.of(t)).toList())
+              .toList())
           .flatMap(List::stream)
           .toList();
     }
@@ -72,11 +68,7 @@ public class Misc {
   }
 
   public static void doOrLog(
-      Runnable runnable,
-      Logger logger,
-      Level level,
-      Function<Throwable, String> messageFunction
-  ) {
+      Runnable runnable, Logger logger, Level level, Function<Throwable, String> messageFunction) {
     try {
       runnable.run();
     } catch (Throwable t) {
@@ -103,21 +95,15 @@ public class Misc {
   }
 
   public static double hypervolume2D(
-      Collection<List<Double>> points,
-      List<Double> minReference,
-      List<Double> maxReference
-  ) {
+      Collection<List<Double>> points, List<Double> minReference, List<Double> maxReference) {
     return hypervolume2D(
         Stream.concat(
-            Stream.of(
-                List.of(minReference.get(0), maxReference.get(1)),
-                List.of(minReference.get(1), maxReference.get(0))
-            ),
-            points.stream()
-        )
+                Stream.of(
+                    List.of(minReference.get(0), maxReference.get(1)),
+                    List.of(minReference.get(1), maxReference.get(0))),
+                points.stream())
             .toList(),
-        maxReference
-    );
+        maxReference);
   }
 
   public static <T> Set<T> intersection(Set<T> set1, Set<T> set2) {
@@ -142,20 +128,6 @@ public class Misc {
     List<K> all = new ArrayList<>(ks);
     all.sort(comparator);
     return all.get(all.size() / 2);
-  }
-
-  public static <K, V> Map<K, Set<V>> merge(Collection<? extends Map<K, V>> maps) {
-    return maps.stream()
-        .map(Map::entrySet)
-        .flatMap(Set::stream)
-        .map(e -> Map.entry(e.getKey(), Set.of(e.getValue())))
-        .collect(
-            Collectors.toMap(
-                Map.Entry::getKey,
-                Map.Entry::getValue,
-                Misc::union
-            )
-        );
   }
 
   public static <K> K percentile(Collection<K> ks, Comparator<? super K> comparator, double p) {
@@ -186,6 +158,7 @@ public class Misc {
     Path path = Path.of(pathName);
     Path filePath = path.getFileName();
     Path dirsPath;
+    boolean exist = false;
     if (path.getNameCount() > 1) {
       // create directories
       dirsPath = path.subpath(0, path.getNameCount() - 1);
@@ -196,6 +169,7 @@ public class Misc {
     if (!overwrite) {
       // check file existence
       while (dirsPath.resolve(filePath).toFile().exists()) {
+        exist = true;
         String newName = null;
         Matcher mNum = Pattern.compile("\\((?<n>[0-9]+)\\)\\.\\w+$").matcher(filePath.toString());
         if (mNum.find()) {
@@ -215,31 +189,20 @@ public class Misc {
         }
         filePath = Path.of(newName);
       }
-      if (!path.equals(dirsPath.resolve(filePath))) {
+      if (exist) {
         L.log(
             Level.WARNING,
             String.format(
                 "Given file path '%s' exists; will write on '%s'",
-                path,
-                dirsPath.resolve(filePath)
-            )
-        );
+                dirsPath.resolve(path), dirsPath.resolve(filePath)));
       }
     }
     return dirsPath.resolve(filePath).toFile();
   }
 
-  @SafeVarargs
-  public static <K, V> SequencedMap<K, V> sequencedMap(Map.Entry<K, V>... entries) {
-    SequencedMap<K, V> map = new LinkedHashMap<>(entries.length);
-    for (Map.Entry<K, V> entry : entries) {
-      map.put(entry.getKey(), entry.getValue());
-    }
-    return Collections.unmodifiableSequencedMap(map);
-  }
-
   public static <K> List<K> shuffle(List<K> list, RandomGenerator random) {
-    List<Integer> indexes = new ArrayList<>(IntStream.range(0, list.size()).boxed().toList());
+    List<Integer> indexes =
+        new ArrayList<>(IntStream.range(0, list.size()).boxed().toList());
     List<Integer> shuffledIndexes = new ArrayList<>(indexes.size());
     while (!indexes.isEmpty()) {
       int indexOfIndex = indexes.size() == 1 ? 0 : random.nextInt(indexes.size());
@@ -289,17 +252,6 @@ public class Misc {
       offset = offset + j;
     }
     return ranges;
-  }
-
-  public static <K, V, U> Map<K, U> transformValues(Map<K, V> map, Function<? super V, ? extends U> transformer) {
-    return map.entrySet()
-        .stream()
-        .collect(
-            Collectors.toMap(
-                Map.Entry::getKey,
-                e -> transformer.apply(e.getValue())
-            )
-        );
   }
 
   public static <T> Set<T> union(Set<T> set1, Set<T> set2) {
