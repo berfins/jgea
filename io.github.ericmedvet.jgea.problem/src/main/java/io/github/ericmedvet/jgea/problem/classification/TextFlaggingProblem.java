@@ -20,7 +20,9 @@
 
 package io.github.ericmedvet.jgea.problem.classification;
 
+import io.github.ericmedvet.jgea.core.fitness.ExampleBasedFitness;
 import io.github.ericmedvet.jgea.core.problem.TotalOrderQualityBasedProblem;
+import io.github.ericmedvet.jgea.core.util.IndexedProvider;
 
 import java.util.Comparator;
 import java.util.List;
@@ -45,12 +47,12 @@ public interface TextFlaggingProblem extends ClassificationProblem<String, TextF
 
   static TextFlaggingProblem from(
       ClassificationFitness.Metric metric,
-      List<ClassificationFitness.Example<String, Label>> cases,
-      List<ClassificationFitness.Example<String, Label>> validationCases
+      IndexedProvider<ClassificationFitness.Example<String, Label>> caseProvider,
+      IndexedProvider<ClassificationFitness.Example<String, Label>> validationCaseProvider
   ) {
     return from(
-        ClassificationFitness.from(metric, cases),
-        ClassificationFitness.from(metric, validationCases)
+        ClassificationFitness.from(metric, caseProvider),
+        ClassificationFitness.from(metric, validationCaseProvider)
     );
   }
 

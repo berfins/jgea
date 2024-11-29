@@ -39,7 +39,8 @@ public class Misc {
 
   private static final Logger L = Logger.getLogger(Misc.class.getName());
 
-  private Misc() {}
+  private Misc() {
+  }
 
   private record Point(double x, double y) {}
 
@@ -76,11 +77,26 @@ public class Misc {
     }
   }
 
+  public static String enumString(Enum<?> e) {
+    return e.name().toLowerCase().replace('_', '.');
+  }
+
   public static <T> T first(Collection<T> ts) {
     if (ts.isEmpty()) {
       return null;
     }
     return ts.iterator().next();
+  }
+
+  public static <E> List<E> fold(List<E> items, int fold, int n) {
+    return folds(items, List.of(fold), n);
+  }
+
+  public static <E> List<E> folds(List<E> items, List<Integer> folds, int n) {
+    return IntStream.range(0, items.size())
+        .filter(i -> folds.contains(i % n))
+        .mapToObj(items::get)
+        .toList();
   }
 
   public static double hypervolume2D(Collection<List<Double>> points, List<Double> reference) {
@@ -100,10 +116,13 @@ public class Misc {
         Stream.concat(
                 Stream.of(
                     List.of(minReference.get(0), maxReference.get(1)),
-                    List.of(minReference.get(1), maxReference.get(0))),
-                points.stream())
+                    List.of(minReference.get(1), maxReference.get(0))
+                ),
+                points.stream()
+            )
             .toList(),
-        maxReference);
+        maxReference
+    );
   }
 
   public static <T> Set<T> intersection(Set<T> set1, Set<T> set2) {
@@ -142,6 +161,10 @@ public class Misc {
                 Misc::union
             )
         );
+  }
+
+  public static <E> List<E> negatedFold(List<E> items, int fold, int n) {
+    return folds(items, IntStream.range(0, n).filter(j -> j != fold).boxed().toList(), n);
   }
 
   public static <K> K percentile(Collection<K> ks, Comparator<? super K> comparator, double p) {
@@ -208,7 +231,9 @@ public class Misc {
             Level.WARNING,
             String.format(
                 "Given file path '%s' exists; will write on '%s'",
-                dirsPath.resolve(path), dirsPath.resolve(filePath)));
+                dirsPath.resolve(path), dirsPath.resolve(filePath)
+            )
+        );
       }
     }
     return dirsPath.resolve(filePath).toFile();
@@ -282,4 +307,5 @@ public class Misc {
   public static <T> Set<T> union(Set<T> set1, Set<T> set2) {
     return Stream.of(set1, set2).flatMap(Set::stream).collect(Collectors.toSet());
   }
+
 }

@@ -21,15 +21,11 @@
 package io.github.ericmedvet.jgea.problem.classification;
 
 import io.github.ericmedvet.jgea.core.fitness.ExampleBasedFitness;
-import io.github.ericmedvet.jgea.core.problem.QualityBasedProblem;
 import io.github.ericmedvet.jgea.core.representation.grammar.string.GrammarBasedProblem;
 import io.github.ericmedvet.jgea.core.representation.grammar.string.StringGrammar;
 import io.github.ericmedvet.jgea.core.representation.tree.Tree;
-import io.github.ericmedvet.jgea.problem.extraction.string.RegexGrammar;
-import io.github.ericmedvet.jgea.problem.regression.NumericalDataset;
-import io.github.ericmedvet.jnb.datastructure.Pair;
-import java.util.List;
-import java.util.Set;
+import io.github.ericmedvet.jgea.core.util.IndexedProvider;
+
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -64,13 +60,13 @@ public interface GrammarBasedTextFlaggingProblem extends TextFlaggingProblem, Gr
 
   static TextFlaggingProblem from(
       ClassificationFitness.Metric metric,
-      List<ExampleBasedFitness.Example<String, Label>> cases,
-      List<ExampleBasedFitness.Example<String, Label>> validationCases,
+      IndexedProvider<ExampleBasedFitness.Example<String, Label>> caseProvider,
+      IndexedProvider<ExampleBasedFitness.Example<String, Label>> validationCaseProvider,
       StringGrammar<String> grammar
   ) {
     return from(
-        ClassificationFitness.from(metric,cases),
-        ClassificationFitness.from(metric,validationCases),
+        ClassificationFitness.from(metric,caseProvider),
+        ClassificationFitness.from(metric,validationCaseProvider),
         grammar
     );
   }

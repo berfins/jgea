@@ -20,11 +20,11 @@
 
 package io.github.ericmedvet.jgea.core.fitness;
 
+import io.github.ericmedvet.jgea.core.util.IndexedProvider;
+
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.IntFunction;
-import java.util.stream.IntStream;
 
 public interface CaseBasedFitness<S, C, CO, Q> extends Function<S, Q> {
 
@@ -32,38 +32,24 @@ public interface CaseBasedFitness<S, C, CO, Q> extends Function<S, Q> {
 
   BiFunction<S, C, CO> caseFunction();
 
-  IntFunction<C> caseProvider();
-
-  int nOfCases();
+  IndexedProvider<C> caseProvider();
 
   static <S, C, CO, Q> CaseBasedFitness<S, C, CO, Q> from(
       Function<List<CO>, Q> aggregateFunction,
       BiFunction<S, C, CO> caseFunction,
-      IntFunction<C> caseProvider,
-      int nOfCases
+      IndexedProvider<C> caseProvider
   ) {
     record HardCaseBasedFitness<S, C, CO, Q>(
         Function<List<CO>, Q> aggregateFunction,
         BiFunction<S, C, CO> caseFunction,
-        IntFunction<C> caseProvider,
-        int nOfCases
+        IndexedProvider<C> caseProvider
     ) implements CaseBasedFitness<S, C, CO, Q> {}
-    return new HardCaseBasedFitness<>(aggregateFunction, caseFunction, caseProvider, nOfCases);
-  }
-
-  static <S, C, CO, Q> CaseBasedFitness<S, C, CO, Q> from(
-      Function<List<CO>, Q> aggregateFunction,
-      BiFunction<S, C, CO> caseFunction,
-      List<C> cases
-  ) {
-    return from(aggregateFunction,caseFunction, cases::get, cases.size());
+    return new HardCaseBasedFitness<>(aggregateFunction, caseFunction, caseProvider);
   }
 
   @Override
   default Q apply(S s) {
-    List<CO> outcomes = IntStream.range(0, nOfCases())
-        .mapToObj(i -> caseFunction().apply(s, caseProvider().apply(i)))
-        .toList();
+    List<CO> outcomes = caseProvider().stream().map(c -> caseFunction().apply(s, c)).toList();
     return aggregateFunction().apply(outcomes);
   }
 
