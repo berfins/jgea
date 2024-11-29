@@ -11,6 +11,9 @@ import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+// TODO use Map<String, Double> also as EO here
+// TODO make NumericalDataset extend IndexedProvider<Map<String, Double>>
+
 public interface UnivariateRegressionFitness extends ExampleBasedFitness<NamedUnivariateRealFunction, Map<String,
     Double>, Map.Entry<String,
     Double>, UnivariateRegressionFitness.Outcome, Double> {

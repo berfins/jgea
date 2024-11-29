@@ -22,7 +22,6 @@ package io.github.ericmedvet.jgea.experimenter.builders;
 
 import io.github.ericmedvet.jgea.problem.regression.ListNumericalDataset;
 import io.github.ericmedvet.jgea.problem.regression.NumericalDataset;
-import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionProblemOLD;
 import io.github.ericmedvet.jgea.problem.regression.univariate.synthetic.*;
 import io.github.ericmedvet.jnb.core.Cacheable;
 import io.github.ericmedvet.jnb.core.Discoverable;

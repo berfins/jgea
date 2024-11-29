@@ -20,7 +20,6 @@
 
 package io.github.ericmedvet.jgea.problem.regression.univariate.synthetic;
 
-import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionProblemOLD;
 import io.github.ericmedvet.jsdynsym.core.numerical.UnivariateRealFunction;
 import java.util.List;
 
