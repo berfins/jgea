@@ -54,13 +54,13 @@ public class MultipleOutputParallelMultiplier implements GrammarBasedProblem<Str
     grammar.setStartingSymbol(FormulaMapper.MULTIPLE_OUTPUT_NON_TERMINAL);
     solutionMapper = new FormulaMapper();
     TargetFunction targetFunction = new TargetFunction(size);
-    fitnessFunction = new BooleanFunctionFitness(
+    fitnessFunction = new BooleanFunctionFitnessCL(
         targetFunction,
         BooleanUtils.buildCompleteObservations(targetFunction.varNames)
     );
   }
 
-  private static class TargetFunction implements BooleanFunctionFitness.TargetFunction {
+  private static class TargetFunction implements BooleanFunctionFitnessCL.TargetFunction {
 
     private final int size;
     private final String[] varNames;

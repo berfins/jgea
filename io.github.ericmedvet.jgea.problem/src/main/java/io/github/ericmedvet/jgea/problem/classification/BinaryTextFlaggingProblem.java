@@ -38,8 +38,8 @@ public class BinaryTextFlaggingProblem extends GrammarBasedTextFlaggingProblem {
       long seed,
       int folds,
       int i,
-      ClassificationFitness.Metric learningErrorMetric,
-      ClassificationFitness.Metric validationErrorMetric,
+      ClassificationFitnessCL.Metric learningErrorMetric,
+      ClassificationFitnessCL.Metric validationErrorMetric,
       RegexGrammar.Option... options
   ) {
     super(

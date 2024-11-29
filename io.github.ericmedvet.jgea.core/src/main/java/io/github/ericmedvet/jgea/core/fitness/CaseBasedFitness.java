@@ -36,6 +36,29 @@ public interface CaseBasedFitness<S, C, CO, AF> extends Function<S, AF> {
 
   int nOfCases();
 
+  static <S, C, CO, AF> CaseBasedFitness<S, C, CO, AF> from(
+      Function<List<CO>, AF> aggregateFunction,
+      BiFunction<S, C, CO> caseFunction,
+      IntFunction<C> caseProvider,
+      int nOfCases
+  ) {
+    record HardCaseBasedFitness<S, C, CO, AF>(
+        Function<List<CO>, AF> aggregateFunction,
+        BiFunction<S, C, CO> caseFunction,
+        IntFunction<C> caseProvider,
+        int nOfCases
+    ) implements CaseBasedFitness<S, C, CO, AF> {}
+    return new HardCaseBasedFitness<>(aggregateFunction, caseFunction, caseProvider, nOfCases);
+  }
+
+  static <S, C, CO, AF> CaseBasedFitness<S, C, CO, AF> from(
+      Function<List<CO>, AF> aggregateFunction,
+      BiFunction<S, C, CO> caseFunction,
+      List<C> cases
+  ) {
+    return from(aggregateFunction,caseFunction, cases::get, cases.size());
+  }
+
   @Override
   default AF apply(S s) {
     List<CO> outcomes = IntStream.range(0, nOfCases())
@@ -43,4 +66,5 @@ public interface CaseBasedFitness<S, C, CO, AF> extends Function<S, AF> {
         .toList();
     return aggregateFunction().apply(outcomes);
   }
+
 }

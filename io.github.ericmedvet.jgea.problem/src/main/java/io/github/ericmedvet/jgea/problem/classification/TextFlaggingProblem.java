@@ -29,8 +29,8 @@ public class TextFlaggingProblem extends ClassificationProblem<String, TextFlagg
       List<Pair<String, Label>> data,
       int folds,
       int i,
-      ClassificationFitness.Metric learningErrorMetric,
-      ClassificationFitness.Metric validationErrorMetric
+      ClassificationFitnessCL.Metric learningErrorMetric,
+      ClassificationFitnessCL.Metric validationErrorMetric
   ) {
     super(data, folds, i, learningErrorMetric, validationErrorMetric);
   }

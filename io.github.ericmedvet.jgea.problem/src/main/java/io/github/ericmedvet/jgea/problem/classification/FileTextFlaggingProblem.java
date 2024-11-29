@@ -37,8 +37,8 @@ public class FileTextFlaggingProblem extends GrammarBasedTextFlaggingProblem {
       String negativeFileName,
       int folds,
       int i,
-      ClassificationFitness.Metric learningErrorMetric,
-      ClassificationFitness.Metric validationErrorMetric,
+      ClassificationFitnessCL.Metric learningErrorMetric,
+      ClassificationFitnessCL.Metric validationErrorMetric,
       RegexGrammar.Option... options
   ) throws IOException {
     super(

@@ -19,7 +19,6 @@
  */
 package io.github.ericmedvet.jgea.problem.classification;
 
-import io.github.ericmedvet.jgea.core.fitness.ListCaseBasedFitness;
 import io.github.ericmedvet.jgea.core.util.LinkedHashMultiset;
 import io.github.ericmedvet.jgea.core.util.Multiset;
 import io.github.ericmedvet.jnb.datastructure.Pair;
@@ -27,11 +26,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-public class ClassificationFitness<O, L extends Enum<L>> extends ListCaseBasedFitness<Classifier<O, L>, O, L, List<Double>> {
+public class ClassificationFitnessCL<O, L extends Enum<L>> extends CLListCaseBasedFitness<Classifier<O, L>, O, L, List<Double>> {
 
   private final List<Pair<O, L>> data;
 
-  public ClassificationFitness(List<Pair<O, L>> data, Metric errorMetric) {
+  public ClassificationFitnessCL(List<Pair<O, L>> data, Metric errorMetric) {
     super(
         data.stream().map(Pair::first).toList(),
         Classifier::classify,
@@ -111,7 +110,7 @@ public class ClassificationFitness<O, L extends Enum<L>> extends ListCaseBasedFi
     return null;
   }
 
-  public ClassificationFitness<O, L> changeMetric(Metric metric) {
-    return new ClassificationFitness<>(data, metric);
+  public ClassificationFitnessCL<O, L> changeMetric(Metric metric) {
+    return new ClassificationFitnessCL<>(data, metric);
   }
 }

@@ -33,8 +33,8 @@ public class ClassificationProblem<O, L extends Enum<L>> implements ProblemWithV
   // TODO fix this: currently, it enforces just one objective/metric
   private static final PartialComparator<List<Double>> COMPARATOR = ParetoDominance.build(Double.class, 1);
 
-  private final ClassificationFitness<O, L> fitnessFunction;
-  private final ClassificationFitness<O, L> validationFunction;
+  private final ClassificationFitnessCL<O, L> fitnessFunction;
+  private final ClassificationFitnessCL<O, L> validationFunction;
   private final List<Pair<O, L>> learningData;
   private final List<Pair<O, L>> validationData;
 
@@ -42,14 +42,14 @@ public class ClassificationProblem<O, L extends Enum<L>> implements ProblemWithV
       List<Pair<O, L>> data,
       int folds,
       int i,
-      ClassificationFitness.Metric learningMetric,
-      ClassificationFitness.Metric validationMetric
+      ClassificationFitnessCL.Metric learningMetric,
+      ClassificationFitnessCL.Metric validationMetric
   ) {
     validationData = DataUtils.fold(data, i, folds);
     learningData = new ArrayList<>(data);
     learningData.removeAll(validationData);
-    fitnessFunction = new ClassificationFitness<>(learningData, learningMetric);
-    validationFunction = new ClassificationFitness<>(validationData, validationMetric);
+    fitnessFunction = new ClassificationFitnessCL<>(learningData, learningMetric);
+    validationFunction = new ClassificationFitnessCL<>(validationData, validationMetric);
   }
 
   public List<Pair<O, L>> getLearningData() {
@@ -66,12 +66,12 @@ public class ClassificationProblem<O, L extends Enum<L>> implements ProblemWithV
   }
 
   @Override
-  public ClassificationFitness<O, L> qualityFunction() {
+  public ClassificationFitnessCL<O, L> qualityFunction() {
     return fitnessFunction;
   }
 
   @Override
-  public ClassificationFitness<O, L> validationQualityFunction() {
+  public ClassificationFitnessCL<O, L> validationQualityFunction() {
     return validationFunction;
   }
 }

@@ -20,7 +20,6 @@
 
 package io.github.ericmedvet.jgea.problem.booleanfunction;
 
-import io.github.ericmedvet.jgea.core.fitness.ListCaseBasedFitness;
 import io.github.ericmedvet.jgea.core.representation.tree.Tree;
 import io.github.ericmedvet.jgea.core.representation.tree.booleanfunction.Element;
 import java.util.Arrays;
@@ -30,9 +29,9 @@ import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-public class BooleanFunctionFitness extends ListCaseBasedFitness<List<Tree<Element>>, boolean[], Boolean, Double> {
+public class BooleanFunctionFitnessCL extends CLListCaseBasedFitness<List<Tree<Element>>, boolean[], Boolean, Double> {
 
-  public BooleanFunctionFitness(TargetFunction targetFunction, List<boolean[]> observations) {
+  public BooleanFunctionFitnessCL(TargetFunction targetFunction, List<boolean[]> observations) {
     super(observations, new Error(targetFunction), new ErrorRate());
   }
 

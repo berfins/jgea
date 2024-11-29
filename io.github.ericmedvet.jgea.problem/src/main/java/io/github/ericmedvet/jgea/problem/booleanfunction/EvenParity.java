@@ -46,13 +46,13 @@ public class EvenParity implements GrammarBasedProblem<String, List<Tree<Element
     grammar.rules().put("<v>", vars);
     solutionMapper = new FormulaMapper();
     TargetFunction targetFunction = new TargetFunction(size);
-    fitnessFunction = new BooleanFunctionFitness(
+    fitnessFunction = new BooleanFunctionFitnessCL(
         targetFunction,
         BooleanUtils.buildCompleteObservations(targetFunction.varNames)
     );
   }
 
-  private static class TargetFunction implements BooleanFunctionFitness.TargetFunction {
+  private static class TargetFunction implements BooleanFunctionFitnessCL.TargetFunction {
 
     private final String[] varNames;
 
