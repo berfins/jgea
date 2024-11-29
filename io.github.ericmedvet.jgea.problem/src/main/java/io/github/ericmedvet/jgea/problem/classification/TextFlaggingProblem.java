@@ -23,7 +23,7 @@ package io.github.ericmedvet.jgea.problem.classification;
 import io.github.ericmedvet.jnb.datastructure.Pair;
 import java.util.List;
 
-public class TextFlaggingProblem extends ClassificationProblem<String, TextFlaggingProblem.Label> {
+public class TextFlaggingProblem extends OLDClassificationProblem<String, TextFlaggingProblem.Label> {
 
   public TextFlaggingProblem(
       List<Pair<String, Label>> data,

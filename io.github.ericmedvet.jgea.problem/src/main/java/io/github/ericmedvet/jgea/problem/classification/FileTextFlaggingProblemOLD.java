@@ -30,9 +30,9 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-public class FileTextFlaggingProblem extends GrammarBasedTextFlaggingProblem {
+public class FileTextFlaggingProblemOLD extends GrammarBasedTextFlaggingProblem {
 
-  public FileTextFlaggingProblem(
+  public FileTextFlaggingProblemOLD(
       String positiveFileName,
       String negativeFileName,
       int folds,

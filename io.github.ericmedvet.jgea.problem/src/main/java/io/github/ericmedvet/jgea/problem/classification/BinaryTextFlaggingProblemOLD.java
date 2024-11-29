@@ -27,12 +27,12 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class BinaryTextFlaggingProblem extends GrammarBasedTextFlaggingProblem {
+public class BinaryTextFlaggingProblemOLD extends GrammarBasedTextFlaggingProblem {
 
   private static final String[] REGEXES = new String[]{"101010...010101", "11111...11111", "(11110000)++"};
   private static final String ALPHABET = "01";
 
-  public BinaryTextFlaggingProblem(
+  public BinaryTextFlaggingProblemOLD(
       int size,
       int length,
       long seed,

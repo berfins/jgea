@@ -5,7 +5,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 
-public interface TargetExampleBasedFitness<S, EI, EO, CO, AF> extends ExampleBasedFitness<S, EI, EO, CO, AF> {
+public interface OracleBasedFitness<S, EI, EO, EQ, AF> extends ExampleBasedFitness<S, EI, EO, EQ, AF> {
   IntFunction<EI> inputCaseProvider();
 
   Function<EI, EO> target();
@@ -15,23 +15,23 @@ public interface TargetExampleBasedFitness<S, EI, EO, CO, AF> extends ExampleBas
     return i -> new Example<>(inputCaseProvider().apply(i), target().apply(inputCaseProvider().apply(i)));
   }
 
-  static <S, EI, EO, CO, AF> TargetExampleBasedFitness<S, EI, EO, CO, AF> from(
-      Function<List<CO>, AF> aggregateFunction,
+  static <S, EI, EO, EQ, AQ> OracleBasedFitness<S, EI, EO, EQ, AQ> from(
+      Function<List<EQ>, AQ> aggregateFunction,
       BiFunction<S, EI, EO> predictFunction,
-      BiFunction<EO, EO, CO> errorFunction,
+      BiFunction<EO, EO, EQ> errorFunction,
       Function<EI, EO> target,
       IntFunction<EI> inputCaseProvider,
       int nOfCases
   ) {
-    record HardTargetExampleBasedFitness<S, EI, EO, CO, AF>(
-        Function<List<CO>, AF> aggregateFunction,
+    record HardOracleBasedFitness<S, EI, EO, EQ, AQ>(
+        Function<List<EQ>, AQ> aggregateFunction,
         BiFunction<S, EI, EO> predictFunction,
-        BiFunction<EO, EO, CO> errorFunction,
+        BiFunction<EO, EO, EQ> errorFunction,
         Function<EI, EO> target,
         IntFunction<EI> inputCaseProvider,
         int nOfCases
-    ) implements TargetExampleBasedFitness<S, EI, EO, CO, AF> {}
-    return new HardTargetExampleBasedFitness<>(
+    ) implements OracleBasedFitness<S, EI, EO, EQ, AQ> {}
+    return new HardOracleBasedFitness<>(
         aggregateFunction,
         predictFunction,
         errorFunction,
@@ -41,20 +41,20 @@ public interface TargetExampleBasedFitness<S, EI, EO, CO, AF> extends ExampleBas
     );
   }
 
-  static <S, EI, EO, CO, AF> TargetExampleBasedFitness<S, EI, EO, CO, AF> from(
-      Function<List<CO>, AF> aggregateFunction,
+  static <S, EI, EO, EQ, AQ> OracleBasedFitness<S, EI, EO, EQ, AQ> from(
+      Function<List<EQ>, AQ> aggregateFunction,
       BiFunction<S, EI, EO> predictFunction,
-      BiFunction<EO, EO, CO> errorFunction,
+      BiFunction<EO, EO, EQ> errorFunction,
       Function<EI, EO> target,
       List<EI> inputCases
   ) {
     return from(aggregateFunction, predictFunction, errorFunction, target, inputCases::get, inputCases.size());
   }
 
-  static <S, EI, EO, CO, AF> TargetExampleBasedFitness<S, EI, EO, CO, AF> from(
-      Function<List<CO>, AF> aggregateFunction,
+  static <S, EI, EO, EQ, AQ> OracleBasedFitness<S, EI, EO, EQ, AQ> from(
+      Function<List<EQ>, AQ> aggregateFunction,
       BiFunction<S, EI, EO> predictFunction,
-      BiFunction<EO, EO, CO> errorFunction,
+      BiFunction<EO, EO, EQ> errorFunction,
       S target,
       List<EI> inputCases
   ) {

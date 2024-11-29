@@ -26,9 +26,9 @@ import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.stream.IntStream;
 
-public interface CaseBasedFitness<S, C, CO, AF> extends Function<S, AF> {
+public interface CaseBasedFitness<S, C, CO, Q> extends Function<S, Q> {
 
-  Function<List<CO>, AF> aggregateFunction();
+  Function<List<CO>, Q> aggregateFunction();
 
   BiFunction<S, C, CO> caseFunction();
 
@@ -36,23 +36,23 @@ public interface CaseBasedFitness<S, C, CO, AF> extends Function<S, AF> {
 
   int nOfCases();
 
-  static <S, C, CO, AF> CaseBasedFitness<S, C, CO, AF> from(
-      Function<List<CO>, AF> aggregateFunction,
+  static <S, C, CO, Q> CaseBasedFitness<S, C, CO, Q> from(
+      Function<List<CO>, Q> aggregateFunction,
       BiFunction<S, C, CO> caseFunction,
       IntFunction<C> caseProvider,
       int nOfCases
   ) {
-    record HardCaseBasedFitness<S, C, CO, AF>(
-        Function<List<CO>, AF> aggregateFunction,
+    record HardCaseBasedFitness<S, C, CO, Q>(
+        Function<List<CO>, Q> aggregateFunction,
         BiFunction<S, C, CO> caseFunction,
         IntFunction<C> caseProvider,
         int nOfCases
-    ) implements CaseBasedFitness<S, C, CO, AF> {}
+    ) implements CaseBasedFitness<S, C, CO, Q> {}
     return new HardCaseBasedFitness<>(aggregateFunction, caseFunction, caseProvider, nOfCases);
   }
 
-  static <S, C, CO, AF> CaseBasedFitness<S, C, CO, AF> from(
-      Function<List<CO>, AF> aggregateFunction,
+  static <S, C, CO, Q> CaseBasedFitness<S, C, CO, Q> from(
+      Function<List<CO>, Q> aggregateFunction,
       BiFunction<S, C, CO> caseFunction,
       List<C> cases
   ) {
@@ -60,7 +60,7 @@ public interface CaseBasedFitness<S, C, CO, AF> extends Function<S, AF> {
   }
 
   @Override
-  default AF apply(S s) {
+  default Q apply(S s) {
     List<CO> outcomes = IntStream.range(0, nOfCases())
         .mapToObj(i -> caseFunction().apply(s, caseProvider().apply(i)))
         .toList();
