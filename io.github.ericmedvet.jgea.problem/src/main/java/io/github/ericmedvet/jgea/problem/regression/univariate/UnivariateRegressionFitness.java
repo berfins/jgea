@@ -11,11 +11,8 @@ import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-// TODO use Map<String, Double> also as EO here
-// TODO make NumericalDataset extend IndexedProvider<Map<String, Double>>
-
 public interface UnivariateRegressionFitness extends ExampleBasedFitness<NamedUnivariateRealFunction, Map<String,
-    Double>, Map.Entry<String,
+    Double>, Map<String,
     Double>, UnivariateRegressionFitness.Outcome, Double> {
 
   enum Metric implements Function<List<Outcome>, Double> {
@@ -57,34 +54,42 @@ public interface UnivariateRegressionFitness extends ExampleBasedFitness<NamedUn
 
   record Outcome(double actual, double predicted) {}
 
+  String yVarName();
+
+  @Override
+  IndexedProvider<Example<Map<String, Double>, Map<String, Double>>> caseProvider();
+
   static UnivariateRegressionFitness from(
       Function<List<Outcome>, Double> aggregateFunction,
-      IndexedProvider<Example<Map<String, Double>, Map.Entry<String, Double>>> caseProvider
+      IndexedProvider<Example<Map<String, Double>, Map<String, Double>>> caseProvider,
+      String yVarName
   ) {
     record HardUnivariateRegressionFitness(
         Function<List<Outcome>, Double> aggregateFunction,
-        IndexedProvider<Example<Map<String, Double>, Map.Entry<String, Double>>> caseProvider
+        IndexedProvider<Example<Map<String, Double>, Map<String, Double>>> caseProvider,
+        String yVarName
     ) implements UnivariateRegressionFitness {}
-    return new HardUnivariateRegressionFitness(aggregateFunction, caseProvider);
+    return new HardUnivariateRegressionFitness(aggregateFunction, caseProvider, yVarName);
   }
 
   static UnivariateRegressionFitness from(
       Metric metric,
-      IndexedProvider<Example<Map<String, Double>, Map.Entry<String, Double>>> caseProvider
+      IndexedProvider<Example<Map<String, Double>, Map<String, Double>>> caseProvider,
+      String yVarName
   ) {
-    return from(NamedFunction.from(metric, Misc.enumString(metric)), caseProvider);
+    return from(NamedFunction.from(metric, Misc.enumString(metric)), caseProvider, yVarName);
   }
 
   @Override
-  default BiFunction<Map.Entry<String,
-      Double>, Map.Entry<String,
+  default BiFunction<Map<String,
+      Double>, Map<String,
       Double>, Outcome> errorFunction() {
-    return (ny1, ny2) -> new Outcome(ny1.getValue(), ny2.getValue());
+    return (ny1, ny2) -> new Outcome(ny1.get(yVarName()), ny2.get(yVarName()));
   }
 
   @Override
-  default BiFunction<NamedUnivariateRealFunction, Map<String, Double>, Map.Entry<String, Double>> predictFunction() {
-    return (nurf, inputs) -> Map.entry(nurf.yVarName(), nurf.computeAsDouble(inputs));
+  default BiFunction<NamedUnivariateRealFunction, Map<String, Double>, Map<String, Double>> predictFunction() {
+    return (nurf, inputs) -> Map.of(nurf.yVarName(), nurf.computeAsDouble(inputs));
   }
 
 }

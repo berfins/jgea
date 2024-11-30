@@ -21,11 +21,13 @@
 package io.github.ericmedvet.jgea.problem.regression.univariate.synthetic;
 
 import io.github.ericmedvet.jgea.problem.regression.MathUtils;
+import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitness;
+import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionProblem;
 import io.github.ericmedvet.jsdynsym.core.numerical.UnivariateRealFunction;
 
-public class Keijzer6 extends SyntheticUnivariateRegressionProblem {
+public class Keijzer6 extends SyntheticURP {
 
-  public Keijzer6(UnivariateRegressionFitnessOLD.Metric metric) {
+  public Keijzer6(UnivariateRegressionFitness.Metric metric) {
     super(
         UnivariateRealFunction.from(
             v -> {

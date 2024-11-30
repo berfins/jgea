@@ -19,9 +19,6 @@
  */
 package io.github.ericmedvet.jgea.experimenter.builders;
 
-import io.github.ericmedvet.jgea.problem.regression.LazyNumericalDataset;
-import io.github.ericmedvet.jgea.problem.regression.ListNumericalDataset;
-import io.github.ericmedvet.jgea.problem.regression.NumericalDataset;
 import io.github.ericmedvet.jnb.core.Cacheable;
 import io.github.ericmedvet.jnb.core.Discoverable;
 import io.github.ericmedvet.jnb.core.Param;
@@ -36,7 +33,7 @@ public class NumericalDatasets {
 
   @SuppressWarnings("unused")
   @Cacheable
-  public static Supplier<NumericalDataset> empty(
+  public static Supplier<NumericalDatasetOLD> empty(
       @Param("xVars") List<String> xVarNames,
       @Param("yVars") List<String> yVarNames
   ) {
@@ -45,7 +42,7 @@ public class NumericalDatasets {
 
   @SuppressWarnings("unused")
   @Cacheable
-  public static Supplier<NumericalDataset> fromFile(
+  public static Supplier<NumericalDatasetOLD> fromFile(
       @Param("filePath") String filePath,
       @Param(
           value = "folds", dIs = {0}) List<Integer> folds,
@@ -64,7 +61,7 @@ public class NumericalDatasets {
 
   @SuppressWarnings("unused")
   @Cacheable
-  public static Supplier<NumericalDataset> fromProblem(
+  public static Supplier<NumericalDatasetOLD> fromProblem(
       @Param("problem") UnivariateRegressionProblemOLD<UnivariateRegressionFitnessOLD> problem
   ) {
     return () -> problem.qualityFunction().getDataset();

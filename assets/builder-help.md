@@ -2357,7 +2357,7 @@ Aliases: `ea.p.d.num`, `ea.p.d.numerical`, `ea.p.dataset.num`, `ea.p.dataset.num
 | `xVars` | s[] | `[]` | <code><abbr title="java.util.List">List</abbr>&lt;<abbr title="java.lang.String">String</abbr>&gt;</code> |
 | `yVars` | s[] | `[]` | <code><abbr title="java.util.List">List</abbr>&lt;<abbr title="java.lang.String">String</abbr>&gt;</code> |
 
-Produces <code><abbr title="java.util.function.Supplier">Supplier</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.problem.regression.NumericalDataset">NumericalDataset</abbr>&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.NumericalDatasets.empty()` by jgea-experimenter:2.7.1-SNAPSHOT
+Produces <code><abbr title="java.util.function.Supplier">Supplier</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.problem.regression.NumericalDatasetOLD">NumericalDataset</abbr>&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.NumericalDatasets.empty()` by jgea-experimenter:2.7.1-SNAPSHOT
 
 ### Builder `ea.problem.dataset.numerical.fromFile()`
 
@@ -2371,7 +2371,7 @@ Produces <code><abbr title="java.util.function.Supplier">Supplier</abbr>&lt;<abb
 | `xVarNamePattern` | s | `x.*` | <code><abbr title="java.lang.String">String</abbr></code> |
 | `yVarNamePattern` | s | `y.*` | <code><abbr title="java.lang.String">String</abbr></code> |
 
-Produces <code><abbr title="java.util.function.Supplier">Supplier</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.problem.regression.NumericalDataset">NumericalDataset</abbr>&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.NumericalDatasets.fromFile()` by jgea-experimenter:2.7.1-SNAPSHOT
+Produces <code><abbr title="java.util.function.Supplier">Supplier</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.problem.regression.NumericalDatasetOLD">NumericalDataset</abbr>&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.NumericalDatasets.fromFile()` by jgea-experimenter:2.7.1-SNAPSHOT
 
 ### Builder `ea.problem.dataset.numerical.fromProblem()`
 
@@ -2381,7 +2381,7 @@ Produces <code><abbr title="java.util.function.Supplier">Supplier</abbr>&lt;<abb
 | --- | --- | --- | --- |
 | `problem` | npm |  | <code><abbr title="io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionProblemOLD">UnivariateRegressionProblem</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitnessOLD">UnivariateRegressionFitness</abbr>&gt;</code> |
 
-Produces <code><abbr title="java.util.function.Supplier">Supplier</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.problem.regression.NumericalDataset">NumericalDataset</abbr>&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.NumericalDatasets.fromProblem()` by jgea-experimenter:2.7.1-SNAPSHOT
+Produces <code><abbr title="java.util.function.Supplier">Supplier</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.problem.regression.NumericalDatasetOLD">NumericalDataset</abbr>&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.NumericalDatasets.fromProblem()` by jgea-experimenter:2.7.1-SNAPSHOT
 
 ## Package `ea.problem.multivariateRegression`
 
@@ -2393,8 +2393,8 @@ Aliases: `ea.p.mr`, `ea.p.multivariateRegression`, `ea.problem.mr`, `ea.problem.
 
 | Param | Type | Default | Java type |
 | --- | --- | --- | --- |
-| `trainingDataset` | npm |  | <code><abbr title="java.util.function.Supplier">Supplier</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.problem.regression.NumericalDataset">NumericalDataset</abbr>&gt;</code> |
-| `testDataset` | npm | `ea.d.num.empty()` | <code><abbr title="java.util.function.Supplier">Supplier</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.problem.regression.NumericalDataset">NumericalDataset</abbr>&gt;</code> |
+| `trainingDataset` | npm |  | <code><abbr title="java.util.function.Supplier">Supplier</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.problem.regression.NumericalDatasetOLD">NumericalDataset</abbr>&gt;</code> |
+| `testDataset` | npm | `ea.d.num.empty()` | <code><abbr title="java.util.function.Supplier">Supplier</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.problem.regression.NumericalDatasetOLD">NumericalDataset</abbr>&gt;</code> |
 | `metric` | e | `MSE` | <code><abbr title="io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitnessOLD$Metric">UnivariateRegressionFitness$Metric</abbr></code> |
 
 Produces <code><abbr title="io.github.ericmedvet.jgea.problem.regression.multivariate.MultivariateRegressionProblem">MultivariateRegressionProblem</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.problem.regression.multivariate.MultivariateRegressionFitness">MultivariateRegressionFitness</abbr>&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.MultivariateRegressionProblems.fromData()` by jgea-experimenter:2.7.1-SNAPSHOT
@@ -2681,8 +2681,8 @@ Aliases: `ea.p.univariateRegression`, `ea.p.ur`, `ea.problem.univariateRegressio
 | --- | --- | --- | --- |
 | `name` | s |  | <code><abbr title="java.lang.String">String</abbr></code> |
 | `metric` | e | `MSE` | <code><abbr title="io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitnessOLD$Metric">UnivariateRegressionFitness$Metric</abbr></code> |
-| `xScaling` | e | `NONE` | <code><abbr title="io.github.ericmedvet.jgea.problem.regression.NumericalDataset$Scaling">NumericalDataset$Scaling</abbr></code> |
-| `yScaling` | e | `NONE` | <code><abbr title="io.github.ericmedvet.jgea.problem.regression.NumericalDataset$Scaling">NumericalDataset$Scaling</abbr></code> |
+| `xScaling` | e | `NONE` | <code><abbr title="io.github.ericmedvet.jgea.problem.regression.NumericalDatasetOLD$Scaling">NumericalDataset$Scaling</abbr></code> |
+| `yScaling` | e | `NONE` | <code><abbr title="io.github.ericmedvet.jgea.problem.regression.NumericalDatasetOLD$Scaling">NumericalDataset$Scaling</abbr></code> |
 
 Produces <code><abbr title="io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionProblemOLD">UnivariateRegressionProblem</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitnessOLD">UnivariateRegressionFitness</abbr>&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.UnivariateRegressionProblems.bundled()` by jgea-experimenter:2.7.1-SNAPSHOT
 
@@ -2693,11 +2693,11 @@ Produces <code><abbr title="io.github.ericmedvet.jgea.problem.regression.univari
 | Param | Type | Default | Java type |
 | --- | --- | --- | --- |
 | `name` | s | `dataset` | <code><abbr title="java.lang.String">String</abbr></code> |
-| `trainingDataset` | npm |  | <code><abbr title="java.util.function.Supplier">Supplier</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.problem.regression.NumericalDataset">NumericalDataset</abbr>&gt;</code> |
-| `testDataset` | npm | `ea.d.num.empty()` | <code><abbr title="java.util.function.Supplier">Supplier</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.problem.regression.NumericalDataset">NumericalDataset</abbr>&gt;</code> |
+| `trainingDataset` | npm |  | <code><abbr title="java.util.function.Supplier">Supplier</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.problem.regression.NumericalDatasetOLD">NumericalDataset</abbr>&gt;</code> |
+| `testDataset` | npm | `ea.d.num.empty()` | <code><abbr title="java.util.function.Supplier">Supplier</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.problem.regression.NumericalDatasetOLD">NumericalDataset</abbr>&gt;</code> |
 | `metric` | e | `MSE` | <code><abbr title="io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitnessOLD$Metric">UnivariateRegressionFitness$Metric</abbr></code> |
-| `xScaling` | e | `NONE` | <code><abbr title="io.github.ericmedvet.jgea.problem.regression.NumericalDataset$Scaling">NumericalDataset$Scaling</abbr></code> |
-| `yScaling` | e | `NONE` | <code><abbr title="io.github.ericmedvet.jgea.problem.regression.NumericalDataset$Scaling">NumericalDataset$Scaling</abbr></code> |
+| `xScaling` | e | `NONE` | <code><abbr title="io.github.ericmedvet.jgea.problem.regression.NumericalDatasetOLD$Scaling">NumericalDataset$Scaling</abbr></code> |
+| `yScaling` | e | `NONE` | <code><abbr title="io.github.ericmedvet.jgea.problem.regression.NumericalDatasetOLD$Scaling">NumericalDataset$Scaling</abbr></code> |
 
 Produces <code><abbr title="io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionProblemOLD">UnivariateRegressionProblem</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitnessOLD">UnivariateRegressionFitness</abbr>&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.UnivariateRegressionProblems.fromData()` by jgea-experimenter:2.7.1-SNAPSHOT
 

@@ -20,12 +20,13 @@
 
 package io.github.ericmedvet.jgea.problem.regression.univariate.synthetic;
 
+import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitness;
 import io.github.ericmedvet.jsdynsym.core.numerical.UnivariateRealFunction;
 import java.util.List;
 
-public class Xor extends SyntheticUnivariateRegressionProblem {
+public class Xor extends SyntheticURP {
 
-  public Xor(UnivariateRegressionFitnessOLD.Metric metric) {
+  public Xor(UnivariateRegressionFitness.Metric metric) {
     super(
         UnivariateRealFunction.from(
             vs -> {

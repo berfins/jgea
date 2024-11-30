@@ -25,7 +25,6 @@ import io.github.ericmedvet.jgea.core.representation.grammar.string.GrammarBased
 import io.github.ericmedvet.jgea.core.representation.grammar.string.StringGrammar;
 import io.github.ericmedvet.jgea.core.representation.grammar.string.SymbolicRegressionGrammar;
 import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
-import io.github.ericmedvet.jgea.problem.regression.univariate.synthetic.SyntheticUnivariateRegressionProblem;
 import io.github.ericmedvet.jnb.core.Cacheable;
 import io.github.ericmedvet.jnb.core.Discoverable;
 import io.github.ericmedvet.jnb.core.Param;

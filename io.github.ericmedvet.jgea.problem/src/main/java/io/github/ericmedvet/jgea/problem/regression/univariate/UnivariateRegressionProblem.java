@@ -12,7 +12,7 @@ import java.util.Comparator;
 import java.util.Map;
 
 public interface UnivariateRegressionProblem extends ExampleBasedProblem<NamedUnivariateRealFunction, Map<String,
-    Double>, Map.Entry<String, Double>, UnivariateRegressionFitness.Outcome,
+    Double>, Map<String, Double>, UnivariateRegressionFitness.Outcome,
     Double>, TotalOrderQualityBasedProblem<NamedUnivariateRealFunction, Double>,
     ProblemWithExampleSolution<NamedUnivariateRealFunction> {
 
@@ -24,13 +24,13 @@ public interface UnivariateRegressionProblem extends ExampleBasedProblem<NamedUn
 
   @Override
   default NamedUnivariateRealFunction example() {
-    ExampleBasedFitness.Example<Map<String, Double>, Map.Entry<String, Double>> example =
+    ExampleBasedFitness.Example<Map<String, Double>, Map<String, Double>> example =
         qualityFunction().caseProvider()
             .first();
     return NamedUnivariateRealFunction.from(
         UnivariateRealFunction.from(inputs -> 0d, example.input().size()),
         example.input().keySet().stream().sorted().toList(),
-        example.output().getKey()
+        qualityFunction().yVarName()
     );
   }
 
@@ -52,12 +52,13 @@ public interface UnivariateRegressionProblem extends ExampleBasedProblem<NamedUn
 
   static UnivariateRegressionProblem from(
       UnivariateRegressionFitness.Metric metric,
-      IndexedProvider<ExampleBasedFitness.Example<Map<String, Double>, Map.Entry<String, Double>>> caseProvider,
-      IndexedProvider<ExampleBasedFitness.Example<Map<String, Double>, Map.Entry<String, Double>>> validationCaseProvider
+      IndexedProvider<ExampleBasedFitness.Example<Map<String, Double>, Map<String, Double>>> caseProvider,
+      IndexedProvider<ExampleBasedFitness.Example<Map<String, Double>, Map<String, Double>>> validationCaseProvider,
+      String yVarName
   ) {
     return from(
-        UnivariateRegressionFitness.from(metric, caseProvider),
-        UnivariateRegressionFitness.from(metric, validationCaseProvider)
+        UnivariateRegressionFitness.from(metric, caseProvider, yVarName),
+        UnivariateRegressionFitness.from(metric, validationCaseProvider, yVarName)
     );
   }
 
@@ -71,12 +72,13 @@ public interface UnivariateRegressionProblem extends ExampleBasedProblem<NamedUn
         metric,
         inputProvider.then(i -> new ExampleBasedFitness.Example<>(
             i,
-            Map.entry(target.yVarName(), target.computeAsDouble(i))
+            target.compute(i)
         )),
         validationInputProvider.then(i -> new ExampleBasedFitness.Example<>(
             i,
-            Map.entry(target.yVarName(), target.computeAsDouble(i))
-        ))
+            target.compute(i)
+        )),
+        target.yVarName()
     );
   }
 }

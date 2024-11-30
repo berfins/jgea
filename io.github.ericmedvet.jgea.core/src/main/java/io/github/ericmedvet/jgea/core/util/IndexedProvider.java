@@ -1,10 +1,8 @@
 package io.github.ericmedvet.jgea.core.util;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
+import java.util.random.RandomGenerator;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -27,6 +25,10 @@ public interface IndexedProvider<T> {
         return indexes;
       }
     };
+  }
+
+  default List<T> all() {
+    return stream().toList();
   }
 
   default T first() {
@@ -65,6 +67,24 @@ public interface IndexedProvider<T> {
     };
   }
 
+  default IndexedProvider<T> shuffled(RandomGenerator rnd) {
+    IndexedProvider<T> thisIndexedProvider = this;
+    List<Integer> shuffledIndexes = new ArrayList<>(indexes());
+    Collections.shuffle(shuffledIndexes, rnd);
+    List<Integer> finalShuffledIndexes = Collections.unmodifiableList(shuffledIndexes);
+    return new IndexedProvider<T>() {
+      @Override
+      public T get(int i) {
+        return thisIndexedProvider.get(i);
+      }
+
+      @Override
+      public List<Integer> indexes() {
+        return finalShuffledIndexes;
+      }
+    };
+  }
+
   default int size() {
     return indexes().size();
   }
@@ -76,7 +96,7 @@ public interface IndexedProvider<T> {
   default <K> IndexedProvider<K> then(Function<? super T, ? extends K> function) {
     IndexedProvider<T> thisIndexedProvider = this;
     Map<Integer, K> computed = Collections.synchronizedMap(new HashMap<>(size()));
-    return new IndexedProvider<K>() {
+    return new IndexedProvider<>() {
       @Override
       public K get(int i) {
         return computed.computeIfAbsent(i, j -> function.apply(thisIndexedProvider.get(j)));

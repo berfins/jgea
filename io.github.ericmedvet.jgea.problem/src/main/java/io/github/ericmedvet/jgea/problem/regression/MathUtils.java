@@ -22,11 +22,11 @@ package io.github.ericmedvet.jgea.problem.regression;
 
 import io.github.ericmedvet.jgea.core.representation.NamedUnivariateRealFunction;
 import io.github.ericmedvet.jgea.core.util.Sized;
-import io.github.ericmedvet.jgea.problem.regression.univariate.synthetic.SyntheticUnivariateRegressionFitness;
+import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitness;
 import io.github.ericmedvet.jsdynsym.core.composed.AbstractComposed;
 import java.util.*;
 import java.util.function.UnaryOperator;
-import java.util.stream.IntStream;
+
 import org.apache.commons.math3.stat.StatUtils;
 
 public class MathUtils {
@@ -37,36 +37,16 @@ public class MathUtils {
 
     public ScaledUnivariateRealFunction(
         NamedUnivariateRealFunction inner,
-        UnivariateRegressionFitnessOLD univariateRegressionFitness
+        UnivariateRegressionFitness univariateRegressionFitness
     ) {
       super(inner);
-      double[] targetYs = IntStream.range(
-          0,
-          univariateRegressionFitness.getDataset().size()
-      )
-          .mapToDouble(
-              i -> univariateRegressionFitness
-                  .getDataset()
-                  .exampleProvider()
-                  .apply(i)
-                  .ys()[0]
-          )
+      double[] targetYs = univariateRegressionFitness.caseProvider().all().stream()
+          .mapToDouble(e -> e.output().get(univariateRegressionFitness.yVarName()))
+          .toArray();
+      double[] ys = univariateRegressionFitness.caseProvider().all().stream()
+          .mapToDouble(e -> inner.computeAsDouble(e.input()))
           .toArray();
       double targetMean = StatUtils.mean(targetYs);
-      double[] ys = IntStream.range(
-          0,
-          univariateRegressionFitness.getDataset().size()
-      )
-          .mapToDouble(
-              i -> inner().applyAsDouble(
-                  univariateRegressionFitness
-                      .getDataset()
-                      .exampleProvider()
-                      .apply(i)
-                      .xs()
-              )
-          )
-          .toArray();
       double mean = StatUtils.mean(ys);
       double nCovariance = 0d;
       double nVariance = 0d;
@@ -119,9 +99,9 @@ public class MathUtils {
 
     public SizedUnivariateScaledRealFunction(
         NamedUnivariateRealFunction innerF,
-        SyntheticUnivariateRegressionFitness syntheticSymbolicRegressionFitness
+        UnivariateRegressionFitness univariateRegressionFitness
     ) {
-      super(innerF, syntheticSymbolicRegressionFitness);
+      super(innerF, univariateRegressionFitness);
       if (innerF instanceof Sized) {
         size = ((Sized) innerF).size();
       } else {
@@ -161,12 +141,12 @@ public class MathUtils {
   }
 
   public static UnaryOperator<NamedUnivariateRealFunction> linearScaler(
-      SyntheticUnivariateRegressionFitness syntheticSymbolicRegressionFitness
+      UnivariateRegressionFitness univariateRegressionFitness
   ) {
     return f -> (f instanceof Sized) ? new SizedUnivariateScaledRealFunction(
         f,
-        syntheticSymbolicRegressionFitness
-    ) : new ScaledUnivariateRealFunction(f, syntheticSymbolicRegressionFitness);
+        univariateRegressionFitness
+    ) : new ScaledUnivariateRealFunction(f, univariateRegressionFitness);
   }
 
   public static List<double[]> pairwise(double[]... xs) {

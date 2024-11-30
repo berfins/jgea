@@ -22,7 +22,6 @@ package io.github.ericmedvet.jgea.problem.regression.multivariate;
 
 import io.github.ericmedvet.jgea.core.fitness.CaseBasedFitness;
 import io.github.ericmedvet.jgea.core.representation.NamedMultivariateRealFunction;
-import io.github.ericmedvet.jgea.problem.regression.NumericalDataset;
 
 import java.util.List;
 import java.util.Map;
@@ -33,12 +32,12 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class MultivariateRegressionFitness implements CaseBasedFitness<NamedMultivariateRealFunction, Map<String, Double>, Map<String, Double>, Double> {
-  private final NumericalDataset dataset;
+  private final NumericalDatasetOLD dataset;
   private final UnivariateRegressionFitnessOLD.Metric metric;
 
   private Map<String, List<Double>> actualYs;
 
-  public MultivariateRegressionFitness(NumericalDataset dataset, UnivariateRegressionFitnessOLD.Metric metric) {
+  public MultivariateRegressionFitness(NumericalDatasetOLD dataset, UnivariateRegressionFitnessOLD.Metric metric) {
     this.dataset = dataset;
     this.metric = metric;
     actualYs = null;
@@ -95,7 +94,7 @@ public class MultivariateRegressionFitness implements CaseBasedFitness<NamedMult
     return dataset.size();
   }
 
-  public NumericalDataset getDataset() {
+  public NumericalDatasetOLD getDataset() {
     return dataset;
   }
 

@@ -20,8 +20,7 @@
 
 package io.github.ericmedvet.jgea.experimenter.builders;
 
-import io.github.ericmedvet.jgea.problem.regression.ListNumericalDataset;
-import io.github.ericmedvet.jgea.problem.regression.NumericalDataset;
+import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitness;
 import io.github.ericmedvet.jgea.problem.regression.univariate.synthetic.*;
 import io.github.ericmedvet.jnb.core.Cacheable;
 import io.github.ericmedvet.jnb.core.Discoverable;
@@ -40,10 +39,10 @@ public class UnivariateRegressionProblems {
   public static UnivariateRegressionProblemOLD<UnivariateRegressionFitnessOLD> bundled(
       @Param("name") String name,
       @Param(value = "metric", dS = "mse") UnivariateRegressionFitnessOLD.Metric metric,
-      @Param(value = "xScaling", dS = "none") NumericalDataset.Scaling xScaling,
-      @Param(value = "yScaling", dS = "none") NumericalDataset.Scaling yScaling
+      @Param(value = "xScaling", dS = "none") NumericalDatasetOLD.Scaling xScaling,
+      @Param(value = "yScaling", dS = "none") NumericalDatasetOLD.Scaling yScaling
   ) {
-    NumericalDataset dataset;
+    NumericalDatasetOLD dataset;
     try {
       dataset = switch (name) {
         case "concrete" -> ListNumericalDataset.loadFromCSVResource(
@@ -80,11 +79,11 @@ public class UnivariateRegressionProblems {
   @Cacheable
   public static UnivariateRegressionProblemOLD<UnivariateRegressionFitnessOLD> fromData(
       @Param(value = "name", dS = "dataset") String name,
-      @Param("trainingDataset") Supplier<NumericalDataset> trainingDataset,
-      @Param(value = "testDataset", dNPM = "ea.d.num.empty()") Supplier<NumericalDataset> testDataset,
+      @Param("trainingDataset") Supplier<NumericalDatasetOLD> trainingDataset,
+      @Param(value = "testDataset", dNPM = "ea.d.num.empty()") Supplier<NumericalDatasetOLD> testDataset,
       @Param(value = "metric", dS = "mse") UnivariateRegressionFitnessOLD.Metric metric,
-      @Param(value = "xScaling", dS = "none") NumericalDataset.Scaling xScaling,
-      @Param(value = "yScaling", dS = "none") NumericalDataset.Scaling yScaling
+      @Param(value = "xScaling", dS = "none") NumericalDatasetOLD.Scaling xScaling,
+      @Param(value = "yScaling", dS = "none") NumericalDatasetOLD.Scaling yScaling
   ) {
     return new UnivariateRegressionProblemOLD<>(
         new UnivariateRegressionFitnessOLD(
@@ -97,9 +96,9 @@ public class UnivariateRegressionProblems {
 
   @SuppressWarnings("unused")
   @Cacheable
-  public static SyntheticUnivariateRegressionProblem synthetic(
+  public static SyntheticURP synthetic(
       @Param("name") String name,
-      @Param(value = "metric", dS = "mse") UnivariateRegressionFitnessOLD.Metric metric,
+      @Param(value = "metric", dS = "mse") UnivariateRegressionFitness.Metric metric,
       @Param(value = "seed", dI = 1) int seed
   ) {
     return switch (name) {

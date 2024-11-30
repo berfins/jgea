@@ -21,11 +21,12 @@
 package io.github.ericmedvet.jgea.problem.regression.univariate.synthetic;
 
 import io.github.ericmedvet.jgea.problem.regression.MathUtils;
+import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitness;
 import io.github.ericmedvet.jsdynsym.core.numerical.UnivariateRealFunction;
 
-public class SimpleComposed extends SyntheticUnivariateRegressionProblem {
+public class SimpleComposed extends SyntheticURP {
 
-  public SimpleComposed(UnivariateRegressionFitnessOLD.Metric metric) {
+  public SimpleComposed(UnivariateRegressionFitness.Metric metric) {
     super(
         UnivariateRealFunction.from(
             v -> {
