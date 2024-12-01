@@ -56,9 +56,6 @@ public interface UnivariateRegressionFitness extends ExampleBasedFitness<NamedUn
 
   String yVarName();
 
-  @Override
-  IndexedProvider<Example<Map<String, Double>, Map<String, Double>>> caseProvider();
-
   static UnivariateRegressionFitness from(
       Function<List<Outcome>, Double> aggregateFunction,
       IndexedProvider<Example<Map<String, Double>, Map<String, Double>>> caseProvider,
@@ -84,12 +81,12 @@ public interface UnivariateRegressionFitness extends ExampleBasedFitness<NamedUn
   default BiFunction<Map<String,
       Double>, Map<String,
       Double>, Outcome> errorFunction() {
-    return (ny1, ny2) -> new Outcome(ny1.get(yVarName()), ny2.get(yVarName()));
+    return (actualYs, predictedYs) -> new Outcome(actualYs.get(yVarName()), predictedYs.get(yVarName()));
   }
 
   @Override
   default BiFunction<NamedUnivariateRealFunction, Map<String, Double>, Map<String, Double>> predictFunction() {
-    return (nurf, inputs) -> Map.of(nurf.yVarName(), nurf.computeAsDouble(inputs));
+    return NamedUnivariateRealFunction::compute;
   }
 
 }

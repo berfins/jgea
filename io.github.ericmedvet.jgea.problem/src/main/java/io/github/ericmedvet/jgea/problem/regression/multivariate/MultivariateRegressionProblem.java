@@ -20,40 +20,88 @@
 
 package io.github.ericmedvet.jgea.problem.regression.multivariate;
 
-import io.github.ericmedvet.jgea.core.problem.ComparableQualityBasedProblem;
-import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
-import io.github.ericmedvet.jgea.core.problem.ProblemWithValidation;
+import io.github.ericmedvet.jgea.core.fitness.ExampleBasedFitness;
+import io.github.ericmedvet.jgea.core.problem.*;
 import io.github.ericmedvet.jgea.core.representation.NamedMultivariateRealFunction;
+import io.github.ericmedvet.jgea.core.representation.NamedUnivariateRealFunction;
+import io.github.ericmedvet.jgea.core.util.IndexedProvider;
+import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitness;
+import io.github.ericmedvet.jsdynsym.core.numerical.MultivariateRealFunction;
 import io.github.ericmedvet.jsdynsym.core.numerical.UnivariateRealFunction;
 
-public class MultivariateRegressionProblem<F extends MultivariateRegressionFitness> implements ComparableQualityBasedProblem<NamedMultivariateRealFunction, Double>, ProblemWithValidation<NamedMultivariateRealFunction, Double>, ProblemWithExampleSolution<NamedMultivariateRealFunction> {
-  private final F fitness;
-  private final F validationFitness;
+import java.util.Comparator;
+import java.util.Map;
 
-  public MultivariateRegressionProblem(F fitness, F validationFitness) {
-    this.fitness = fitness;
-    this.validationFitness = validationFitness;
-  }
+public interface MultivariateRegressionProblem extends ExampleBasedProblem<NamedMultivariateRealFunction, Map<String,
+    Double>, Map<String, Double>, MultivariateRegressionFitness.Outcome,
+    Double>, TotalOrderQualityBasedProblem<NamedMultivariateRealFunction, Double>,
+    ProblemWithExampleSolution<NamedMultivariateRealFunction> {
 
   @Override
-  public NamedMultivariateRealFunction example() {
-    return NamedMultivariateRealFunction.from(
-        UnivariateRealFunction.from(
-            xs -> 0d,
-            fitness.getDataset().xVarNames().size()
-        ),
-        fitness.getDataset().xVarNames(),
-        fitness.getDataset().yVarNames()
+  MultivariateRegressionFitness qualityFunction();
+
+  @Override
+  MultivariateRegressionFitness validationQualityFunction();
+
+  static MultivariateRegressionProblem from(
+      MultivariateRegressionFitness qualityFunction,
+      MultivariateRegressionFitness validationQualityFunction
+  ) {
+    record HardMultivariateRegressionProblem(
+        MultivariateRegressionFitness qualityFunction,
+        MultivariateRegressionFitness validationQualityFunction
+    ) implements MultivariateRegressionProblem {}
+    return new HardMultivariateRegressionProblem(qualityFunction, validationQualityFunction);
+  }
+
+  static MultivariateRegressionProblem from(
+      UnivariateRegressionFitness.Metric metric,
+      IndexedProvider<ExampleBasedFitness.Example<Map<String, Double>, Map<String, Double>>> caseProvider,
+      IndexedProvider<ExampleBasedFitness.Example<Map<String, Double>, Map<String, Double>>> validationCaseProvider
+  ) {
+    return from(
+        MultivariateRegressionFitness.from(metric, caseProvider),
+        MultivariateRegressionFitness.from(metric, validationCaseProvider)
+    );
+  }
+
+  static MultivariateRegressionProblem from(
+      UnivariateRegressionFitness.Metric metric,
+      NamedMultivariateRealFunction target,
+      IndexedProvider<Map<String, Double>> inputProvider,
+      IndexedProvider<Map<String, Double>> validationInputProvider
+  ) {
+    return from(
+        metric,
+        inputProvider.then(i -> new ExampleBasedFitness.Example<>(
+            i,
+            target.compute(i)
+        )),
+        validationInputProvider.then(i -> new ExampleBasedFitness.Example<>(
+            i,
+            target.compute(i)
+        ))
     );
   }
 
   @Override
-  public F qualityFunction() {
-    return fitness;
+  default NamedMultivariateRealFunction example() {
+    ExampleBasedFitness.Example<Map<String, Double>, Map<String, Double>> example = qualityFunction().caseProvider()
+        .first();
+    return NamedMultivariateRealFunction.from(
+        MultivariateRealFunction.from(
+            xs -> new double[example.output().size()],
+            example.input().size(),
+            example.output().size()
+        ),
+        example.input().keySet().stream().toList(),
+        example.output().keySet().stream().toList()
+    );
   }
 
   @Override
-  public F validationQualityFunction() {
-    return validationFitness;
+  default Comparator<Double> totalOrderComparator() {
+    return Double::compareTo;
   }
+
 }
