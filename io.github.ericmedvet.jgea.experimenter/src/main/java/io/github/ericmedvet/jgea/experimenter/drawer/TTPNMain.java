@@ -44,8 +44,10 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Compo
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.StringParser;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Typed;
 import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
+import io.github.ericmedvet.jgea.core.util.IndexedProvider;
 import io.github.ericmedvet.jgea.core.util.IntRange;
 import io.github.ericmedvet.jgea.problem.programsynthesis.DataFactory;
+import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisFitness;
 import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisProblem;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
 import io.github.ericmedvet.jviz.core.drawer.ImageBuilder;
@@ -99,7 +101,7 @@ public class TTPNMain {
     DataFactory df = new DataFactory(
         List.of(1, 2, 3),
         List.of(1d, 2d, 3d, 1.5, 2.5, 3.14),
-        List.of("cat", "dog", "hello world!", "mummy"),
+        List.of("cat", "dog", "Hello World!", "mummy"),
         new IntRange(-10, 100),
         new DoubleRange(-10, 10),
         new IntRange(2, 20),
@@ -116,18 +118,18 @@ public class TTPNMain {
     InstrumentedProgram.Outcome o = ttpnProgram.runInstrumented(inputs);
     System.out.println(o);
 
-    ProgramSynthesisProblem psp = new ProgramSynthesisProblem(
-        10,
-        10,
-        0.1,
-        df,
-        rnd,
+    List<List<Object>> inputsList = IntStream.range(0, 10).mapToObj(i -> tProgram.inputTypes()
+        .stream()
+        .map(t -> df.apply(t, rnd))
+        .toList()).toList();
+
+    ProgramSynthesisProblem psp = ProgramSynthesisProblem.from(
         tProgram,
-        ProgramSynthesisFitnessOLD.Metric.SUCCESS_RATE
+        ProgramSynthesisFitness.Metric.AVG_DISSIMILARITY,
+        ProgramSynthesisFitness.Dissimilarity.NORMALIZED,
+        IndexedProvider.from(inputsList).fold(0,5),
+        IndexedProvider.from(inputsList).negatedFold(0,5)
     );
-    IntFunction<List<Object>> caseProvider = ((CaseBasedFitness<Program, List<Object>, Double, Double>) psp
-        .qualityFunction()).caseProvider();
-    IntStream.range(0, 10).forEach(i -> System.out.println(caseProvider.apply(i)));
 
     System.exit(0);
 

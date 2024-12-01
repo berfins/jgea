@@ -19,11 +19,13 @@ public class NormalizedDissimilarity implements Distance<List<Object>> {
     List<Double> dists = new ArrayList<>();
     for (int i = 0; i < valueProvider.size(); i++) {
       for (int j = 0; j < i; j++) {
-        dists.add(rawDistance.apply(valueProvider.get(i), valueProvider.get(i)));
+        if (valueProvider.get(i) != null && valueProvider.get(i) == null) {
+          dists.add(rawDistance.apply(valueProvider.get(i), valueProvider.get(i)));
+        }
       }
     }
     rawRange = new DoubleRange(0, dists.stream().mapToDouble(d -> d).max().orElseThrow());
-    if (rawRange.extent()==0) {
+    if (rawRange.extent() == 0) {
       throw new IllegalArgumentException("Extent of dissimilarity range on cases is 0");
     }
   }

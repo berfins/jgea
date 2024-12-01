@@ -67,7 +67,7 @@ public interface NumericalDataset extends IndexedProvider<ExampleBasedFitness.Ex
     return new HardNumericalDataset(xVarNames, yVarNames, dataPointProvider);
   }
 
-  static NumericalDataset loadFromCSV(
+  static NumericalDataset fromCSV(
       String xVarNamePattern,
       String yVarNamePattern,
       InputStream inputStream,
@@ -78,12 +78,13 @@ public interface NumericalDataset extends IndexedProvider<ExampleBasedFitness.Ex
       CSVParser parser = CSVFormat.Builder.create().setDelimiter(";").build().parse(new InputStreamReader(inputStream));
       List<CSVRecord> records = parser.getRecords();
       List<String> varNames = records.getFirst().stream().toList();
-      List<Integer> xIndexes = IntStream.range(0, varNames.size())
-          .filter(i -> varNames.get(i).matches(xVarNamePattern))
-          .boxed()
-          .toList();
       List<Integer> yIndexes = IntStream.range(0, varNames.size())
           .filter(i -> varNames.get(i).matches(yVarNamePattern))
+          .boxed()
+          .toList();
+      List<Integer> xIndexes = IntStream.range(0, varNames.size())
+          .filter(i -> varNames.get(i).matches(xVarNamePattern))
+          .filter(i -> !yIndexes.contains(i))
           .boxed()
           .toList();
       List<double[]> rows = new ArrayList<>();

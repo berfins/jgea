@@ -20,13 +20,18 @@
 
 package io.github.ericmedvet.jgea.experimenter.builders;
 
+import io.github.ericmedvet.jgea.core.fitness.ExampleBasedFitness;
+import io.github.ericmedvet.jgea.core.util.IndexedProvider;
+import io.github.ericmedvet.jgea.problem.regression.multivariate.MultivariateRegressionProblem;
 import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitness;
+import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionProblem;
 import io.github.ericmedvet.jgea.problem.regression.univariate.synthetic.*;
 import io.github.ericmedvet.jnb.core.Cacheable;
 import io.github.ericmedvet.jnb.core.Discoverable;
 import io.github.ericmedvet.jnb.core.Param;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 @Discoverable(prefixTemplate = "ea.problem|p.univariateRegression|ur")
@@ -34,63 +39,19 @@ public class UnivariateRegressionProblems {
   private UnivariateRegressionProblems() {
   }
 
-  @SuppressWarnings("unused")
   @Cacheable
-  public static UnivariateRegressionProblemOLD<UnivariateRegressionFitnessOLD> bundled(
-      @Param("name") String name,
-      @Param(value = "metric", dS = "mse") UnivariateRegressionFitnessOLD.Metric metric,
-      @Param(value = "xScaling", dS = "none") NumericalDatasetOLD.Scaling xScaling,
-      @Param(value = "yScaling", dS = "none") NumericalDatasetOLD.Scaling yScaling
+  public static UnivariateRegressionProblem fromData(
+      @Param("provider") IndexedProvider<ExampleBasedFitness.Example<Map<String, Double>, Map<String, Double>>> provider,
+      @Param("string") String yVarName,
+      @Param(value = "metric", dS = "mse") UnivariateRegressionFitness.Metric metric,
+      @Param(value = "nFolds", dI = 10) int nFolds,
+      @Param(value = "testFold", dI = 0) int testFold
   ) {
-    NumericalDatasetOLD dataset;
-    try {
-      dataset = switch (name) {
-        case "concrete" -> ListNumericalDataset.loadFromCSVResource(
-            "/datasets/regression/concrete.csv",
-            "strength"
-        );
-        case "wine" -> ListNumericalDataset.loadFromCSVResource("/datasets/regression/wine.csv", "quality");
-        case "energy-efficiency" -> ListNumericalDataset.loadFromCSVResource(
-            "/datasets/regression/energy-efficiency.csv",
-            "x[0-9]+",
-            "y1"
-        );
-        case "xor" -> ListNumericalDataset.loadFromCSVResource("/datasets/regression/xor.csv", "y");
-        default -> throw new IllegalArgumentException("Unknown bundled dataset: %s".formatted(name));
-      };
-    } catch (IOException e) {
-      throw new IllegalArgumentException("Cannot load bundled dataset: %s".formatted(name));
-    }
-    dataset = dataset.xScaled(xScaling).yScaled(yScaling);
-    return switch (name) {
-      case "concrete", "energy-efficiency", "wine" -> new UnivariateRegressionProblemOLD<>(
-          new UnivariateRegressionFitnessOLD(dataset.folds(List.of(0, 1, 2, 3), 5), metric),
-          new UnivariateRegressionFitnessOLD(dataset.folds(List.of(4), 5), metric)
-      );
-      case "xor" -> new UnivariateRegressionProblemOLD<>(
-          new UnivariateRegressionFitnessOLD(dataset, metric),
-          new UnivariateRegressionFitnessOLD(dataset, metric)
-      );
-      default -> throw new IllegalArgumentException("Unknown bundled dataset: %s".formatted(name));
-    };
-  }
-
-  @SuppressWarnings("unused")
-  @Cacheable
-  public static UnivariateRegressionProblemOLD<UnivariateRegressionFitnessOLD> fromData(
-      @Param(value = "name", dS = "dataset") String name,
-      @Param("trainingDataset") Supplier<NumericalDatasetOLD> trainingDataset,
-      @Param(value = "testDataset", dNPM = "ea.d.num.empty()") Supplier<NumericalDatasetOLD> testDataset,
-      @Param(value = "metric", dS = "mse") UnivariateRegressionFitnessOLD.Metric metric,
-      @Param(value = "xScaling", dS = "none") NumericalDatasetOLD.Scaling xScaling,
-      @Param(value = "yScaling", dS = "none") NumericalDatasetOLD.Scaling yScaling
-  ) {
-    return new UnivariateRegressionProblemOLD<>(
-        new UnivariateRegressionFitnessOLD(
-            trainingDataset.get().xScaled(xScaling).yScaled(yScaling),
-            metric
-        ),
-        testDataset != null ? new UnivariateRegressionFitnessOLD(testDataset.get(), metric) : null
+    return UnivariateRegressionProblem.from(
+        metric,
+        provider.negatedFold(testFold, nFolds),
+        provider.fold(testFold, nFolds),
+        yVarName
     );
   }
 

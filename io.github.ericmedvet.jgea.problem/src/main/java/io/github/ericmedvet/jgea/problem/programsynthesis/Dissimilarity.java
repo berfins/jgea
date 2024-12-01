@@ -15,6 +15,15 @@ public class Dissimilarity implements Distance<List<Object>> {
 
   @Override
   public Double apply(List<Object> os1, List<Object> os2) {
+    if (os1 == null && os2 == null) {
+      return 0d;
+    }
+    if (os1 == null) {
+      return Double.POSITIVE_INFINITY;
+    }
+    if (os2 == null) {
+      return Double.POSITIVE_INFINITY;
+    }
     if (os1.size() != types.size() || os2.size() != types.size()) {
       throw new IllegalArgumentException("Wrong sizes: %d expected, %d and %d found".formatted(
           types.size(),

@@ -20,10 +20,16 @@
 
 package io.github.ericmedvet.jgea.experimenter.builders;
 
+import io.github.ericmedvet.jgea.core.fitness.ExampleBasedFitness;
+import io.github.ericmedvet.jgea.core.util.IndexedProvider;
+import io.github.ericmedvet.jgea.problem.regression.NumericalDataset;
 import io.github.ericmedvet.jgea.problem.regression.multivariate.MultivariateRegressionProblem;
+import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitness;
 import io.github.ericmedvet.jnb.core.Cacheable;
 import io.github.ericmedvet.jnb.core.Discoverable;
 import io.github.ericmedvet.jnb.core.Param;
+
+import java.util.Map;
 import java.util.function.Supplier;
 
 @Discoverable(prefixTemplate = "ea.problem|p.multivariateRegression|mr")
@@ -33,14 +39,16 @@ public class MultivariateRegressionProblems {
 
   @SuppressWarnings("unused")
   @Cacheable
-  public static MultivariateRegressionProblem<MultivariateRegressionFitnessOLD> fromData(
-      @Param("trainingDataset") Supplier<NumericalDatasetOLD> trainingDataset,
-      @Param(value = "testDataset", dNPM = "ea.d.num.empty()") Supplier<NumericalDatasetOLD> testDataset,
-      @Param(value = "metric", dS = "mse") UnivariateRegressionFitnessOLD.Metric metric
+  public static MultivariateRegressionProblem fromData(
+      @Param("provider") IndexedProvider<ExampleBasedFitness.Example<Map<String, Double>, Map<String, Double>>> provider,
+      @Param(value = "metric", dS = "mse") UnivariateRegressionFitness.Metric metric,
+      @Param(value = "nFolds", dI = 10) int nFolds,
+      @Param(value = "testFold", dI = 0) int testFold
   ) {
-    return new MultivariateRegressionProblem<>(
-        new MultivariateRegressionFitnessOLD(trainingDataset.get(), metric),
-        new MultivariateRegressionFitnessOLD(testDataset.get(), metric)
+    return MultivariateRegressionProblem.from(
+        metric,
+        provider.negatedFold(testFold, nFolds),
+        provider.fold(testFold, nFolds)
     );
   }
 }
