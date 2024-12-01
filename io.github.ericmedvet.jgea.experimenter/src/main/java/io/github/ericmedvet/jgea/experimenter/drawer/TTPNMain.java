@@ -46,7 +46,6 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Typed
 import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
 import io.github.ericmedvet.jgea.core.util.IntRange;
 import io.github.ericmedvet.jgea.problem.programsynthesis.DataFactory;
-import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisFitness;
 import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisProblem;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
 import io.github.ericmedvet.jviz.core.drawer.ImageBuilder;
@@ -124,7 +123,7 @@ public class TTPNMain {
         df,
         rnd,
         tProgram,
-        ProgramSynthesisFitness.Metric.SUCCESS_RATE
+        ProgramSynthesisFitnessOLD.Metric.SUCCESS_RATE
     );
     IntFunction<List<Object>> caseProvider = ((CaseBasedFitness<Program, List<Object>, Double, Double>) psp
         .qualityFunction()).caseProvider();

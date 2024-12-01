@@ -19,100 +19,82 @@
  */
 package io.github.ericmedvet.jgea.problem.programsynthesis;
 
+import io.github.ericmedvet.jgea.core.fitness.ExampleBasedFitness;
+import io.github.ericmedvet.jgea.core.problem.ExampleBasedProblem;
 import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
 import io.github.ericmedvet.jgea.core.problem.ProblemWithValidation;
 import io.github.ericmedvet.jgea.core.problem.TotalOrderQualityBasedProblem;
+import io.github.ericmedvet.jgea.core.representation.NamedUnivariateRealFunction;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.Program;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.ProgramExecutionException;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
+import io.github.ericmedvet.jgea.core.util.IndexedProvider;
+import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitness;
+
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.random.RandomGenerator;
 import java.util.stream.Stream;
 
-public class ProgramSynthesisProblem implements TotalOrderQualityBasedProblem<Program, Double>, ProblemWithValidation<Program, Double>, ProblemWithExampleSolution<Program> {
+public interface ProgramSynthesisProblem extends ExampleBasedProblem<Program, List<Object>, List<Object>,
+    ProgramSynthesisFitness.Outcome,
+    Double>, TotalOrderQualityBasedProblem<Program, Double>,
+    ProblemWithExampleSolution<Program> {
 
-  private final Program targetProgram;
-  private final ProgramSynthesisFitness fitness;
-  private final ProgramSynthesisFitness validationFitness;
+  @Override
+  ProgramSynthesisFitness qualityFunction();
 
-  public ProgramSynthesisProblem(
-      int nOfCases,
-      int nOfValidationCases,
-      double maxExceptionCaseRate,
-      DataFactory dataFactory,
-      RandomGenerator rnd,
-      Program targetProgram,
-      ProgramSynthesisFitness.Metric metric
+  @Override
+  ProgramSynthesisFitness validationQualityFunction();
+
+  static ProgramSynthesisProblem from(
+      Program example,
+      ProgramSynthesisFitness qualityFunction,
+      ProgramSynthesisFitness validationQualityFunction
   ) {
-    this(
-        buildRandomCases(dataFactory, targetProgram, nOfCases, maxExceptionCaseRate, rnd),
-        buildRandomCases(dataFactory, targetProgram, nOfValidationCases, maxExceptionCaseRate, rnd),
-        targetProgram,
-        metric
+    record HardProgramSynthesisProblem(
+        Program example,
+        ProgramSynthesisFitness qualityFunction,
+        ProgramSynthesisFitness validationQualityFunction
+    ) implements ProgramSynthesisProblem {}
+    return new HardProgramSynthesisProblem(example, qualityFunction, validationQualityFunction);
+  }
+
+  static ProgramSynthesisProblem from(
+      ProgramSynthesisFitness.Metric metric,
+      ProgramSynthesisFitness.Dissimilarity dissimilarity,
+      Program example,
+      IndexedProvider<ExampleBasedFitness.Example<List<Object>, List<Object>>> caseProvider,
+      IndexedProvider<ExampleBasedFitness.Example<List<Object>, List<Object>>> validationCaseProvider
+  ) {
+    return from(
+        example,
+        ProgramSynthesisFitness.from(metric, dissimilarity, example.outputTypes(), caseProvider),
+        ProgramSynthesisFitness.from(metric, dissimilarity, example.outputTypes(), validationCaseProvider)
     );
   }
 
-  private static List<List<Object>> buildRandomCases(
-      DataFactory df,
-      Program targetProgram,
-      int n,
-      double maxExceptionCaseRate,
-      RandomGenerator rnd
+  static ProgramSynthesisProblem from(
+      Program target,
+      ProgramSynthesisFitness.Metric metric,
+      ProgramSynthesisFitness.Dissimilarity dissimilarity,
+      IndexedProvider<List<Object>> caseProvider,
+      IndexedProvider<List<Object>> validationCaseProvider
   ) {
-    return Stream.concat(
-        Stream.generate(() -> buildRandomCase(df, targetProgram, false, rnd))
-            .limit((long) (n * (1d - maxExceptionCaseRate))),
-        Stream.generate(() -> buildRandomCase(df, targetProgram, true, rnd)).limit((long) (n * maxExceptionCaseRate))
-    ).toList();
-  }
-
-  private static List<Object> buildRandomCase(
-      DataFactory df,
-      Program targetProgram,
-      boolean acceptException,
-      RandomGenerator rnd
-  ) {
-    List<Object> inputs = targetProgram.inputTypes().stream().map(t -> df.apply(t, rnd)).toList();
-    if (acceptException) {
-      return inputs;
-    }
-    try {
-      targetProgram.run(inputs);
-      return inputs;
-    } catch (ProgramExecutionException e) {
-      return buildRandomCase(df, targetProgram, acceptException, rnd);
-    }
-  }
-
-  public ProgramSynthesisProblem(
-      List<List<Object>> cases,
-      List<List<Object>> validationCases,
-      Program targetProgram,
-      ProgramSynthesisFitness.Metric metric
-  ) {
-    this.targetProgram = targetProgram;
-    fitness = new ProgramSynthesisFitness(targetProgram, cases, metric);
-    validationFitness = new ProgramSynthesisFitness(targetProgram, validationCases, metric);
+    return from(
+        metric,
+        dissimilarity,
+        target,
+        caseProvider.then(inputs -> new ExampleBasedFitness.Example<>(inputs, target.safelyRun(inputs))),
+        validationCaseProvider.then(inputs -> new ExampleBasedFitness.Example<>(inputs, target.safelyRun(inputs)))
+    );
   }
 
   @Override
-  public Program example() {
-    return targetProgram;
+  default Comparator<Double> totalOrderComparator() {
+    return Double::compareTo;
   }
 
-  @Override
-  public Function<Program, Double> validationQualityFunction() {
-    return validationFitness;
-  }
-
-  @Override
-  public Comparator<Double> totalOrderComparator() {
-    return (v1, v2) -> Double.compare(v2, v1);
-  }
-
-  @Override
-  public Function<Program, Double> qualityFunction() {
-    return fitness;
-  }
 }

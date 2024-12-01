@@ -39,6 +39,14 @@ public interface Program {
 
   List<Object> run(List<Object> inputs) throws ProgramExecutionException;
 
+  default List<Object> safelyRun(List<Object> inputs) {
+    try {
+      return run(inputs);
+    } catch (ProgramExecutionException e) {
+      return null;
+    }
+  }
+
   static Program from(
       Function<List<Object>, List<Object>> function,
       List<Type> inputTypes,
