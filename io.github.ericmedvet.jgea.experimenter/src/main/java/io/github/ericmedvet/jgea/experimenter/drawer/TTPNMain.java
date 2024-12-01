@@ -43,7 +43,6 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Compo
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.StringParser;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Typed;
 import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
-import io.github.ericmedvet.jgea.core.util.IndexedProvider;
 import io.github.ericmedvet.jgea.core.util.IntRange;
 import io.github.ericmedvet.jgea.problem.programsynthesis.DataFactory;
 import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisFitness;
@@ -68,12 +67,12 @@ public class TTPNMain {
             Gates.splitter(),
             Gates.rPMathOperator(Element.Operator.MULTIPLICATION),
             Gates.rSPSum(),
-            Gate.output(Base.REAL),
-            //new ones
-            Gates.rSPSum(),
-            Gates.rSPSum(),
-            Gates.rSPSum(),
             Gate.output(Base.REAL)
+            //new ones
+            /*Gates.rSPSum(),
+            Gates.rSPSum(),
+            Gates.rSPSum(),
+            Gate.output(Base.REAL)*/
         ),
         Set.of(
             Wire.of(0, 0, 2, 0),
@@ -82,15 +81,15 @@ public class TTPNMain {
             Wire.of(3, 0, 4, 1),
             Wire.of(4, 0, 5, 0),
             Wire.of(5, 0, 5, 1),
-            Wire.of(5, 0, 6, 0),
+            Wire.of(5, 0, 6, 0)
             //new ones
-            Wire.of(2, 0, 7, 0),
+            /*Wire.of(2, 0, 7, 0),
             Wire.of(9, 0, 7, 1),
             Wire.of(7, 0, 8, 0),
             Wire.of(9, 0, 8, 1),
             Wire.of(8, 0, 9, 0),
             Wire.of(8, 0, 9, 1),
-            Wire.of(9, 0, 10, 0)
+            Wire.of(9, 0, 10, 0)*/
         )
     );
     System.out.println(n);
@@ -127,13 +126,37 @@ public class TTPNMain {
 
     ProgramSynthesisProblem psp = ProgramSynthesisProblem.from(
         tProgram,
-        ProgramSynthesisFitness.Metric.AVG_DISSIMILARITY,
+        ProgramSynthesisFitness.Metric.FAIL_RATE,
         ProgramSynthesisFitness.Dissimilarity.NORMALIZED,
-        IndexedProvider.from(inputsList).fold(0, 5),
-        IndexedProvider.from(inputsList).negatedFold(0, 5)
+        100d,
+        df,
+        rnd,
+        10,
+        5,
+        0.5
     );
 
-    System.exit(0);
+    //System.out.println(psp.qualityFunction().apply(tProgram));
+    System.out.println(psp.qualityFunction().apply(ttpnProgram));
+    System.out.println(psp.validationQualityFunction().apply(ttpnProgram));
+
+    psp.qualityFunction()
+        .caseProvider()
+        .stream()
+        .forEach(
+            example -> System.out.printf(
+                "%5.3f <- a=%s vs p=%s%n",
+                psp.qualityFunction()
+                    .errorFunction()
+                    .apply(
+                        example.output(),
+                        psp.qualityFunction().predictFunction().apply(ttpnProgram, example.input())
+                    )
+                    .distance(),
+                example.output(),
+                psp.qualityFunction().predictFunction().apply(ttpnProgram, example.input())
+            )
+        );
 
     TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
     drawer.show(n);

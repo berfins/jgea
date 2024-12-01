@@ -26,9 +26,11 @@ import java.util.stream.IntStream;
 
 public class Dissimilarity implements Distance<List<Object>> {
   private final List<Type> types;
+  private final double maxDistance;
 
-  public Dissimilarity(List<Type> types) {
+  public Dissimilarity(List<Type> types, double maxDissimilarity) {
     this.types = types;
+    this.maxDistance = maxDissimilarity;
   }
 
   @Override
@@ -37,10 +39,10 @@ public class Dissimilarity implements Distance<List<Object>> {
       return 0d;
     }
     if (os1 == null) {
-      return Double.POSITIVE_INFINITY;
+      return maxDistance;
     }
     if (os2 == null) {
-      return Double.POSITIVE_INFINITY;
+      return maxDistance;
     }
     if (os1.size() != types.size() || os2.size() != types.size()) {
       throw new IllegalArgumentException(

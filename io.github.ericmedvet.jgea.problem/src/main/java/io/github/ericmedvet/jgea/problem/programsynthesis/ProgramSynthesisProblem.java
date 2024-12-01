@@ -25,8 +25,10 @@ import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
 import io.github.ericmedvet.jgea.core.problem.TotalOrderQualityBasedProblem;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.Program;
 import io.github.ericmedvet.jgea.core.util.IndexedProvider;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.random.RandomGenerator;
 
 public interface ProgramSynthesisProblem extends ExampleBasedProblem<Program, List<Object>, List<Object>, ProgramSynthesisFitness.Outcome, Double>, TotalOrderQualityBasedProblem<Program, Double>, ProblemWithExampleSolution<Program> {
 
@@ -35,6 +37,86 @@ public interface ProgramSynthesisProblem extends ExampleBasedProblem<Program, Li
 
   @Override
   ProgramSynthesisFitness validationQualityFunction();
+
+  private static List<List<Object>> buildInputs(
+      int n,
+      double maxExceptionRate,
+      Program program,
+      DataFactory dataFactory,
+      RandomGenerator rnd
+  ) {
+    List<List<Object>> cases = new ArrayList<>();
+    while (cases.size() < (n * (1d - maxExceptionRate))) {
+      List<Object> inputs = program.inputTypes().stream().map(t -> dataFactory.apply(t, rnd)).toList();
+      if (program.safelyRun(inputs) != null) {
+        cases.add(inputs);
+      }
+    }
+    while (cases.size() < n) {
+      cases.add(program.inputTypes().stream().map(t -> dataFactory.apply(t, rnd)).toList());
+    }
+    return cases;
+  }
+
+  static ProgramSynthesisProblem from(
+      ProgramSynthesisFitness.Metric metric,
+      ProgramSynthesisFitness.Dissimilarity dissimilarity,
+      double maxDissimilarity,
+      Program example,
+      IndexedProvider<ExampleBasedFitness.Example<List<Object>, List<Object>>> caseProvider,
+      IndexedProvider<ExampleBasedFitness.Example<List<Object>, List<Object>>> validationCaseProvider
+  ) {
+    return from(
+        example,
+        ProgramSynthesisFitness.from(metric, dissimilarity, maxDissimilarity, example.outputTypes(), caseProvider),
+        ProgramSynthesisFitness.from(
+            metric,
+            dissimilarity,
+            maxDissimilarity,
+            example.outputTypes(),
+            validationCaseProvider
+        )
+    );
+  }
+
+  static ProgramSynthesisProblem from(
+      Program target,
+      ProgramSynthesisFitness.Metric metric,
+      ProgramSynthesisFitness.Dissimilarity dissimilarity,
+      double maxDissimilarity,
+      IndexedProvider<List<Object>> caseProvider,
+      IndexedProvider<List<Object>> validationCaseProvider
+  ) {
+    return from(
+        metric,
+        dissimilarity,
+        maxDissimilarity,
+        target,
+        caseProvider.then(inputs -> new ExampleBasedFitness.Example<>(inputs, target.safelyRun(inputs))),
+        validationCaseProvider.then(inputs -> new ExampleBasedFitness.Example<>(inputs, target.safelyRun(inputs)))
+    );
+  }
+
+  static ProgramSynthesisProblem from(
+      Program target,
+      ProgramSynthesisFitness.Metric metric,
+      ProgramSynthesisFitness.Dissimilarity dissimilarity,
+      double maxDissimilarity,
+      DataFactory dataFactory,
+      RandomGenerator rnd,
+      int nOfCases,
+      int nOfValidationCases,
+      double maxExceptionRate
+  ) {
+    return from(
+        target,
+        metric,
+        dissimilarity,
+        maxDissimilarity,
+        IndexedProvider.from(buildInputs(nOfCases, maxExceptionRate, target, dataFactory, rnd)),
+        IndexedProvider.from(buildInputs(nOfValidationCases, maxExceptionRate, target, dataFactory, rnd))
+    );
+  }
 
   static ProgramSynthesisProblem from(
       Program example,
@@ -47,36 +129,6 @@ public interface ProgramSynthesisProblem extends ExampleBasedProblem<Program, Li
         ProgramSynthesisFitness validationQualityFunction
     ) implements ProgramSynthesisProblem {}
     return new HardProgramSynthesisProblem(example, qualityFunction, validationQualityFunction);
-  }
-
-  static ProgramSynthesisProblem from(
-      ProgramSynthesisFitness.Metric metric,
-      ProgramSynthesisFitness.Dissimilarity dissimilarity,
-      Program example,
-      IndexedProvider<ExampleBasedFitness.Example<List<Object>, List<Object>>> caseProvider,
-      IndexedProvider<ExampleBasedFitness.Example<List<Object>, List<Object>>> validationCaseProvider
-  ) {
-    return from(
-        example,
-        ProgramSynthesisFitness.from(metric, dissimilarity, example.outputTypes(), caseProvider),
-        ProgramSynthesisFitness.from(metric, dissimilarity, example.outputTypes(), validationCaseProvider)
-    );
-  }
-
-  static ProgramSynthesisProblem from(
-      Program target,
-      ProgramSynthesisFitness.Metric metric,
-      ProgramSynthesisFitness.Dissimilarity dissimilarity,
-      IndexedProvider<List<Object>> caseProvider,
-      IndexedProvider<List<Object>> validationCaseProvider
-  ) {
-    return from(
-        metric,
-        dissimilarity,
-        target,
-        caseProvider.then(inputs -> new ExampleBasedFitness.Example<>(inputs, target.safelyRun(inputs))),
-        validationCaseProvider.then(inputs -> new ExampleBasedFitness.Example<>(inputs, target.safelyRun(inputs)))
-    );
   }
 
   @Override

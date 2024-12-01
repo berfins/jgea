@@ -32,13 +32,17 @@ public class NormalizedDissimilarity implements Distance<List<Object>> {
   private final DoubleRange rawRange;
 
 
-  public NormalizedDissimilarity(List<Type> types, IndexedProvider<List<Object>> valueProvider) {
-    rawDistance = new Dissimilarity(types);
+  public NormalizedDissimilarity(
+      List<Type> types,
+      double maxDissimilarity,
+      IndexedProvider<List<Object>> valueProvider
+  ) {
+    rawDistance = new Dissimilarity(types, maxDissimilarity);
     List<Double> dists = new ArrayList<>();
     for (int i = 0; i < valueProvider.size(); i++) {
       for (int j = 0; j < i; j++) {
-        if (valueProvider.get(i) != null && valueProvider.get(i) == null) {
-          dists.add(rawDistance.apply(valueProvider.get(i), valueProvider.get(i)));
+        if (valueProvider.get(i) != null && valueProvider.get(j) != null) {
+          dists.add(rawDistance.apply(valueProvider.get(i), valueProvider.get(j)));
         }
       }
     }
@@ -50,6 +54,12 @@ public class NormalizedDissimilarity implements Distance<List<Object>> {
 
   @Override
   public Double apply(List<Object> os1, List<Object> os2) {
+    if (os1 == null && os2 == null) {
+      return 0d;
+    }
+    if (os1 == null || os2 == null) {
+      return 2d;
+    }
     return rawRange.normalize(rawDistance.apply(os1, os2));
   }
 }

@@ -53,18 +53,20 @@ public interface ProgramSynthesisFitness extends ExampleBasedFitness<Program, Li
   static ProgramSynthesisFitness from(
       Metric metric,
       Dissimilarity dissimilarity,
+      double maxDissimilarity,
       List<Type> types,
       IndexedProvider<Example<List<Object>, List<Object>>> caseProvider
   ) {
     Distance<List<Object>> outputsDistance = switch (dissimilarity) {
-      case RAW -> new io.github.ericmedvet.jgea.problem.programsynthesis.Dissimilarity(types);
+      case RAW -> new io.github.ericmedvet.jgea.problem.programsynthesis.Dissimilarity(types, maxDissimilarity);
       case NORMALIZED -> new NormalizedDissimilarity(
           types,
+          maxDissimilarity,
           caseProvider.then(Example::output)
       );
     };
     Function<List<Outcome>, Double> aggregateFunction = switch (metric) {
-      case FAIL_RATE -> os -> (double) (os.stream().filter(Outcome::exception).count() / os.size());
+      case FAIL_RATE -> os -> (double) os.stream().filter(o -> o.distance == 0).count() / (double) os.size();
       case AVG_DISSIMILARITY -> os -> os.stream().mapToDouble(Outcome::distance).average().orElseThrow();
     };
     return from(outputsDistance, aggregateFunction, caseProvider);
@@ -72,18 +74,10 @@ public interface ProgramSynthesisFitness extends ExampleBasedFitness<Program, Li
 
   @Override
   default BiFunction<List<Object>, List<Object>, Outcome> errorFunction() {
-    return (actualOutputs, predictedOutputs) -> {
-      if (actualOutputs == null && predictedOutputs == null) {
-        return new Outcome(true, 0d);
-      }
-      if (actualOutputs == null) {
-        return new Outcome(false, Double.POSITIVE_INFINITY);
-      }
-      if (predictedOutputs == null) {
-        return new Outcome(true, Double.POSITIVE_INFINITY);
-      }
-      return new Outcome(false, outputsDistance().apply(actualOutputs, predictedOutputs));
-    };
+    return (actualOutputs, predictedOutputs) -> new Outcome(
+        predictedOutputs == null,
+        outputsDistance().apply(actualOutputs, predictedOutputs)
+    );
   }
 
   @Override
