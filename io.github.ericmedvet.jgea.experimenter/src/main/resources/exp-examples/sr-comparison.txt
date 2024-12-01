@@ -1,12 +1,14 @@
-$nEvals = [1000]
+$nEvals = [5000]
 
 ea.experiment(
-  runs = (randomGenerator = (seed = [1:1:5]) * [m.defaultRG()]) *
+  runs = (randomGenerator = (seed = [1:1:3]) * [m.defaultRG()]) *
     (problem = [
       ea.p.ur.synthetic(name = "keijzer6");
       ea.p.ur.synthetic(name = "nguyen7");
-      ea.p.ur.synthetic(name = "korns12");
-      ea.p.ur.synthetic(name = "vladislavleva4")
+      ea.p.ur.synthetic(name = "vladislavleva4");
+      ea.p.ur.bundled(name = "concrete"; xScaling = standardization; yScaling = symmetric_min_max);
+      ea.p.ur.bundled(name = "energy-efficiency"; xScaling = standardization; yScaling = symmetric_min_max);
+      ea.p.ur.bundled(name = "wine"; xScaling = standardization; yScaling = symmetric_min_max)
     ]) *
     (solver = (nEval = $nEvals) * [
       ea.s.ga(
@@ -34,7 +36,7 @@ ea.experiment(
       onlyLast = true
     );
     ea.l.savePlotForExp(
-      path = "../../experiments/jgea/results/{name}/{startTime}/sr";
+      path = "../../Documenti/experiments/{name}/{startTime}/best-fitness";
       plot = ea.plot.multi.quality()
     )
   ]

@@ -27,6 +27,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
+import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.logging.Logger;
 import java.util.random.RandomGenerator;
 import java.util.stream.Collectors;
@@ -130,11 +132,25 @@ public interface NumericalDataset extends IndexedProvider<ExampleBasedFitness.Ex
         lc = lc + 1;
       }
       return from(
-          varNames.stream().filter(n -> n.matches(xVarNamePattern)).toList(),
-          varNames.stream().filter(n -> n.matches(yVarNamePattern)).toList(),
+          xIndexes.stream().map(varNames::get).toList(),
+          yIndexes.stream().map(varNames::get).toList(),
           IndexedProvider.from(rows)
       );
     }
+  }
+
+  static NumericalDataset fromResourceCSV(
+      String xVarNamePattern,
+      String yVarNamePattern,
+      String name,
+      long limit
+  ) throws IOException {
+    return fromCSV(
+        xVarNamePattern,
+        yVarNamePattern,
+        NumericalDataset.class.getResourceAsStream("/datasets/regression/%s.csv".formatted(name)),
+        limit
+    );
   }
 
   @Override
@@ -184,6 +200,10 @@ public interface NumericalDataset extends IndexedProvider<ExampleBasedFitness.Ex
     return from(xVarNames(), yVarNames(), dataPointProvider().shuffled(rnd));
   }
 
+  default NumericalDataset prepared() {
+    return then(UnaryOperator.identity());
+  }
+
   default String summary() {
     StringBuilder sb = new StringBuilder();
     sb.append(
@@ -214,6 +234,37 @@ public interface NumericalDataset extends IndexedProvider<ExampleBasedFitness.Ex
     return sb.toString();
   }
 
+  default NumericalDataset then(
+      UnaryOperator<ExampleBasedFitness.Example<Map<String, Double>, Map<String, Double>>> operator
+  ) {
+    NumericalDataset thisNumericalDataset = this;
+    IndexedProvider<ExampleBasedFitness.Example<Map<String, Double>, Map<String, Double>>> cached = thisNumericalDataset
+        .then(
+            Function.identity()
+        );
+    return new NumericalDataset() {
+      @Override
+      public IndexedProvider<double[]> dataPointProvider() {
+        return thisNumericalDataset.dataPointProvider();
+      }
+
+      @Override
+      public List<String> xVarNames() {
+        return thisNumericalDataset.xVarNames();
+      }
+
+      @Override
+      public List<String> yVarNames() {
+        return thisNumericalDataset.yVarNames();
+      }
+
+      @Override
+      public ExampleBasedFitness.Example<Map<String, Double>, Map<String, Double>> get(int i) {
+        return cached.get(i);
+      }
+    };
+  }
+
   default NumericalDataset xScaled(NumericalDataset.Scaling scaling) {
     if (scaling.equals(Scaling.NONE)) {
       return this;
@@ -224,7 +275,7 @@ public interface NumericalDataset extends IndexedProvider<ExampleBasedFitness.Ex
         yVarNames(),
         dataPointProvider().then(
             vs -> IntStream.range(0, vs.length).mapToDouble(j -> {
-              if (j > xVarNames().size()) {
+              if (j >= xVarNames().size()) {
                 return vs[j];
               }
               return switch (scaling) {

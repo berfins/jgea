@@ -59,16 +59,19 @@ public class NumericalIndexedProviders {
   @Cacheable
   public static NumericalDataset fromBundled(
       @Param("name") String name,
+      @Param(value = "xScaling", dS = "none") NumericalDataset.Scaling xScaling,
+      @Param(value = "yScaling", dS = "none") NumericalDataset.Scaling yScaling,
       @Param(value = "limit", dI = Integer.MAX_VALUE) int limit
   ) {
-    try (InputStream is = NumericalDataset.class.getResourceAsStream("/datasets/regression/%s.csv".formatted(name))) {
-      return switch (name) {
-        case "concrete" -> NumericalDataset.fromCSV("*.", "strength", is, limit);
-        case "wine" -> NumericalDataset.fromCSV("*.", "quality", is, limit);
-        case "energy-efficiency" -> NumericalDataset.fromCSV("x[0-9]+", "y1", is, limit);
-        case "xor" -> NumericalDataset.fromCSV("*.", "y", is, limit);
+    try {
+      NumericalDataset dataset = switch (name) {
+        case "concrete" -> NumericalDataset.fromResourceCSV(".*", "strength", name, limit);
+        case "wine" -> NumericalDataset.fromResourceCSV(".*", "quality", name, limit);
+        case "energy-efficiency" -> NumericalDataset.fromResourceCSV("x[0-9]+", "y1", name, limit);
+        case "xor" -> NumericalDataset.fromResourceCSV(".*", "y", name, limit);
         default -> throw new IllegalArgumentException("Unknown bundled dataset: %s".formatted(name));
       };
+      return dataset.xScaled(xScaling).yScaled(yScaling).prepared();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

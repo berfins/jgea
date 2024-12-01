@@ -158,6 +158,8 @@ public class TTPNMain {
             )
         );
 
+    System.exit(0);
+
     TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
     drawer.show(n);
     drawer.show(new ImageBuilder.ImageInfo(600, 300), n);
