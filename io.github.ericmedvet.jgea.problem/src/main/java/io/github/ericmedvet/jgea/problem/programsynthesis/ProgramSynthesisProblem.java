@@ -22,26 +22,13 @@ package io.github.ericmedvet.jgea.problem.programsynthesis;
 import io.github.ericmedvet.jgea.core.fitness.ExampleBasedFitness;
 import io.github.ericmedvet.jgea.core.problem.ExampleBasedProblem;
 import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
-import io.github.ericmedvet.jgea.core.problem.ProblemWithValidation;
 import io.github.ericmedvet.jgea.core.problem.TotalOrderQualityBasedProblem;
-import io.github.ericmedvet.jgea.core.representation.NamedUnivariateRealFunction;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.Program;
-import io.github.ericmedvet.jgea.core.representation.programsynthesis.ProgramExecutionException;
-import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.core.util.IndexedProvider;
-import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitness;
-
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.random.RandomGenerator;
-import java.util.stream.Stream;
 
-public interface ProgramSynthesisProblem extends ExampleBasedProblem<Program, List<Object>, List<Object>,
-    ProgramSynthesisFitness.Outcome,
-    Double>, TotalOrderQualityBasedProblem<Program, Double>,
-    ProblemWithExampleSolution<Program> {
+public interface ProgramSynthesisProblem extends ExampleBasedProblem<Program, List<Object>, List<Object>, ProgramSynthesisFitness.Outcome, Double>, TotalOrderQualityBasedProblem<Program, Double>, ProblemWithExampleSolution<Program> {
 
   @Override
   ProgramSynthesisFitness qualityFunction();

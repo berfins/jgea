@@ -34,7 +34,6 @@
  */
 package io.github.ericmedvet.jgea.experimenter.drawer;
 
-import io.github.ericmedvet.jgea.core.fitness.CaseBasedFitness;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.InstrumentedProgram;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.Program;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.ProgramExecutionException;
@@ -54,7 +53,6 @@ import io.github.ericmedvet.jviz.core.drawer.ImageBuilder;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
-import java.util.function.IntFunction;
 import java.util.random.RandomGenerator;
 import java.util.stream.IntStream;
 
@@ -118,17 +116,21 @@ public class TTPNMain {
     InstrumentedProgram.Outcome o = ttpnProgram.runInstrumented(inputs);
     System.out.println(o);
 
-    List<List<Object>> inputsList = IntStream.range(0, 10).mapToObj(i -> tProgram.inputTypes()
-        .stream()
-        .map(t -> df.apply(t, rnd))
-        .toList()).toList();
+    List<List<Object>> inputsList = IntStream.range(0, 10)
+        .mapToObj(
+            i -> tProgram.inputTypes()
+                .stream()
+                .map(t -> df.apply(t, rnd))
+                .toList()
+        )
+        .toList();
 
     ProgramSynthesisProblem psp = ProgramSynthesisProblem.from(
         tProgram,
         ProgramSynthesisFitness.Metric.AVG_DISSIMILARITY,
         ProgramSynthesisFitness.Dissimilarity.NORMALIZED,
-        IndexedProvider.from(inputsList).fold(0,5),
-        IndexedProvider.from(inputsList).negatedFold(0,5)
+        IndexedProvider.from(inputsList).fold(0, 5),
+        IndexedProvider.from(inputsList).negatedFold(0, 5)
     );
 
     System.exit(0);

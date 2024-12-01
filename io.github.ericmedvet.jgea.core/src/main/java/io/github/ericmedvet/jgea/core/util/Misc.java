@@ -54,10 +54,13 @@ public class Misc {
 
   private static <T> List<List<T>> cartesian(List<List<T>> tss, List<List<T>> lists) {
     if (tss.size() == 1) {
-      return tss.getFirst().stream()
-          .map(t -> lists.stream()
-              .map(l -> Stream.concat(l.stream(), Stream.of(t)).toList())
-              .toList())
+      return tss.getFirst()
+          .stream()
+          .map(
+              t -> lists.stream()
+                  .map(l -> Stream.concat(l.stream(), Stream.of(t)).toList())
+                  .toList()
+          )
           .flatMap(List::stream)
           .toList();
     }
@@ -69,7 +72,11 @@ public class Misc {
   }
 
   public static void doOrLog(
-      Runnable runnable, Logger logger, Level level, Function<Throwable, String> messageFunction) {
+      Runnable runnable,
+      Logger logger,
+      Level level,
+      Function<Throwable, String> messageFunction
+  ) {
     try {
       runnable.run();
     } catch (Throwable t) {
@@ -111,15 +118,18 @@ public class Misc {
   }
 
   public static double hypervolume2D(
-      Collection<List<Double>> points, List<Double> minReference, List<Double> maxReference) {
+      Collection<List<Double>> points,
+      List<Double> minReference,
+      List<Double> maxReference
+  ) {
     return hypervolume2D(
         Stream.concat(
-                Stream.of(
-                    List.of(minReference.get(0), maxReference.get(1)),
-                    List.of(minReference.get(1), maxReference.get(0))
-                ),
-                points.stream()
-            )
+            Stream.of(
+                List.of(minReference.get(0), maxReference.get(1)),
+                List.of(minReference.get(1), maxReference.get(0))
+            ),
+            points.stream()
+        )
             .toList(),
         maxReference
     );
@@ -231,7 +241,8 @@ public class Misc {
             Level.WARNING,
             String.format(
                 "Given file path '%s' exists; will write on '%s'",
-                dirsPath.resolve(path), dirsPath.resolve(filePath)
+                dirsPath.resolve(path),
+                dirsPath.resolve(filePath)
             )
         );
       }
@@ -240,8 +251,7 @@ public class Misc {
   }
 
   public static <K> List<K> shuffle(List<K> list, RandomGenerator random) {
-    List<Integer> indexes =
-        new ArrayList<>(IntStream.range(0, list.size()).boxed().toList());
+    List<Integer> indexes = new ArrayList<>(IntStream.range(0, list.size()).boxed().toList());
     List<Integer> shuffledIndexes = new ArrayList<>(indexes.size());
     while (!indexes.isEmpty()) {
       int indexOfIndex = indexes.size() == 1 ? 0 : random.nextInt(indexes.size());

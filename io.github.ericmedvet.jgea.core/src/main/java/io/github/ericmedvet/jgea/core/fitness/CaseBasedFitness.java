@@ -21,7 +21,6 @@
 package io.github.ericmedvet.jgea.core.fitness;
 
 import io.github.ericmedvet.jgea.core.util.IndexedProvider;
-
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;

@@ -1,3 +1,22 @@
+/*-
+ * ========================LICENSE_START=================================
+ * jgea-problem
+ * %%
+ * Copyright (C) 2018 - 2024 Eric Medvet
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =========================LICENSE_END==================================
+ */
 package io.github.ericmedvet.jgea.problem.regression.univariate;
 
 import io.github.ericmedvet.jgea.core.fitness.ExampleBasedFitness;
@@ -7,14 +26,10 @@ import io.github.ericmedvet.jgea.core.problem.TotalOrderQualityBasedProblem;
 import io.github.ericmedvet.jgea.core.representation.NamedUnivariateRealFunction;
 import io.github.ericmedvet.jgea.core.util.IndexedProvider;
 import io.github.ericmedvet.jsdynsym.core.numerical.UnivariateRealFunction;
-
 import java.util.Comparator;
 import java.util.Map;
 
-public interface UnivariateRegressionProblem extends ExampleBasedProblem<NamedUnivariateRealFunction, Map<String,
-    Double>, Map<String, Double>, UnivariateRegressionFitness.Outcome,
-    Double>, TotalOrderQualityBasedProblem<NamedUnivariateRealFunction, Double>,
-    ProblemWithExampleSolution<NamedUnivariateRealFunction> {
+public interface UnivariateRegressionProblem extends ExampleBasedProblem<NamedUnivariateRealFunction, Map<String, Double>, Map<String, Double>, UnivariateRegressionFitness.Outcome, Double>, TotalOrderQualityBasedProblem<NamedUnivariateRealFunction, Double>, ProblemWithExampleSolution<NamedUnivariateRealFunction> {
 
   @Override
   UnivariateRegressionFitness qualityFunction();
@@ -24,9 +39,8 @@ public interface UnivariateRegressionProblem extends ExampleBasedProblem<NamedUn
 
   @Override
   default NamedUnivariateRealFunction example() {
-    ExampleBasedFitness.Example<Map<String, Double>, Map<String, Double>> example =
-        qualityFunction().caseProvider()
-            .first();
+    ExampleBasedFitness.Example<Map<String, Double>, Map<String, Double>> example = qualityFunction().caseProvider()
+        .first();
     return NamedUnivariateRealFunction.from(
         UnivariateRealFunction.from(inputs -> 0d, example.input().size()),
         example.input().keySet().stream().sorted().toList(),
@@ -70,14 +84,18 @@ public interface UnivariateRegressionProblem extends ExampleBasedProblem<NamedUn
   ) {
     return from(
         metric,
-        inputProvider.then(i -> new ExampleBasedFitness.Example<>(
-            i,
-            target.compute(i)
-        )),
-        validationInputProvider.then(i -> new ExampleBasedFitness.Example<>(
-            i,
-            target.compute(i)
-        )),
+        inputProvider.then(
+            i -> new ExampleBasedFitness.Example<>(
+                i,
+                target.compute(i)
+            )
+        ),
+        validationInputProvider.then(
+            i -> new ExampleBasedFitness.Example<>(
+                i,
+                target.compute(i)
+            )
+        ),
         target.yVarName()
     );
   }

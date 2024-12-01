@@ -1,13 +1,28 @@
+/*-
+ * ========================LICENSE_START=================================
+ * jgea-problem
+ * %%
+ * Copyright (C) 2018 - 2024 Eric Medvet
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =========================LICENSE_END==================================
+ */
 package io.github.ericmedvet.jgea.problem.regression;
 
 import io.github.ericmedvet.jgea.core.fitness.ExampleBasedFitness;
 import io.github.ericmedvet.jgea.core.util.IndexedProvider;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -17,9 +32,11 @@ import java.util.random.RandomGenerator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 
-public interface NumericalDataset extends IndexedProvider<ExampleBasedFitness.Example<Map<String, Double>, Map<String
-    , Double>>> {
+public interface NumericalDataset extends IndexedProvider<ExampleBasedFitness.Example<Map<String, Double>, Map<String, Double>>> {
 
   enum Scaling {
     NONE, MIN_MAX, SYMMETRIC_MIN_MAX, STANDARDIZATION
@@ -100,8 +117,13 @@ public interface NumericalDataset extends IndexedProvider<ExampleBasedFitness.Ex
                     .formatted(lc, records.size(), record.size(), varNames.size())
             );
           } else {
-            double[] row = Stream.concat(xIndexes.stream(), yIndexes.stream()).mapToDouble(i -> Double.parseDouble(
-                record.get(i))).toArray();
+            double[] row = Stream.concat(xIndexes.stream(), yIndexes.stream())
+                .mapToDouble(
+                    i -> Double.parseDouble(
+                        record.get(i)
+                    )
+                )
+                .toArray();
             rows.add(row);
           }
         }
@@ -118,14 +140,22 @@ public interface NumericalDataset extends IndexedProvider<ExampleBasedFitness.Ex
   @Override
   default ExampleBasedFitness.Example<Map<String, Double>, Map<String, Double>> get(int i) {
     return new ExampleBasedFitness.Example<>(
-        IntStream.range(0, xVarNames().size()).boxed().collect(Collectors.toMap(
-            j -> xVarNames().get(j),
-            j -> dataPointProvider().get(i)[j]
-        )),
-        IntStream.range(0, yVarNames().size()).boxed().collect(Collectors.toMap(
-            j -> yVarNames().get(j),
-            j -> dataPointProvider().get(i)[xVarNames().size() + j]
-        ))
+        IntStream.range(0, xVarNames().size())
+            .boxed()
+            .collect(
+                Collectors.toMap(
+                    j -> xVarNames().get(j),
+                    j -> dataPointProvider().get(i)[j]
+                )
+            ),
+        IntStream.range(0, yVarNames().size())
+            .boxed()
+            .collect(
+                Collectors.toMap(
+                    j -> yVarNames().get(j),
+                    j -> dataPointProvider().get(i)[xVarNames().size() + j]
+                )
+            )
     );
   }
 
@@ -194,18 +224,19 @@ public interface NumericalDataset extends IndexedProvider<ExampleBasedFitness.Ex
         yVarNames(),
         dataPointProvider().then(
             vs -> IntStream.range(0, vs.length).mapToDouble(j -> {
-                  if (j > xVarNames().size()) {
-                    return vs[j];
-                  }
-                  return switch (scaling) {
-                    case MIN_MAX -> varInfos.get(j).range.normalize(vs[j]);
-                    case SYMMETRIC_MIN_MAX ->
-                        DoubleRange.SYMMETRIC_UNIT.denormalize(varInfos.get(j).range.normalize(vs[j]));
-                    case STANDARDIZATION -> (vs[j] - varInfos.get(j).mean) / varInfos.get(j).sd;
-                    default -> vs[j];
-                  };
-                })
-                .toArray())
+              if (j > xVarNames().size()) {
+                return vs[j];
+              }
+              return switch (scaling) {
+                case MIN_MAX -> varInfos.get(j).range.normalize(vs[j]);
+                case SYMMETRIC_MIN_MAX ->
+                  DoubleRange.SYMMETRIC_UNIT.denormalize(varInfos.get(j).range.normalize(vs[j]));
+                case STANDARDIZATION -> (vs[j] - varInfos.get(j).mean) / varInfos.get(j).sd;
+                default -> vs[j];
+              };
+            })
+                .toArray()
+        )
     );
   }
 
@@ -224,19 +255,20 @@ public interface NumericalDataset extends IndexedProvider<ExampleBasedFitness.Ex
         yVarNames(),
         dataPointProvider().then(
             vs -> IntStream.range(0, vs.length).mapToDouble(j -> {
-                  if (j < xVarNames().size()) {
-                    return vs[j];
-                  }
-                  j = j - xVarNames().size();
-                  return switch (scaling) {
-                    case MIN_MAX -> varInfos.get(j).range.normalize(vs[j]);
-                    case SYMMETRIC_MIN_MAX ->
-                        DoubleRange.SYMMETRIC_UNIT.denormalize(varInfos.get(j).range.normalize(vs[j]));
-                    case STANDARDIZATION -> (vs[j] - varInfos.get(j).mean) / varInfos.get(j).sd;
-                    default -> vs[j];
-                  };
-                })
-                .toArray())
+              if (j < xVarNames().size()) {
+                return vs[j];
+              }
+              j = j - xVarNames().size();
+              return switch (scaling) {
+                case MIN_MAX -> varInfos.get(j).range.normalize(vs[j]);
+                case SYMMETRIC_MIN_MAX ->
+                  DoubleRange.SYMMETRIC_UNIT.denormalize(varInfos.get(j).range.normalize(vs[j]));
+                case STANDARDIZATION -> (vs[j] - varInfos.get(j).mean) / varInfos.get(j).sd;
+                default -> vs[j];
+              };
+            })
+                .toArray()
+        )
     );
   }
 

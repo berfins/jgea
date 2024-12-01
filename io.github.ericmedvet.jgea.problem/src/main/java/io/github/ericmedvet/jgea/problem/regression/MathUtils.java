@@ -26,7 +26,6 @@ import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegress
 import io.github.ericmedvet.jsdynsym.core.composed.AbstractComposed;
 import java.util.*;
 import java.util.function.UnaryOperator;
-
 import org.apache.commons.math3.stat.StatUtils;
 
 public class MathUtils {
@@ -40,10 +39,14 @@ public class MathUtils {
         UnivariateRegressionFitness univariateRegressionFitness
     ) {
       super(inner);
-      double[] targetYs = univariateRegressionFitness.caseProvider().all().stream()
+      double[] targetYs = univariateRegressionFitness.caseProvider()
+          .all()
+          .stream()
           .mapToDouble(e -> e.output().get(univariateRegressionFitness.yVarName()))
           .toArray();
-      double[] ys = univariateRegressionFitness.caseProvider().all().stream()
+      double[] ys = univariateRegressionFitness.caseProvider()
+          .all()
+          .stream()
           .mapToDouble(e -> inner.computeAsDouble(e.input()))
           .toArray();
       double targetMean = StatUtils.mean(targetYs);

@@ -22,6 +22,7 @@ module io.github.ericmedvet.jgea.core {
   requires io.github.ericmedvet.jsdynsym.core;
   requires io.github.ericmedvet.jnb.datastructure;
   requires commons.math3;
+
   exports io.github.ericmedvet.jgea.core;
   exports io.github.ericmedvet.jgea.core.distance;
   exports io.github.ericmedvet.jgea.core.fitness;

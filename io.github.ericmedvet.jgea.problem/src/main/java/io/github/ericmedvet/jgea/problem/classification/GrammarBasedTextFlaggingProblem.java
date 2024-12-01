@@ -25,7 +25,6 @@ import io.github.ericmedvet.jgea.core.representation.grammar.string.GrammarBased
 import io.github.ericmedvet.jgea.core.representation.grammar.string.StringGrammar;
 import io.github.ericmedvet.jgea.core.representation.tree.Tree;
 import io.github.ericmedvet.jgea.core.util.IndexedProvider;
-
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -49,7 +48,7 @@ public interface GrammarBasedTextFlaggingProblem extends TextFlaggingProblem, Gr
         validationQualityFunction,
         grammar,
         tree -> {
-          String regex =tree.leaves().stream().map(Tree::content).collect(Collectors.joining());
+          String regex = tree.leaves().stream().map(Tree::content).collect(Collectors.joining());
           return s -> {
             Matcher matcher = Pattern.compile(regex).matcher(s);
             return matcher.find() ? Label.FOUND : Label.NOT_FOUND;
@@ -65,8 +64,8 @@ public interface GrammarBasedTextFlaggingProblem extends TextFlaggingProblem, Gr
       StringGrammar<String> grammar
   ) {
     return from(
-        ClassificationFitness.from(metric,caseProvider),
-        ClassificationFitness.from(metric,validationCaseProvider),
+        ClassificationFitness.from(metric, caseProvider),
+        ClassificationFitness.from(metric, validationCaseProvider),
         grammar
     );
   }

@@ -20,15 +20,11 @@
 
 package io.github.ericmedvet.jgea.problem.classification;
 
-import io.github.ericmedvet.jgea.core.fitness.ExampleBasedFitness;
 import io.github.ericmedvet.jgea.core.problem.TotalOrderQualityBasedProblem;
 import io.github.ericmedvet.jgea.core.util.IndexedProvider;
-
 import java.util.Comparator;
-import java.util.List;
 
-public interface TextFlaggingProblem extends ClassificationProblem<String, TextFlaggingProblem.Label>,
-    TotalOrderQualityBasedProblem<Classifier<String, TextFlaggingProblem.Label>, Double> {
+public interface TextFlaggingProblem extends ClassificationProblem<String, TextFlaggingProblem.Label>, TotalOrderQualityBasedProblem<Classifier<String, TextFlaggingProblem.Label>, Double> {
 
   enum Label {
     FOUND, NOT_FOUND

@@ -23,19 +23,13 @@ package io.github.ericmedvet.jgea.problem.regression.multivariate;
 import io.github.ericmedvet.jgea.core.fitness.ExampleBasedFitness;
 import io.github.ericmedvet.jgea.core.problem.*;
 import io.github.ericmedvet.jgea.core.representation.NamedMultivariateRealFunction;
-import io.github.ericmedvet.jgea.core.representation.NamedUnivariateRealFunction;
 import io.github.ericmedvet.jgea.core.util.IndexedProvider;
 import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitness;
 import io.github.ericmedvet.jsdynsym.core.numerical.MultivariateRealFunction;
-import io.github.ericmedvet.jsdynsym.core.numerical.UnivariateRealFunction;
-
 import java.util.Comparator;
 import java.util.Map;
 
-public interface MultivariateRegressionProblem extends ExampleBasedProblem<NamedMultivariateRealFunction, Map<String,
-    Double>, Map<String, Double>, MultivariateRegressionFitness.Outcome,
-    Double>, TotalOrderQualityBasedProblem<NamedMultivariateRealFunction, Double>,
-    ProblemWithExampleSolution<NamedMultivariateRealFunction> {
+public interface MultivariateRegressionProblem extends ExampleBasedProblem<NamedMultivariateRealFunction, Map<String, Double>, Map<String, Double>, MultivariateRegressionFitness.Outcome, Double>, TotalOrderQualityBasedProblem<NamedMultivariateRealFunction, Double>, ProblemWithExampleSolution<NamedMultivariateRealFunction> {
 
   @Override
   MultivariateRegressionFitness qualityFunction();
@@ -73,14 +67,18 @@ public interface MultivariateRegressionProblem extends ExampleBasedProblem<Named
   ) {
     return from(
         metric,
-        inputProvider.then(i -> new ExampleBasedFitness.Example<>(
-            i,
-            target.compute(i)
-        )),
-        validationInputProvider.then(i -> new ExampleBasedFitness.Example<>(
-            i,
-            target.compute(i)
-        ))
+        inputProvider.then(
+            i -> new ExampleBasedFitness.Example<>(
+                i,
+                target.compute(i)
+            )
+        ),
+        validationInputProvider.then(
+            i -> new ExampleBasedFitness.Example<>(
+                i,
+                target.compute(i)
+            )
+        )
     );
   }
 
