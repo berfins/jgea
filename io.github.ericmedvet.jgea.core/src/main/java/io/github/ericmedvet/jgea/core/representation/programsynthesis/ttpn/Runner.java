@@ -111,16 +111,6 @@ public class Runner {
     SortedMap<Integer, Object> outputs = new TreeMap<>();
     // iterate
     while (k < maxSteps) {
-      /*
-      System.out.printf(
-          "BEFORE:%n%s%n".formatted(
-              current.entrySet()
-                  .stream()
-                  .map(e -> "\t%s\t%2d : %s".formatted(e.getKey(), e.getValue().size(), e.getValue()))
-                  .collect(Collectors.joining("%n"))
-          )
-      );
-      */
       for (int i = 0; i < network.gates().size(); i++) {
         int gi = i;
         Gate g = network.gates().get(gi);
@@ -157,11 +147,7 @@ public class Runner {
                     .toList()
             );
             try {
-              Gate.Data localOut = g.operator().apply(localIn);
-              /*
-              System.out.printf("\t\tk=%3d\t%s\t%s -> %s%n", k, g, localIn, localOut);
-              */
-              // check number of outputs
+              Gate.Data localOut = g.operator().apply(localIn);              // check number of outputs
               if (localOut.lines().size() != g.outputTypes().size()) {
                 throw new ProgramExecutionException(
                     "Unexpected wrong number of outputs: %d expected, %d found".formatted(
