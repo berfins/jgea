@@ -29,9 +29,11 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Strin
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Typed;
 import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
 import io.github.ericmedvet.jgea.core.util.IntRange;
+import io.github.ericmedvet.jgea.experimenter.builders.NumericalIndexedProviders;
 import io.github.ericmedvet.jgea.problem.programsynthesis.DataFactory;
 import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisFitness;
 import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisProblem;
+import io.github.ericmedvet.jgea.problem.regression.NumericalDataset;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
 import io.github.ericmedvet.jviz.core.drawer.ImageBuilder;
 import java.util.List;
@@ -41,9 +43,27 @@ import java.util.random.RandomGenerator;
 import java.util.stream.IntStream;
 
 public class TTPNMain {
+  private static void datasets() {
+    NumericalDataset d = NumericalIndexedProviders.fromBundled(
+        "concrete",
+        NumericalDataset.Scaling.NONE,
+        NumericalDataset.Scaling.NONE,
+        Integer.MAX_VALUE
+    );
+    System.out.println(d.summary());
+    System.out.println("x scaled");
+    System.out.printf(d.xScaled(NumericalDataset.Scaling.MIN_MAX).summary());
+    System.out.println("y scaled");
+    System.out.printf(d.yScaled(NumericalDataset.Scaling.STANDARDIZATION).summary());
+    System.exit(0);
+  }
+
   public static void main(
       String[] args
   ) throws NetworkStructureException, ProgramExecutionException, NoSuchMethodException {
+
+    datasets();
+
     Network n = new Network(
         List.of(
             Gate.input(Composed.sequence(Base.REAL)),

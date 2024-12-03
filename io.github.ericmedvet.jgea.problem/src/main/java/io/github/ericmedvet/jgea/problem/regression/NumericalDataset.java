@@ -26,7 +26,9 @@ import io.github.ericmedvet.jnb.datastructure.DoubleRange;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.logging.Logger;
@@ -309,12 +311,11 @@ public interface NumericalDataset extends IndexedProvider<ExampleBasedFitness.Ex
               if (j < xVarNames().size()) {
                 return vs[j];
               }
-              j = j - xVarNames().size();
+              VariableInfo vi = varInfos.get(j - xVarNames().size());
               return switch (scaling) {
-                case MIN_MAX -> varInfos.get(j).range.normalize(vs[j]);
-                case SYMMETRIC_MIN_MAX ->
-                  DoubleRange.SYMMETRIC_UNIT.denormalize(varInfos.get(j).range.normalize(vs[j]));
-                case STANDARDIZATION -> (vs[j] - varInfos.get(j).mean) / varInfos.get(j).sd;
+                case MIN_MAX -> vi.range.normalize(vs[j]);
+                case SYMMETRIC_MIN_MAX -> DoubleRange.SYMMETRIC_UNIT.denormalize(vi.range.normalize(vs[j]));
+                case STANDARDIZATION -> (vs[j] - vi.mean) / vi.sd;
                 default -> vs[j];
               };
             })
