@@ -43,27 +43,9 @@ import java.util.random.RandomGenerator;
 import java.util.stream.IntStream;
 
 public class TTPNMain {
-  private static void datasets() {
-    NumericalDataset d = NumericalIndexedProviders.fromBundled(
-        "concrete",
-        NumericalDataset.Scaling.NONE,
-        NumericalDataset.Scaling.NONE,
-        Integer.MAX_VALUE
-    );
-    System.out.println(d.summary());
-    System.out.println("x scaled");
-    System.out.printf(d.xScaled(NumericalDataset.Scaling.MIN_MAX).summary());
-    System.out.println("y scaled");
-    System.out.printf(d.yScaled(NumericalDataset.Scaling.STANDARDIZATION).summary());
-    System.exit(0);
-  }
-
   public static void main(
       String[] args
   ) throws NetworkStructureException, ProgramExecutionException, NoSuchMethodException {
-
-    datasets();
-
     Network n = new Network(
         List.of(
             Gate.input(Composed.sequence(Base.REAL)),
@@ -120,15 +102,6 @@ public class TTPNMain {
     InstrumentedProgram.Outcome o = ttpnProgram.runInstrumented(inputs);
     System.out.println(o);
 
-    List<List<Object>> inputsList = IntStream.range(0, 10)
-        .mapToObj(
-            i -> tProgram.inputTypes()
-                .stream()
-                .map(t -> df.apply(t, rnd))
-                .toList()
-        )
-        .toList();
-
     ProgramSynthesisProblem psp = ProgramSynthesisProblem.from(
         tProgram,
         ProgramSynthesisFitness.Metric.FAIL_RATE,
@@ -162,8 +135,6 @@ public class TTPNMain {
                 psp.qualityFunction().predictFunction().apply(ttpnProgram, example.input())
             )
         );
-
-    System.exit(0);
 
     TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
     drawer.show(n);
