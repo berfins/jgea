@@ -25,6 +25,8 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import java.util.*;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -32,6 +34,7 @@ public record Network(List<Gate> gates, Set<Wire> wires) {
   public Network(List<Gate> gates, Set<Wire> wires) {
     this.gates = Collections.unmodifiableList(gates);
     this.wires = Collections.unmodifiableSortedSet(new TreeSet<>(wires));
+    // TODO add validate
   }
 
   public Type actualType(Wire wire) throws TypeException {
@@ -78,6 +81,38 @@ public record Network(List<Gate> gates, Set<Wire> wires) {
             )
         );
     return srcType.concrete(genericTypeMap);
+  }
+
+  public Set<Wire.EndPoint> freeInputPorts() {
+    return IntStream.range(0, gates.size())
+        .mapToObj(
+            gi -> IntStream.range(0, gates.get(gi).inputPorts().size())
+                .mapToObj(pi -> new Wire.EndPoint(gi, pi))
+        )
+        .flatMap(Function.identity())
+        .filter(ep -> wireTo(ep).isEmpty())
+        .collect(Collectors.toSet());
+  }
+
+  public Set<Wire.EndPoint> freeOutputPorts() {
+    return IntStream.range(0, gates.size())
+        .mapToObj(
+            gi -> IntStream.range(0, gates.get(gi).outputTypes().size())
+                .mapToObj(pi -> new Wire.EndPoint(gi, pi))
+        )
+        .flatMap(Function.identity())
+        .filter(ep -> wiresFrom(ep).isEmpty())
+        .collect(Collectors.toSet());
+  }
+
+  public Set<Wire.EndPoint> outputPorts() {
+    return IntStream.range(0, gates.size())
+        .mapToObj(
+            gi -> IntStream.range(0, gates.get(gi).outputTypes().size())
+                .mapToObj(pi -> new Wire.EndPoint(gi, pi))
+        )
+        .flatMap(Function.identity())
+        .collect(Collectors.toSet());
   }
 
   @Override
@@ -213,11 +248,44 @@ public record Network(List<Gate> gates, Set<Wire> wires) {
     return wireTo(new Wire.EndPoint(gateIndex, portIntex));
   }
 
+  public Set<Wire> wiresFrom(int gateIndex) {
+    return IntStream.range(0, gates.get(gateIndex).outputTypes().size())
+        .mapToObj(pi -> wiresFrom(gateIndex, pi))
+        .flatMap(List::stream)
+        .collect(Collectors.toCollection(LinkedHashSet::new));
+  }
+
   private List<Wire> wiresFrom(Wire.EndPoint src) {
     return wires.stream().filter(w -> w.src().equals(src)).toList();
   }
 
   public List<Wire> wiresFrom(int gateIndex, int portIntex) {
     return wiresFrom(new Wire.EndPoint(gateIndex, portIntex));
+  }
+
+  public Set<Wire> wiresTo(int gateIndex) {
+    return IntStream.range(0, gates.get(gateIndex).inputPorts().size())
+        .mapToObj(pi -> wireTo(gateIndex, pi))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .collect(Collectors.toCollection(LinkedHashSet::new));
+  }
+
+  public Network with(
+      Network other,
+      BiFunction<Network, Wire.EndPoint, Optional<Wire.EndPoint>> inputsWirer,
+      BiFunction<Network, Wire.EndPoint, Optional<Wire.EndPoint>> outputsWirer
+  ) {
+    // TODO
+    // build list of gates from this network
+    // build list of wires from this network
+    // compute free input ports of other
+    // compute free output ports of other
+    // add other gates to list of gates
+    // build a map (maybe just an offset) for other gates indexes
+    // add other wires to list of wires by remapping gates indexes
+    // connect inputs by calling inputs wirer on all free input ports of other (after remapping)
+    // connect outputs by calling output wirer on all free output ports of other (after remapping)
+    throw new UnsupportedOperationException(); // TODO remove
   }
 }

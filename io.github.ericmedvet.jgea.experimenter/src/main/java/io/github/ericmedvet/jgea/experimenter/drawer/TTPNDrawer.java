@@ -75,29 +75,25 @@ public class TTPNDrawer implements Drawer<Network> {
   }
 
   private record Metrics(
-      double w, double h, int iW, int iH, List<Point> gatePoints, List<SequencedSet<Wire>> xGapWires,
-      List<SequencedSet<Wire>> yGapWires
+      double w, double h, int iW, int iH, List<Point> gatePoints, Map<Integer, SequencedSet<Wire>> xGapWires,
+      Map<Integer, SequencedSet<Wire>> yGapWires
   ) {
     public static Metrics of(double w, double h, Network network) {
       List<Point> gatePoints = computeGatePoints(network);
       int iW = gatePoints.stream().mapToInt(Point::x).max().orElseThrow() + 1;
       int iH = gatePoints.stream().mapToInt(Point::y).max().orElseThrow() + 1;
-      List<SequencedSet<Wire>> xGapWires = IntStream.range(0, iW)
-          .mapToObj(i -> (SequencedSet<Wire>) (new LinkedHashSet<Wire>()))
-          .toList();
-      List<SequencedSet<Wire>> yGapWires = IntStream.range(0, iH)
-          .mapToObj(i -> (SequencedSet<Wire>) (new LinkedHashSet<Wire>()))
-          .toList();
+      Map<Integer, SequencedSet<Wire>> xGapWires = new LinkedHashMap<>();
+      Map<Integer, SequencedSet<Wire>> yGapWires = new LinkedHashMap<>();
       network.wires()
           .forEach(wire -> {
             Point srcPoint = gatePoints.get(wire.src().gateIndex());
             Point dstPoint = gatePoints.get(wire.dst().gateIndex());
             if (srcPoint.x + 1 == dstPoint.x) {
-              xGapWires.get(srcPoint.x).add(wire);
+              xGapWires.computeIfAbsent(srcPoint.x, i -> new LinkedHashSet<>()).add(wire);
             } else {
-              xGapWires.get(srcPoint.x).add(wire);
-              xGapWires.get(dstPoint.x - 1).add(wire);
-              yGapWires.get(dstPoint.y).add(wire);
+              xGapWires.computeIfAbsent(srcPoint.x, i -> new LinkedHashSet<>()).add(wire);
+              xGapWires.computeIfAbsent(dstPoint.x - 1, i -> new LinkedHashSet<>()).add(wire);
+              yGapWires.computeIfAbsent(dstPoint.y, i -> new LinkedHashSet<>()).add(wire);
             }
           });
       return new Metrics(w, h, iW, iH, gatePoints, xGapWires, yGapWires);
@@ -109,7 +105,9 @@ public class TTPNDrawer implements Drawer<Network> {
   private static List<Point> computeGatePoints(Network network) {
     Map<Integer, Point> map = new TreeMap<>();
     IntStream.range(0, network.gates().size())
-        .filter(gi -> network.gates().get(gi) instanceof Gate.InputGate)
+        .boxed()
+        .sorted(Comparator.comparingInt(gi -> network.wiresTo(gi).size()))
+        //.filter(gi -> network.wiresTo(gi).isEmpty())
         .forEach(
             gi -> fillGatesPoints(network, gi, new Point(0, 0), map)
         );
@@ -133,13 +131,13 @@ public class TTPNDrawer implements Drawer<Network> {
 
   private static void fillGatesPoints(Network network, int gi, Point current, Map<Integer, Point> map) {
     Gate gate = network.gates().get(gi);
-    if (current.x == 0 && current.y == 0 && !(gate instanceof Gate.InputGate)) {
-      throw new RuntimeException("Starting node is not an input gate: %s".formatted(gate));
+    if (current.x == 0 && current.y == 0 && !network.wiresTo(gi).isEmpty()) {
+      //throw new RuntimeException("Starting node is not an input gate: %s".formatted(gate));
     }
     if (map.containsKey(gi)) {
       return;
     }
-    if (gate instanceof Gate.InputGate) {
+    if (network.wiresTo(gi).isEmpty()) {
       current = new Point(0, map.values().stream().mapToInt(Point::y).max().orElse(-1) + 1);
     }
     map.put(gi, current);

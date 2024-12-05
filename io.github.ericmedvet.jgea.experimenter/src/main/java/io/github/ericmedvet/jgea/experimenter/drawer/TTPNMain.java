@@ -33,7 +33,6 @@ import io.github.ericmedvet.jgea.problem.programsynthesis.DataFactory;
 import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisFitness;
 import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisProblem;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
-import io.github.ericmedvet.jviz.core.drawer.ImageBuilder;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -41,45 +40,7 @@ import java.util.random.RandomGenerator;
 import java.util.stream.IntStream;
 
 public class TTPNMain {
-  public static void main(
-      String[] args
-  ) throws NetworkStructureException, ProgramExecutionException, NoSuchMethodException {
-    Network n = new Network(
-        List.of(
-            Gate.input(Composed.sequence(Base.REAL)),
-            Gate.input(Composed.sequence(Base.REAL)),
-            Gates.splitter(),
-            Gates.splitter(),
-            Gates.rPMathOperator(Element.Operator.MULTIPLICATION),
-            Gates.rSPSum(),
-            Gate.output(Base.REAL)
-            //new ones
-            /*Gates.rSPSum(),
-            Gates.rSPSum(),
-            Gates.rSPSum(),
-            Gate.output(Base.REAL)*/
-        ),
-        Set.of(
-            Wire.of(0, 0, 2, 0),
-            Wire.of(1, 0, 3, 0),
-            Wire.of(2, 0, 4, 0),
-            Wire.of(3, 0, 4, 1),
-            Wire.of(4, 0, 5, 0),
-            Wire.of(5, 0, 5, 1),
-            Wire.of(5, 0, 6, 0)
-            //new ones
-            /*Wire.of(2, 0, 7, 0),
-            Wire.of(9, 0, 7, 1),
-            Wire.of(7, 0, 8, 0),
-            Wire.of(9, 0, 8, 1),
-            Wire.of(8, 0, 9, 0),
-            Wire.of(8, 0, 9, 1),
-            Wire.of(9, 0, 10, 0)*/
-        )
-    );
-    System.out.println(n);
-    n.validate();
-
+  private static void doComputationStuff(Network n) throws NoSuchMethodException, ProgramExecutionException {
     DataFactory df = new DataFactory(
         List.of(1, 2, 3),
         List.of(1d, 2d, 3d, 1.5, 2.5, 3.14),
@@ -133,11 +94,66 @@ public class TTPNMain {
                 psp.qualityFunction().predictFunction().apply(ttpnProgram, example.input())
             )
         );
+  }
+
+  public static void main(
+      String[] args
+  ) throws NetworkStructureException, ProgramExecutionException, NoSuchMethodException {
+    Network n = new Network(
+        List.of(
+            Gate.input(Composed.sequence(Base.REAL)),
+            Gate.input(Composed.sequence(Base.REAL)),
+            Gates.splitter(),
+            Gates.splitter(),
+            Gates.rPMathOperator(Element.Operator.MULTIPLICATION),
+            Gates.rSPSum(),
+            Gate.output(Base.REAL)
+            //new ones
+            /*Gates.rSPSum(),
+            Gates.rSPSum(),
+            Gates.rSPSum(),
+            Gate.output(Base.REAL)*/
+        ),
+        Set.of(
+            Wire.of(0, 0, 2, 0),
+            Wire.of(1, 0, 3, 0),
+            Wire.of(2, 0, 4, 0),
+            Wire.of(3, 0, 4, 1),
+            Wire.of(4, 0, 5, 0),
+            Wire.of(5, 0, 5, 1),
+            Wire.of(5, 0, 6, 0)
+            //new ones
+            /*Wire.of(2, 0, 7, 0),
+            Wire.of(9, 0, 7, 1),
+            Wire.of(7, 0, 8, 0),
+            Wire.of(9, 0, 8, 1),
+            Wire.of(8, 0, 9, 0),
+            Wire.of(8, 0, 9, 1),
+            Wire.of(9, 0, 10, 0)*/
+        )
+    );
+
+    Network pn = new Network(
+        List.of(
+            Gates.rPMathOperator(Element.Operator.MULTIPLICATION),
+            Gates.rPMathOperator(Element.Operator.ADDITION)
+        ),
+        Set.of(
+            Wire.of(0, 0, 1, 1),
+            Wire.of(1, 0, 0, 1)
+        )
+    );
+
+    System.out.println(n);
+    n.validate();
+
+    System.out.println(pn);
+    pn.validate();
 
     TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
     drawer.show(n);
-    drawer.show(new ImageBuilder.ImageInfo(600, 300), n);
-
+    drawer.show(pn);
+    //drawer.show(new ImageBuilder.ImageInfo(600, 300), n);
   }
 
   @Typed("R")
