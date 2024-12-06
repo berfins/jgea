@@ -23,7 +23,6 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.Instrument
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.ProgramExecutionException;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.RunProfile;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
-import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -98,11 +97,11 @@ public class Runner {
     Map<Wire, List<Object>> next = new HashMap<>();
     Map<Wire, Type> actualTypes = new HashMap<>();
     for (Wire w : network.wires()) {
-      try {
-        actualTypes.put(w, network.actualType(w));
-      } catch (TypeException e) {
-        throw new ProgramExecutionException("Cannot get actual type for wire %s".formatted(w), e);
+      Type type = network.concreteOutputType(w.src());
+      if (type == null) {
+        throw new ProgramExecutionException("No concrete type at output port %s".formatted(w.src()));
       }
+      actualTypes.put(w, type);
     }
     // prepare state, counter, and output map
     int k = 0;

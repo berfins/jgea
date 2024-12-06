@@ -109,7 +109,12 @@ public class TTPNDrawer implements Drawer<Network> {
         .sorted(Comparator.comparingInt(gi -> network.wiresTo(gi).size()))
         //.filter(gi -> network.wiresTo(gi).isEmpty())
         .forEach(
-            gi -> fillGatesPoints(network, gi, new Point(0, 0), map)
+            gi -> fillGatesPoints(
+                network,
+                gi,
+                new Point(0, map.values().stream().mapToInt(p -> p.y + 1).max().orElse(0)),
+                map
+            )
         );
     // pull output node to max right
     int maxX = map.values().stream().mapToInt(Point::x).max().orElseThrow();
@@ -131,9 +136,6 @@ public class TTPNDrawer implements Drawer<Network> {
 
   private static void fillGatesPoints(Network network, int gi, Point current, Map<Integer, Point> map) {
     Gate gate = network.gates().get(gi);
-    if (current.x == 0 && current.y == 0 && !network.wiresTo(gi).isEmpty()) {
-      //throw new RuntimeException("Starting node is not an input gate: %s".formatted(gate));
-    }
     if (map.containsKey(gi)) {
       return;
     }

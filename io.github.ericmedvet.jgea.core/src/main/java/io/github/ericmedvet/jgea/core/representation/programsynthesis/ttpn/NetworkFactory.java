@@ -21,11 +21,11 @@ package io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn;
 
 import io.github.ericmedvet.jgea.core.IndependentFactory;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.SequencedSet;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
+import java.util.*;
 import java.util.random.RandomGenerator;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class NetworkFactory implements IndependentFactory<Network> {
   private final List<Type> inputTypes;
@@ -41,21 +41,62 @@ public class NetworkFactory implements IndependentFactory<Network> {
     this.maxNOfGates = maxNOfGates;
     partialNetworks = new LinkedHashMap<>();
     // iteratively populate map
+    long seed = 1;
+    RandomGenerator rnd = new Random(seed);
+    List<Gate> lGates = gates.stream().toList();
+    int partialNetworkMaxSize = 5;
+    int minNOfPartialNetworks = 5;
+
   }
 
   private record Signature(List<Type> inputTypes, List<Type> outputTypes) {}
 
   @Override
   public Network build(RandomGenerator random) {
-    // build input gate
-    // start connecting gates
-    return null;
-  }
+    try {
+      Network n = new Network(
+          Stream.concat(
+              inputTypes.stream().map(type -> (Gate) Gate.input(type)),
+              outputTypes.stream().map(Gate::output)
+          ).toList(),
+          Set.of()
+      );
+      while (!n.freeInputPorts().isEmpty()) {
+        LinkedHashSet<Type> oTypes = n.freeOutputPorts()
+            .stream()
+            .map(n::concreteOutputType)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toCollection(LinkedHashSet::new));
+        List<Gate> suitableGates = gates.stream()
+            .filter(
+                g -> g.inputPorts()
+                    .stream()
+                    .anyMatch(p -> oTypes.stream().anyMatch(t -> p.type().canTakeValuesOf(t)))
+            )
+            .toList();
 
-  private Network buildRandomNetwork(RandomGenerator rnd) {
-    // take one gate
-    // iteratively add compatible gates
-    return null;
+        System.out.println("oTypes: " + oTypes);
+        System.out.println("suitableGates: " + suitableGates);
+
+        Gate gate = suitableGates.get(random.nextInt(suitableGates.size()));
+        n = n.mergedWith(new Network(List.of(gate), Set.of()));
+        int inputT = n.gates().size() >= maxNOfGates ? 0 : 1;
+        int outputT = n.gates().size() >= maxNOfGates ? 0 : Integer.MAX_VALUE;
+        while (n.freeInputPorts().size() > inputT || n.freeOutputPorts().size() > outputT) {
+          Network wiredN = n.wireFreeInputPorts((t, ts) -> random.nextInt(ts.size()))
+              .wireFreeOutputPorts((t, ts) -> random.nextInt(ts.size()));
+          if (wiredN.equals(n)) {
+            break;
+          }
+          n = wiredN;
+        }
+        System.out.println("========>");
+        System.out.println(n);
+      }
+      return n;
+    } catch (NetworkStructureException | TypeException e) {
+      throw new RuntimeException(e);
+    }
   }
 
 }

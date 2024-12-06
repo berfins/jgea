@@ -23,16 +23,14 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.Instrument
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.Program;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.ProgramExecutionException;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.*;
-import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Base;
-import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Composed;
-import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.StringParser;
-import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Typed;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.*;
 import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
 import io.github.ericmedvet.jgea.core.util.IntRange;
 import io.github.ericmedvet.jgea.problem.programsynthesis.DataFactory;
 import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisFitness;
 import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisProblem;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -98,7 +96,20 @@ public class TTPNMain {
 
   public static void main(
       String[] args
-  ) throws NetworkStructureException, ProgramExecutionException, NoSuchMethodException {
+  ) throws NetworkStructureException, ProgramExecutionException, NoSuchMethodException, TypeException {
+    Network sn = new Network(
+        List.of(
+            Gate.input(Composed.sequence(Base.STRING)),
+            Gates.splitter(),
+            Gate.output(Base.STRING)
+        ),
+        Set.of(
+            Wire.of(0, 0, 1, 0),
+            Wire.of(1, 0, 2, 0)
+        )
+    );
+    System.out.println(sn);
+
     Network n = new Network(
         List.of(
             Gate.input(Composed.sequence(Base.REAL)),
@@ -132,6 +143,7 @@ public class TTPNMain {
             Wire.of(9, 0, 10, 0)*/
         )
     );
+    System.out.println("===\n" + n);
 
     Network pn = new Network(
         List.of(
@@ -143,17 +155,51 @@ public class TTPNMain {
             Wire.of(1, 0, 0, 1)
         )
     );
+    System.out.println("===\n" + pn);
+    Network mn = n.mergedWith(pn).wireFreeInputPorts((t, ts) -> 0).wireFreeOutputPorts((t, ts) -> 0);
+    System.out.println("===\n" + mn);
 
-    System.out.println(n);
-    n.validate();
-
-    System.out.println(pn);
-    pn.validate();
-
+    RandomGenerator rnd = new Random();
     TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
-    drawer.show(n);
-    drawer.show(pn);
+    //drawer.show(n);
+    //drawer.show(pn);
+    //drawer.show(mn);
     //drawer.show(new ImageBuilder.ImageInfo(600, 300), n);
+
+    NetworkFactory nf = new NetworkFactory(
+        List.of(Composed.sequence(Base.REAL), Composed.sequence(Base.REAL)),
+        List.of(Base.REAL),
+        new LinkedHashSet<>(
+            List.of(
+                Gates.rPMathOperator(Element.Operator.MULTIPLICATION),
+                Gates.rPMathOperator(Element.Operator.ADDITION),
+                Gates.rPMathOperator(Element.Operator.SUBTRACTION),
+                Gates.rPMathOperator(Element.Operator.DIVISION),
+                Gates.iPMathOperator(Element.Operator.MULTIPLICATION),
+                Gates.iPMathOperator(Element.Operator.ADDITION),
+                Gates.iPMathOperator(Element.Operator.SUBTRACTION),
+                Gates.iPMathOperator(Element.Operator.DIVISION),
+                Gates.rSPSum(),
+                Gates.rSPMult(),
+                Gates.rSSum(),
+                Gates.rSMult(),
+                Gates.iSPSum(),
+                Gates.iSPMult(),
+                Gates.iSSum(),
+                Gates.iSMult(),
+                Gates.splitter(),
+                Gates.sSplitter(),
+                Gates.pairer(),
+                Gates.unpairer(),
+                Gates.noop(),
+                Gates.length(),
+                Gates.iTh(),
+                Gates.sequencer()
+            )
+        ),
+        10
+    );
+    drawer.show(nf.build(rnd));
   }
 
   @Typed("R")

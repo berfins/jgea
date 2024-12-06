@@ -50,7 +50,7 @@ public record Tuple(List<Type> types) implements Composed {
 
   @Override
   public Type concrete(Map<Generic, Type> genericTypeMap) throws TypeException {
-    if (!isGenerics()) {
+    if (!isGeneric()) {
       return this;
     }
     List<Type> concreteTypes = new ArrayList<>(types.size());

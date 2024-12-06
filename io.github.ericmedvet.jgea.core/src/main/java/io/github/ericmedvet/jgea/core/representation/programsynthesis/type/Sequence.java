@@ -39,7 +39,7 @@ public record Sequence(Type type) implements Composed {
 
   @Override
   public Type concrete(Map<Generic, Type> genericTypeMap) throws TypeException {
-    if (!isGenerics()) {
+    if (!isGeneric()) {
       return this;
     }
     return Composed.sequence(type.concrete(genericTypeMap));

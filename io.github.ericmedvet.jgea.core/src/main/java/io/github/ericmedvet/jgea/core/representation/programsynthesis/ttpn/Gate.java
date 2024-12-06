@@ -216,4 +216,8 @@ public interface Gate {
   static OutputGate output(Type type) {
     return new OutputGate(type);
   }
+
+  default boolean hasGenerics() {
+    return inputPorts().stream().anyMatch(p -> p.type.isGeneric()) || outputTypes().stream().anyMatch(Type::isGeneric);
+  }
 }

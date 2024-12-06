@@ -39,7 +39,7 @@ public interface Type {
 
   double dissimilarity(Object o1, Object o2);
 
-  default boolean isGenerics() {
+  default boolean isGeneric() {
     return !generics().isEmpty();
   }
 

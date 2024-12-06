@@ -25,6 +25,7 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Compo
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Generic;
 import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
 import io.github.ericmedvet.jnb.datastructure.NamedFunction;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -118,6 +119,25 @@ public class Gates {
             ),
             "s+"
         )
+    );
+  }
+
+  public static Gate iTh() {
+    return Gate.of(
+        List.of(
+            Gate.Port.single(Composed.sequence(Generic.of("t"))),
+            Gate.Port.single(Base.INT)
+        ),
+        List.of(Generic.of("t")),
+        NamedFunction.from(in -> Gate.Data.singleOne(in.one(0, List.class).get(in.one(1, Integer.class))), "iTh")
+    );
+  }
+
+  public static Gate length() {
+    return Gate.of(
+        List.of(Gate.Port.single(Composed.sequence(Generic.of("t")))),
+        List.of(Base.INT),
+        NamedFunction.from(in -> Gate.Data.singleOne(in.one(0, List.class).size()), "length")
     );
   }
 
@@ -225,6 +245,29 @@ public class Gates {
     );
   }
 
+  public static Gate sSplitter() {
+    return Gate.of(
+        List.of(Gate.Port.single(Base.STRING)),
+        List.of(Composed.sequence(Base.STRING)),
+        NamedFunction.from(
+            in -> Gate.Data.single(
+                Arrays.stream(in.one(0, String.class).split(""))
+                    .map(s -> (Object) s)
+                    .toList()
+            ),
+            "sSplitter"
+        )
+    );
+  }
+
+  public static Gate sequencer() {
+    return Gate.of(
+        List.of(Gate.Port.atLeast(Generic.of("t"), 1)),
+        List.of(Composed.sequence(Generic.of("t"))),
+        NamedFunction.from(in -> Gate.Data.singleOne(in.all(0)), "sequencer")
+    );
+  }
+
   public static Gate splitter() {
     //noinspection unchecked
     return Gate.of(
@@ -247,4 +290,5 @@ public class Gates {
         )
     );
   }
+
 }
