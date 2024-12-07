@@ -159,7 +159,7 @@ public class TTPNMain {
     Network mn = n.mergedWith(pn).wireFreeInputPorts((t, ts) -> 0).wireFreeOutputPorts((t, ts) -> 0);
     System.out.println("===\n" + mn);
 
-    RandomGenerator rnd = new Random();
+    RandomGenerator rnd = new Random(1);
     TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
     //drawer.show(n);
     //drawer.show(pn);

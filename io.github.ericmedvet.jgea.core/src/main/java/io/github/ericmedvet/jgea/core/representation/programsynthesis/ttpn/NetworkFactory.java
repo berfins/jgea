@@ -22,6 +22,7 @@ package io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn;
 import io.github.ericmedvet.jgea.core.IndependentFactory;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
+
 import java.util.*;
 import java.util.random.RandomGenerator;
 import java.util.stream.Collectors;
@@ -67,6 +68,11 @@ public class NetworkFactory implements IndependentFactory<Network> {
             .map(n::concreteOutputType)
             .filter(Objects::nonNull)
             .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        if (oTypes.isEmpty()) {
+          System.out.println("EMPTY!");
+        }
+
         List<Gate> suitableGates = gates.stream()
             .filter(
                 g -> g.inputPorts()
@@ -79,17 +85,9 @@ public class NetworkFactory implements IndependentFactory<Network> {
         System.out.println("suitableGates: " + suitableGates);
 
         Gate gate = suitableGates.get(random.nextInt(suitableGates.size()));
-        n = n.mergedWith(new Network(List.of(gate), Set.of()));
-        int inputT = n.gates().size() >= maxNOfGates ? 0 : 1;
-        int outputT = n.gates().size() >= maxNOfGates ? 0 : Integer.MAX_VALUE;
-        while (n.freeInputPorts().size() > inputT || n.freeOutputPorts().size() > outputT) {
-          Network wiredN = n.wireFreeInputPorts((t, ts) -> random.nextInt(ts.size()))
-              .wireFreeOutputPorts((t, ts) -> random.nextInt(ts.size()));
-          if (wiredN.equals(n)) {
-            break;
-          }
-          n = wiredN;
-        }
+        n = n.mergedWith(new Network(List.of(gate), Set.of()))
+            .wireFreeOutputPorts((t, ts) -> random.nextInt(ts.size()))
+            .wireFreeInputPorts((t, ts) -> random.nextInt(ts.size()));
         System.out.println("========>");
         System.out.println(n);
       }

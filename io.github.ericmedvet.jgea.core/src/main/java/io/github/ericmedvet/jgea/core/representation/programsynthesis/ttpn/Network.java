@@ -24,6 +24,7 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Gener
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
 import io.github.ericmedvet.jgea.core.util.Misc;
+
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.ToIntBiFunction;
@@ -93,9 +94,10 @@ public final class Network {
         }
       }
     }
-    // propagate through wires
+    // iteratively propagate types
     while (true) {
       boolean changed = false;
+      // propagate through wires
       for (Wire wire : wires) {
         Type srcType = outputConcreteTypes.get(wire.src());
         Type dstType = inputConcreteTypes.get(wire.dst());
@@ -108,11 +110,36 @@ public final class Network {
           changed = changed || pType == null;
         }
       }
+      // compute gate concrete types
+      boolean updatedMap = updateGateConcreteMaps();
+      changed = changed || updatedMap;
+      // propagate through gate
+      for (Map.Entry<Integer, Map<Generic, Type>> entry : gateConcreteTypes.entrySet()) {
+        int gi = entry.getKey();
+        Gate gate = gates.get(gi);
+        for (int pi = 0; pi < gate.inputPorts().size(); pi = pi + 1) {
+          Type type = gate.inputPorts().get(pi).type();
+          if (type.isGeneric()) {
+            Type pType = inputConcreteTypes.put(new Wire.EndPoint(gi, pi), type.concrete(entry.getValue()));
+            changed = changed || pType == null;
+          }
+        }
+        for (int pi = 0; pi < gate.outputTypes().size(); pi = pi + 1) {
+          Type type = gate.outputTypes().get(pi);
+          if (type.isGeneric()) {
+            Type pType = outputConcreteTypes.put(new Wire.EndPoint(gi, pi), type.concrete(entry.getValue()));
+            changed = changed || pType == null;
+          }
+        }
+      }
       if (!changed) {
         break;
       }
     }
-    // compute gate concrete types
+  }
+
+  private boolean updateGateConcreteMaps() throws TypeException {
+    int initialMapSize = gateConcreteTypes.size();
     for (int gi = 0; gi < gates.size(); gi = gi + 1) {
       Gate gate = gates.get(gi);
       if (gate.hasGenerics()) {
@@ -162,6 +189,7 @@ public final class Network {
         gateConcreteTypes.put(gi, map);
       }
     }
+    return initialMapSize != gateConcreteTypes.size();
   }
 
   public Type concreteInputType(Wire.EndPoint endPoint) {
@@ -217,11 +245,11 @@ public final class Network {
   public String toString() {
     return IntStream.range(0, gates.size())
         .mapToObj(
-            i -> "%3d: %s %sinputs:%s outputs:%s"
+            i -> "%3d: %s %s(%s)-->(%s)"
                 .formatted(
                     i,
                     gates.get(i),
-                    gates.get(i).hasGenerics() ? "with %s ".formatted(
+                    gates.get(i).hasGenerics() ? "{with %s} ".formatted(
                         gateConcreteTypes.get(i)
                             .entrySet()
                             .stream()
@@ -237,9 +265,12 @@ public final class Network {
                         .collect(Collectors.joining(",")),
                     IntStream.range(0, gates.get(i).outputTypes().size())
                         .mapToObj(
-                            j -> wiresFrom(new Wire.EndPoint(i, j)).stream()
+                            j -> (wiresFrom(new Wire.EndPoint(i, j)).isEmpty() ? "_" : wiresFrom(new Wire.EndPoint(
+                                i,
+                                j
+                            )).stream()
                                 .map(w -> w.dst().toString())
-                                .collect(Collectors.joining("+"))
+                                .collect(Collectors.joining("+")))
                         )
                         .collect(Collectors.joining(","))
                 )
@@ -384,7 +415,7 @@ public final class Network {
     int i = wirer.applyAsInt(oTEP.type, iTEPs.stream().map(TypedEndPoint::type).toList());
     Set<Wire> newWires = new LinkedHashSet<>(wires());
     newWires.add(new Wire(oTEP.endPoint, iTEPs.get(i).endPoint));
-    return new Network(gates, newWires);
+    return new Network(gates, newWires).wireFreeOutputPorts(wirer);
   }
 
   private Optional<Wire> wireTo(Wire.EndPoint dst) {
