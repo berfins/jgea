@@ -120,15 +120,23 @@ public final class Network {
         for (int pi = 0; pi < gate.inputPorts().size(); pi = pi + 1) {
           Type type = gate.inputPorts().get(pi).type();
           if (type.isGeneric()) {
-            Type pType = inputConcreteTypes.put(new Wire.EndPoint(gi, pi), type.concrete(entry.getValue()));
-            changed = changed || pType == null;
+            try {
+              Type pType = inputConcreteTypes.put(new Wire.EndPoint(gi, pi), type.concrete(entry.getValue()));
+              changed = changed || pType == null;
+            } catch (TypeException e) {
+              // ignore, because cannot find concrete in map
+            }
           }
         }
         for (int pi = 0; pi < gate.outputTypes().size(); pi = pi + 1) {
           Type type = gate.outputTypes().get(pi);
           if (type.isGeneric()) {
-            Type pType = outputConcreteTypes.put(new Wire.EndPoint(gi, pi), type.concrete(entry.getValue()));
-            changed = changed || pType == null;
+            try {
+              Type pType = outputConcreteTypes.put(new Wire.EndPoint(gi, pi), type.concrete(entry.getValue()));
+              changed = changed || pType == null;
+            } catch (TypeException e) {
+              // ignore, because cannot find concrete in map
+            }
           }
         }
       }
@@ -149,13 +157,19 @@ public final class Network {
           Optional<Wire> oToWire = wireTo(new Wire.EndPoint(gi, j));
           if (oToWire.isPresent()) {
             Wire toWire = oToWire.get();
-            maps.add(gate.inputPorts().get(j).type().resolveGenerics(concreteOutputType(toWire.src())));
+            Type concreteType = concreteOutputType(toWire.src());
+            if (concreteType != null) {
+              maps.add(gate.inputPorts().get(j).type().resolveGenerics(concreteType));
+            }
           }
         }
         // add from output ports
         for (int j = 0; j < gate.outputTypes().size(); j++) {
           for (Wire fromWire : wiresFrom(new Wire.EndPoint(gi, j))) {
-            maps.add(gate.outputTypes().get(j).resolveGenerics(concreteInputType(fromWire.dst())));
+            Type concreteType = concreteInputType(fromWire.dst());
+            if (concreteType != null) {
+              maps.add(gate.outputTypes().get(j).resolveGenerics(concreteType));
+            }
           }
         }
         // merge and check
