@@ -26,7 +26,7 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeE
 import io.github.ericmedvet.jgea.core.util.Misc;
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.ToIntBiFunction;
+import java.util.function.ToIntFunction;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -69,7 +69,7 @@ public final class Network {
       Type srcType = outputConcreteTypes.get(wire.src());
       Type dstType = inputConcreteTypes.get(wire.dst());
       if (srcType != null && dstType != null) {
-        if (!srcType.equals(dstType)) {
+        if (!dstType.canTakeValuesOf(srcType)) {
           throw new TypeException("Incompatible types on %s: %s on src, %s on dst".formatted(wire, srcType, dstType));
         }
       }
@@ -280,7 +280,7 @@ public final class Network {
         for (int j = 0; j < gate.outputTypes().size(); j++) {
           for (Wire fromWire : wiresFrom(new Wire.EndPoint(gi, j))) {
             Type concreteType = concreteInputType(fromWire.dst());
-            if (concreteType != null) {
+            if (concreteType != null && !concreteType.isGeneric()) {
               maps.add(gate.outputTypes().get(j).resolveGenerics(concreteType));
             }
           }
@@ -377,75 +377,85 @@ public final class Network {
   }
 
   public Network wireFreeInputPorts(
-      ToIntBiFunction<Type, List<Type>> wirer
+      ToIntFunction<List<Type>> chooser
   ) throws NetworkStructureException, TypeException {
-    Optional<TypedEndPoint> oiTEP = freeInputPorts().stream()
-        .map(ep -> new TypedEndPoint(ep, inputType(ep)))
-        .findFirst();
-    if (oiTEP.isEmpty()) {
-      return this;
-    }
-    TypedEndPoint iTEP = oiTEP.get();
-    List<TypedEndPoint> oTEPs = freeOutputPorts().stream()
-        .map(ep -> new TypedEndPoint(ep, concreteOutputType(ep)))
-        .filter(oTEP -> iTEP.type.canTakeValuesOf(oTEP.type))
-        .toList();
-    if (oTEPs.isEmpty()) {
-      oTEPs = outputPorts().stream()
-          .map(ep -> new TypedEndPoint(ep, concreteOutputType(ep)))
-          .filter(oTEP -> iTEP.type.canTakeValuesOf(oTEP.type))
-          .toList();
-    }
-    Network newNetwork;
-    while (true) {
-      if (oTEPs.isEmpty()) {
-        return this;
-      }
-      int i = wirer.applyAsInt(iTEP.type, oTEPs.stream().map(TypedEndPoint::type).toList());
-      Set<Wire> newWires = new LinkedHashSet<>(wires());
-      newWires.add(new Wire(oTEPs.get(i).endPoint, iTEP.endPoint));
-      try {
-        newNetwork = new Network(gates, newWires);
-        break;
-      } catch (TypeException e) {
-        oTEPs = new ArrayList<>(oTEPs);
-        oTEPs.remove(i);
-      }
-    }
-    return newNetwork.wireFreeInputPorts(wirer);
-  }
-
-  public Network wireFreeOutputPorts(
-      ToIntBiFunction<Type, List<Type>> wirer
-  ) throws NetworkStructureException, TypeException {
-    Optional<TypedEndPoint> ooTEP = freeOutputPorts().stream()
-        .map(ep -> new TypedEndPoint(ep, outputType(ep)))
-        .findFirst();
-    if (ooTEP.isEmpty()) {
-      return this;
-    }
-    TypedEndPoint oTEP = ooTEP.get();
-    List<TypedEndPoint> iTEPs = freeInputPorts().stream()
-        .map(ep -> new TypedEndPoint(ep, inputType(ep)))
-        .filter(iTEP -> iTEP.type.canTakeValuesOf(oTEP.type))
-        .toList();
-    Network newNetwork;
+    List<TypedEndPoint> iTEPs = new ArrayList<>(
+        freeInputPorts().stream()
+            .map(ep -> new TypedEndPoint(ep, inputType(ep)))
+            .toList()
+    );
     while (true) {
       if (iTEPs.isEmpty()) {
         return this;
       }
-      int i = wirer.applyAsInt(oTEP.type, iTEPs.stream().map(TypedEndPoint::type).toList());
-      Set<Wire> newWires = new LinkedHashSet<>(wires());
-      newWires.add(new Wire(oTEP.endPoint, iTEPs.get(i).endPoint));
-      try {
-        newNetwork = new Network(gates, newWires);
-        break;
-      } catch (TypeException e) {
-        iTEPs = new ArrayList<>(iTEPs);
-        iTEPs.remove(i);
+      int iIndex = chooser.applyAsInt(iTEPs.stream().map(TypedEndPoint::type).toList());
+      TypedEndPoint iTEP = iTEPs.get(iIndex);
+      List<TypedEndPoint> oTEPs = new ArrayList<>(
+          freeOutputPorts().stream()
+              .map(ep -> new TypedEndPoint(ep, concreteOutputType(ep)))
+              .filter(oTEP -> iTEP.type.canTakeValuesOf(oTEP.type))
+              .toList()
+      );
+      if (oTEPs.isEmpty()) {
+        oTEPs = new ArrayList<>(
+            outputPorts().stream()
+                .map(ep -> new TypedEndPoint(ep, concreteOutputType(ep)))
+                .filter(oTEP -> iTEP.type.canTakeValuesOf(oTEP.type))
+                .toList()
+        );
+      }
+      while (true) {
+        if (oTEPs.isEmpty()) {
+          iTEPs.remove(iIndex);
+          break;
+        }
+        int oIndex = chooser.applyAsInt(oTEPs.stream().map(TypedEndPoint::type).toList());
+        Set<Wire> newWires = new LinkedHashSet<>(wires());
+        newWires.add(new Wire(oTEPs.get(oIndex).endPoint, iTEP.endPoint));
+        try {
+          return new Network(gates, newWires).wireFreeInputPorts(chooser);
+        } catch (TypeException e) {
+          oTEPs.remove(oIndex);
+        }
       }
     }
-    return newNetwork.wireFreeOutputPorts(wirer);
+  }
+
+  public Network wireFreeOutputPorts(
+      ToIntFunction<List<Type>> chooser
+  ) throws NetworkStructureException, TypeException {
+    List<TypedEndPoint> oTEPs = new ArrayList<>(
+        freeOutputPorts().stream()
+            .map(ep -> new TypedEndPoint(ep, outputType(ep)))
+            .toList()
+    );
+    while (true) {
+      if (oTEPs.isEmpty()) {
+        return this;
+      }
+      int oIndex = chooser.applyAsInt(oTEPs.stream().map(TypedEndPoint::type).toList());
+      TypedEndPoint oTEP = oTEPs.get(oIndex);
+      List<TypedEndPoint> iTEPs = new ArrayList<>(
+          freeInputPorts().stream()
+              .map(ep -> new TypedEndPoint(ep, inputType(ep)))
+              .filter(iTEP -> iTEP.type.canTakeValuesOf(oTEP.type))
+              .toList()
+      );
+      while (true) {
+        if (iTEPs.isEmpty()) {
+          oTEPs.remove(oIndex);
+          break;
+        }
+        int iIndex = chooser.applyAsInt(iTEPs.stream().map(TypedEndPoint::type).toList());
+        Set<Wire> newWires = new LinkedHashSet<>(wires());
+        newWires.add(new Wire(oTEP.endPoint, iTEPs.get(iIndex).endPoint));
+        try {
+          return new Network(gates, newWires).wireFreeOutputPorts(chooser);
+        } catch (TypeException e) {
+          iTEPs.remove(iIndex);
+        }
+      }
+    }
   }
 
   private Optional<Wire> wireTo(Wire.EndPoint dst) {

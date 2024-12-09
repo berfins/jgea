@@ -35,10 +35,16 @@ public record Generic(String name) implements Type {
   @Override
   public Type concrete(Map<Generic, Type> genericTypeMap) {
     Type concrete = genericTypeMap.get(this);
-    if (concrete != null && !concrete.equals(this)) {
-      return genericTypeMap.get(this).concrete(genericTypeMap);
+    if (concrete == null) {
+      return this;
     }
-    return this;
+    if (concrete.equals(this)) {
+      return this;
+    }
+    if (concrete.generics().contains(this)) {
+      return concrete;
+    }
+    return concrete.concrete(genericTypeMap);
   }
 
   @Override

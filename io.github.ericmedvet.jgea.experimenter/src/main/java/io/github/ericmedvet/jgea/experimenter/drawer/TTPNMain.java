@@ -107,13 +107,13 @@ public class TTPNMain {
     );
     TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
     drawer.show(n);
-    drawer.show(n.wireFreeInputPorts((t, ts) -> 0));
+    drawer.show(n.wireFreeInputPorts(ts -> 0));
   }
 
   public static void main(
       String[] args
   ) throws NetworkStructureException, ProgramExecutionException, NoSuchMethodException, TypeException {
-    loopedNet();
+    //loopedNet();
     Network sn = new Network(
         List.of(
             Gate.input(Composed.sequence(Base.STRING)),
@@ -173,7 +173,7 @@ public class TTPNMain {
         )
     );
     System.out.println("===\n" + pn);
-    Network mn = n.mergedWith(pn).wireFreeInputPorts((t, ts) -> 0).wireFreeOutputPorts((t, ts) -> 0);
+    Network mn = n.mergedWith(pn).wireFreeInputPorts(ts -> 0).wireFreeOutputPorts(ts -> 0);
     System.out.println("===\n" + mn);
 
     RandomGenerator rnd = new Random();
@@ -213,7 +213,17 @@ public class TTPNMain {
                 Gates.iTh(),
                 Gates.sequencer(),
                 Gates.rToI(),
-                Gates.iToR()
+                Gates.iToR(),
+                Gates.sink(),
+                Gates.queuer(),
+                Gates.equal(),
+                Gates.iBefore(),
+                Gates.rBefore(),
+                Gates.sBefore(),
+                Gates.select(),
+                Gates.or(),
+                Gates.and(),
+                Gates.xor()
             )
         ),
         10

@@ -32,24 +32,13 @@ public class NetworkFactory implements IndependentFactory<Network> {
   private final List<Type> outputTypes;
   private final SequencedSet<Gate> gates;
   private final int maxNOfGates;
-  private final Map<Signature, Map<Integer, List<Network>>> partialNetworks;
 
   public NetworkFactory(List<Type> inputTypes, List<Type> outputTypes, SequencedSet<Gate> gates, int maxNOfGates) {
     this.inputTypes = inputTypes;
     this.outputTypes = outputTypes;
     this.gates = gates;
     this.maxNOfGates = maxNOfGates;
-    partialNetworks = new LinkedHashMap<>();
-    // iteratively populate map
-    long seed = 1;
-    RandomGenerator rnd = new Random(seed);
-    List<Gate> lGates = gates.stream().toList();
-    int partialNetworkMaxSize = 5;
-    int minNOfPartialNetworks = 5;
-
   }
-
-  private record Signature(List<Type> inputTypes, List<Type> outputTypes) {}
 
   @Override
   public Network build(RandomGenerator random) {
@@ -82,17 +71,13 @@ public class NetworkFactory implements IndependentFactory<Network> {
         if (suitableGates.isEmpty()) {
           suitableGates = suitableGates(null, null);
         }
-
-        if (suitableGates.isEmpty()) {
-          System.out.println("EMPTY!");
-        }
-
         Gate gate = suitableGates.get(random.nextInt(suitableGates.size()));
         n = n.mergedWith(new Network(List.of(gate), Set.of()))
-            .wireFreeOutputPorts((t, ts) -> random.nextInt(ts.size()))
-            .wireFreeInputPorts((t, ts) -> random.nextInt(ts.size()));
-        System.out.println("========>");
-        System.out.println(n);
+            .wireFreeOutputPorts(ts -> random.nextInt(ts.size()))
+            .wireFreeInputPorts(ts -> random.nextInt(ts.size()));
+        if (n.gates().size() > maxNOfGates) {
+          return n;
+        }
       }
       return n;
     } catch (NetworkStructureException | TypeException e) {

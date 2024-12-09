@@ -34,6 +34,39 @@ public class Gates {
   private Gates() {
   }
 
+  public static Gate and() {
+    return Gate.of(
+        List.of(Gate.Port.single(Base.BOOLEAN), Gate.Port.single(Base.BOOLEAN)),
+        List.of(Base.BOOLEAN),
+        NamedFunction.from(
+            in -> Gate.Data.singleOne(in.one(0, Boolean.class) && in.one(1, Boolean.class)),
+            "and"
+        )
+    );
+  }
+
+  public static Gate equal() {
+    return Gate.of(
+        List.of(Gate.Port.single(Generic.of("t")), Gate.Port.single(Generic.of("t"))),
+        List.of(Base.BOOLEAN),
+        NamedFunction.from(
+            in -> Gate.Data.singleOne(in.one(0).equals(in.one(1))),
+            "equal"
+        )
+    );
+  }
+
+  public static Gate iBefore() {
+    return Gate.of(
+        List.of(Gate.Port.single(Base.INT), Gate.Port.single(Base.INT)),
+        List.of(Base.BOOLEAN),
+        NamedFunction.from(
+            in -> Gate.Data.singleOne(in.one(0, Double.class).compareTo(in.one(1, Double.class)) < 0),
+            "iBefore"
+        )
+    );
+  }
+
   public static Gate iPMathOperator(Element.Operator operator) {
     return Gate.of(
         Collections.nCopies(operator.arity(), Gate.Port.single(Base.INT)),
@@ -162,11 +195,49 @@ public class Gates {
     );
   }
 
+  public static Gate or() {
+    return Gate.of(
+        List.of(Gate.Port.single(Base.BOOLEAN), Gate.Port.single(Base.BOOLEAN)),
+        List.of(Base.BOOLEAN),
+        NamedFunction.from(
+            in -> Gate.Data.singleOne(in.one(0, Boolean.class) || in.one(1, Boolean.class)),
+            "or"
+        )
+    );
+  }
+
   public static Gate pairer() {
     return Gate.of(
         List.of(Gate.Port.single(Generic.of("f")), Gate.Port.single(Generic.of("s"))),
         List.of(Composed.tuple(List.of(Generic.of("f"), Generic.of("s")))),
         NamedFunction.from(in -> Gate.Data.singleOne(List.of(in.one(0), in.one(1))), "pairer")
+    );
+  }
+
+  public static Gate queuer() {
+    return Gate.of(
+        List.of(Gate.Port.single(Generic.of("t")), Gate.Port.single(Generic.of("t"))),
+        List.of(Generic.of("t")),
+        NamedFunction.from(
+            in -> Gate.Data.single(
+                List.of(
+                    in.one(0),
+                    in.one(1)
+                )
+            ),
+            "queuer"
+        )
+    );
+  }
+
+  public static Gate rBefore() {
+    return Gate.of(
+        List.of(Gate.Port.single(Base.REAL), Gate.Port.single(Base.REAL)),
+        List.of(Base.BOOLEAN),
+        NamedFunction.from(
+            in -> Gate.Data.singleOne(in.one(0, Double.class).compareTo(in.one(1, Double.class)) < 0),
+            "rBefore"
+        )
     );
   }
 
@@ -271,6 +342,17 @@ public class Gates {
     );
   }
 
+  public static Gate sBefore() {
+    return Gate.of(
+        List.of(Gate.Port.single(Base.STRING), Gate.Port.single(Base.STRING)),
+        List.of(Base.BOOLEAN),
+        NamedFunction.from(
+            in -> Gate.Data.singleOne(in.one(0, Double.class).compareTo(in.one(1, Double.class)) < 0),
+            "sBefore"
+        )
+    );
+  }
+
   public static Gate sSplitter() {
     return Gate.of(
         List.of(Gate.Port.single(Base.STRING)),
@@ -286,12 +368,35 @@ public class Gates {
     );
   }
 
+  public static Gate select() {
+    return Gate.of(
+        List.of(Gate.Port.single(Generic.of("t")), Gate.Port.single(Generic.of("t")), Gate.Port.single(Base.BOOLEAN)),
+        List.of(Generic.of("t")),
+        NamedFunction.from(
+            in -> Gate.Data.singleOne(in.one(2, Boolean.class) ? in.one(0) : in.one(1)),
+            "select"
+        )
+    );
+  }
+
   public static Gate sequencer() {
     return Gate.of(
         List.of(Gate.Port.atLeast(Generic.of("t"), 1)),
         List.of(Composed.sequence(Generic.of("t"))),
         NamedFunction.from(in -> Gate.Data.singleOne(in.all(0)), "sequencer")
     );
+  }
+
+  public static Gate sink() {
+    return Gate.of(
+        List.of(Gate.Port.single(Generic.of("t"))),
+        List.of(),
+        NamedFunction.from(
+            in -> Gate.Data.empty(),
+            "sink"
+        )
+    );
+
   }
 
   public static Gate splitter() {
@@ -313,6 +418,21 @@ public class Gates {
                 in.one(0, List.class).get(1)
             ),
             "unpairer"
+        )
+    );
+  }
+
+  public static Gate xor() {
+    return Gate.of(
+        List.of(Gate.Port.single(Base.BOOLEAN), Gate.Port.single(Base.BOOLEAN)),
+        List.of(Base.BOOLEAN),
+        NamedFunction.from(
+            in -> {
+              boolean b0 = in.one(0, Boolean.class);
+              boolean b1 = in.one(1, Boolean.class);
+              return Gate.Data.singleOne((b0 && !b1) || (b1 && !b0));
+            },
+            "xor"
         )
     );
   }
