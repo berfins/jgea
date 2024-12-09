@@ -48,7 +48,7 @@ public class TTPNDrawer implements Drawer<Network> {
       Color bgColor, Color fgColor, Map<Base, Color> baseTypeColors, Color otherTypeColor, double gateW,
       double gateWHRatio, double portRadiusHRate, double gapWRate, double gapHRate, double marginWRate,
       double marginHRate, double gateOutputWRate, double gateOutputHRate, double ioGateOutputWRate,
-      double ioGateOutputHRate
+      double ioGateOutputHRate, double textHMarginRate
   ) {
     public static Configuration DEFAULT = new Configuration(
         Color.LIGHT_GRAY,
@@ -63,14 +63,15 @@ public class TTPNDrawer implements Drawer<Network> {
         100,
         1.5d,
         0.1d,
+        0.5d,
+        0.5d,
         0.75d,
-        0.5d,
-        0.5d,
-        0.5d,
+        0.75d,
         0.9d,
         0.75d,
         0.5d,
-        0.5d
+        0.5d,
+        0.05
     );
   }
 
@@ -323,7 +324,27 @@ public class TTPNDrawer implements Drawer<Network> {
       default -> gate.operator().toString();
     };
     Rectangle2D strR = ImageUtils.bounds(str, g.getFont(), g);
-    g.drawString(str, (float) (xR.center() - strR.getWidth() / 2d), (float) (yR.center() + strR.getHeight() / 2d));
+    float labelY = switch (gate) {
+      case Gate.InputGate inputGate -> (float) (yR.center() / 2d + strR.getHeight() / 2d);
+      case Gate.OutputGate outputGate -> (float) (yR.center() / 2d + strR.getHeight() / 2d);
+      default -> (float) (yR.min() + strR.getHeight() + yR.extent() * configuration.textHMarginRate);
+    };
+    g.drawString(str, (float) (xR.center() - strR.getWidth() / 2d), labelY);
+    // write generics
+    if (gate.hasGenerics()) {
+      str = network.concreteMapping(gi)
+          .entrySet()
+          .stream()
+          .sorted(Comparator.comparing(e -> e.getKey().toString()))
+          .map(Object::toString)
+          .collect(Collectors.joining(", "));
+      strR = ImageUtils.bounds(str, g.getFont(), g);
+      g.drawString(
+          str,
+          (float) (xR.center() - strR.getWidth() / 2d),
+          (float) (yR.max() - yR.extent() * configuration.textHMarginRate)
+      );
+    }
     g.setClip(originalClip);
   }
 
@@ -352,12 +373,12 @@ public class TTPNDrawer implements Drawer<Network> {
     g.setColor(configuration.fgColor);
     Rectangle2D strR = ImageUtils.bounds(label, g.getFont(), g);
     if (isInput) {
-      g.drawString(label, (float) (xR.min() + 2.5d * pR), (float) (nThPos(pi, nPorts, yR) + strR.getHeight() / 2d));
+      g.drawString(label, (float) (xR.min() + 2.5d * pR), (float) (nThPos(pi, nPorts, yR) + 2d * pR + strR.getMinY()));
     } else {
       g.drawString(
           label,
           (float) (xR.max() - 2.5d * pR - strR.getWidth()),
-          (float) (nThPos(pi, nPorts, yR) + strR.getHeight() / 2d)
+          (float) (nThPos(pi, nPorts, yR) + 2d * pR + strR.getMinY())
       );
     }
   }

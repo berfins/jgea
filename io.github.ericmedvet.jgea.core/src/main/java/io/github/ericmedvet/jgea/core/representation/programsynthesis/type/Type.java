@@ -27,7 +27,9 @@ public interface Type {
 
   boolean canTakeValuesOf(Type other);
 
-  Type concrete(Map<Generic, Type> genericTypeMap) throws TypeException;
+  Type concrete(Map<Generic, Type> genericTypeMap);
+
+  double dissimilarity(Object o1, Object o2);
 
   Set<Generic> generics();
 
@@ -36,8 +38,6 @@ public interface Type {
   Map<Generic, Type> resolveGenerics(Type concreteType) throws TypeException;
 
   int sizeOf(Object o);
-
-  double dissimilarity(Object o1, Object o2);
 
   default boolean isGeneric() {
     return !generics().isEmpty();

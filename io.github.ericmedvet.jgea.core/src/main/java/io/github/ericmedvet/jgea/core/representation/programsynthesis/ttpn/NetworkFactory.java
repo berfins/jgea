@@ -22,7 +22,6 @@ package io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn;
 import io.github.ericmedvet.jgea.core.IndependentFactory;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
-
 import java.util.*;
 import java.util.random.RandomGenerator;
 import java.util.stream.Collectors;
@@ -62,27 +61,31 @@ public class NetworkFactory implements IndependentFactory<Network> {
           ).toList(),
           Set.of()
       );
-      while (!n.freeInputPorts().isEmpty()) {
-        LinkedHashSet<Type> oTypes = n.freeOutputPorts()
+      while (!n.freeInputPorts().isEmpty() || !n.freeOutputPorts().isEmpty()) {
+        SequencedSet<Type> oTypes = n.freeOutputPorts()
             .stream()
             .map(n::concreteOutputType)
             .filter(Objects::nonNull)
             .collect(Collectors.toCollection(LinkedHashSet::new));
-
-        if (oTypes.isEmpty()) {
-          System.out.println("EMPTY!");
+        SequencedSet<Type> iTypes = n.freeInputPorts()
+            .stream()
+            .map(n::inputType)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toCollection(LinkedHashSet::new));
+        List<Gate> suitableGates = suitableGates(oTypes, iTypes);
+        if (suitableGates.isEmpty()) {
+          suitableGates = suitableGates(oTypes, null);
+        }
+        if (suitableGates.isEmpty()) {
+          suitableGates = suitableGates(null, iTypes);
+        }
+        if (suitableGates.isEmpty()) {
+          suitableGates = suitableGates(null, null);
         }
 
-        List<Gate> suitableGates = gates.stream()
-            .filter(
-                g -> g.inputPorts()
-                    .stream()
-                    .anyMatch(p -> oTypes.stream().anyMatch(t -> p.type().canTakeValuesOf(t)))
-            )
-            .toList();
-
-        System.out.println("oTypes: " + oTypes);
-        System.out.println("suitableGates: " + suitableGates);
+        if (suitableGates.isEmpty()) {
+          System.out.println("EMPTY!");
+        }
 
         Gate gate = suitableGates.get(random.nextInt(suitableGates.size()));
         n = n.mergedWith(new Network(List.of(gate), Set.of()))
@@ -95,6 +98,21 @@ public class NetworkFactory implements IndependentFactory<Network> {
     } catch (NetworkStructureException | TypeException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private List<Gate> suitableGates(SequencedSet<Type> oTypes, SequencedSet<Type> iTypes) {
+    return gates.stream()
+        .filter(
+            g -> oTypes == null || g.inputPorts()
+                .stream()
+                .anyMatch(p -> oTypes.stream().anyMatch(t -> p.type().canTakeValuesOf(t)))
+        )
+        .filter(
+            g -> iTypes == null || g.outputTypes()
+                .stream()
+                .anyMatch(ot -> iTypes.stream().anyMatch(it -> it.canTakeValuesOf(ot)))
+        )
+        .toList();
   }
 
 }

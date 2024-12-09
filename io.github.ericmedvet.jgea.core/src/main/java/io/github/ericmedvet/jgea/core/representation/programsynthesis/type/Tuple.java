@@ -49,7 +49,7 @@ public record Tuple(List<Type> types) implements Composed {
   }
 
   @Override
-  public Type concrete(Map<Generic, Type> genericTypeMap) throws TypeException {
+  public Type concrete(Map<Generic, Type> genericTypeMap) {
     if (!isGeneric()) {
       return this;
     }
@@ -58,6 +58,15 @@ public record Tuple(List<Type> types) implements Composed {
       concreteTypes.add(type.concrete(genericTypeMap));
     }
     return Composed.tuple(concreteTypes);
+  }
+
+  @Override
+  public double dissimilarity(Object o1, Object o2) {
+    @SuppressWarnings("unchecked") List<Object> os1 = (List<Object>) o1;
+    @SuppressWarnings("unchecked") List<Object> os2 = (List<Object>) o2;
+    return IntStream.range(0, types.size())
+        .mapToDouble(i -> types.get(i).dissimilarity(os1.get(i), os2.get(i)))
+        .sum();
   }
 
   @Override
@@ -115,7 +124,7 @@ public record Tuple(List<Type> types) implements Composed {
               )
           );
     }
-    throw new TypeException("Wrong concrete type %s".formatted(concreteType));
+    throw new TypeException("Wrong concrete type: %s does not match %s".formatted(concreteType, toString()));
   }
 
   @Override
@@ -129,15 +138,6 @@ public record Tuple(List<Type> types) implements Composed {
       throw new IllegalArgumentException("Inconsistent tuple size: %d != %d".formatted(types.size(), list.size()));
     }
     throw new IllegalArgumentException("Unsupported object type %s".formatted(o.getClass()));
-  }
-
-  @Override
-  public double dissimilarity(Object o1, Object o2) {
-    @SuppressWarnings("unchecked") List<Object> os1 = (List<Object>) o1;
-    @SuppressWarnings("unchecked") List<Object> os2 = (List<Object>) o2;
-    return IntStream.range(0, types.size())
-        .mapToDouble(i -> types.get(i).dissimilarity(os1.get(i), os2.get(i)))
-        .sum();
   }
 
   @Override

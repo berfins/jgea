@@ -24,7 +24,6 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Gener
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
 import io.github.ericmedvet.jgea.core.util.Misc;
-
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.ToIntBiFunction;
@@ -120,23 +119,15 @@ public final class Network {
         for (int pi = 0; pi < gate.inputPorts().size(); pi = pi + 1) {
           Type type = gate.inputPorts().get(pi).type();
           if (type.isGeneric()) {
-            try {
-              Type pType = inputConcreteTypes.put(new Wire.EndPoint(gi, pi), type.concrete(entry.getValue()));
-              changed = changed || pType == null;
-            } catch (TypeException e) {
-              // ignore, because cannot find concrete in map
-            }
+            Type pType = inputConcreteTypes.put(new Wire.EndPoint(gi, pi), type.concrete(entry.getValue()));
+            changed = changed || pType == null;
           }
         }
         for (int pi = 0; pi < gate.outputTypes().size(); pi = pi + 1) {
           Type type = gate.outputTypes().get(pi);
           if (type.isGeneric()) {
-            try {
-              Type pType = outputConcreteTypes.put(new Wire.EndPoint(gi, pi), type.concrete(entry.getValue()));
-              changed = changed || pType == null;
-            } catch (TypeException e) {
-              // ignore, because cannot find concrete in map
-            }
+            Type pType = outputConcreteTypes.put(new Wire.EndPoint(gi, pi), type.concrete(entry.getValue()));
+            changed = changed || pType == null;
           }
         }
       }
@@ -146,68 +137,12 @@ public final class Network {
     }
   }
 
-  private boolean updateGateConcreteMaps() throws TypeException {
-    int initialMapSize = gateConcreteTypes.size();
-    for (int gi = 0; gi < gates.size(); gi = gi + 1) {
-      Gate gate = gates.get(gi);
-      if (gate.hasGenerics()) {
-        List<Map<Generic, Type>> maps = new ArrayList<>();
-        // add from input ports
-        for (int j = 0; j < gate.inputPorts().size(); j++) {
-          Optional<Wire> oToWire = wireTo(new Wire.EndPoint(gi, j));
-          if (oToWire.isPresent()) {
-            Wire toWire = oToWire.get();
-            Type concreteType = concreteOutputType(toWire.src());
-            if (concreteType != null) {
-              maps.add(gate.inputPorts().get(j).type().resolveGenerics(concreteType));
-            }
-          }
-        }
-        // add from output ports
-        for (int j = 0; j < gate.outputTypes().size(); j++) {
-          for (Wire fromWire : wiresFrom(new Wire.EndPoint(gi, j))) {
-            Type concreteType = concreteInputType(fromWire.dst());
-            if (concreteType != null) {
-              maps.add(gate.outputTypes().get(j).resolveGenerics(concreteType));
-            }
-          }
-        }
-        // merge and check
-        Map<Generic, Set<Type>> merged = Misc.merge(maps);
-        Optional<Map.Entry<Generic, Set<Type>>> oneWrongEntry = merged.entrySet()
-            .stream()
-            .filter(e -> e.getValue().size() > 1)
-            .findAny();
-        if (oneWrongEntry.isPresent()) {
-          throw new TypeException(
-              "Inconsistent type for %s: %s"
-                  .formatted(
-                      oneWrongEntry.get().getKey(),
-                      oneWrongEntry.get()
-                          .getValue()
-                          .stream()
-                          .map(Object::toString)
-                          .collect(Collectors.joining(", "))
-                  )
-          );
-        }
-        // map generic to actual types
-        Map<Generic, Type> map = merged.entrySet()
-            .stream()
-            .collect(
-                Collectors.toMap(
-                    Map.Entry::getKey,
-                    e -> e.getValue().stream().findFirst().orElseThrow()
-                )
-            );
-        gateConcreteTypes.put(gi, map);
-      }
-    }
-    return initialMapSize != gateConcreteTypes.size();
-  }
-
   public Type concreteInputType(Wire.EndPoint endPoint) {
     return inputConcreteTypes.get(endPoint);
+  }
+
+  public Map<Generic, Type> concreteMapping(int gi) {
+    return gateConcreteTypes.getOrDefault(gi, Map.of());
   }
 
   public Type concreteOutputType(Wire.EndPoint endPoint) {
@@ -279,10 +214,12 @@ public final class Network {
                         .collect(Collectors.joining(",")),
                     IntStream.range(0, gates.get(i).outputTypes().size())
                         .mapToObj(
-                            j -> (wiresFrom(new Wire.EndPoint(i, j)).isEmpty() ? "_" : wiresFrom(new Wire.EndPoint(
-                                i,
-                                j
-                            )).stream()
+                            j -> (wiresFrom(new Wire.EndPoint(i, j)).isEmpty() ? "_" : wiresFrom(
+                                new Wire.EndPoint(
+                                    i,
+                                    j
+                                )
+                            ).stream()
                                 .map(w -> w.dst().toString())
                                 .collect(Collectors.joining("+")))
                         )
@@ -308,7 +245,6 @@ public final class Network {
     return new Network(newGates, newWires);
   }
 
-
   public Set<Wire.EndPoint> outputPorts() {
     return IntStream.range(0, gates.size())
         .mapToObj(
@@ -321,6 +257,66 @@ public final class Network {
 
   public Type outputType(Wire.EndPoint endPoint) {
     return gates.get(endPoint.gateIndex()).outputTypes().get(endPoint.portIndex());
+  }
+
+  private boolean updateGateConcreteMaps() throws TypeException {
+    int initialMapSize = gateConcreteTypes.size();
+    for (int gi = 0; gi < gates.size(); gi = gi + 1) {
+      Gate gate = gates.get(gi);
+      if (gate.hasGenerics()) {
+        List<Map<Generic, Type>> maps = new ArrayList<>();
+        // add from input ports
+        for (int j = 0; j < gate.inputPorts().size(); j++) {
+          Optional<Wire> oToWire = wireTo(new Wire.EndPoint(gi, j));
+          if (oToWire.isPresent()) {
+            Wire toWire = oToWire.get();
+            Type concreteType = concreteOutputType(toWire.src());
+            if (concreteType != null) {
+              maps.add(gate.inputPorts().get(j).type().resolveGenerics(concreteType));
+            }
+          }
+        }
+        // add from output ports
+        for (int j = 0; j < gate.outputTypes().size(); j++) {
+          for (Wire fromWire : wiresFrom(new Wire.EndPoint(gi, j))) {
+            Type concreteType = concreteInputType(fromWire.dst());
+            if (concreteType != null) {
+              maps.add(gate.outputTypes().get(j).resolveGenerics(concreteType));
+            }
+          }
+        }
+        // merge and check
+        Map<Generic, Set<Type>> merged = Misc.merge(maps);
+        Optional<Map.Entry<Generic, Set<Type>>> oneWrongEntry = merged.entrySet()
+            .stream()
+            .filter(e -> e.getValue().size() > 1)
+            .findAny();
+        if (oneWrongEntry.isPresent()) {
+          throw new TypeException(
+              "Inconsistent type for %s: %s"
+                  .formatted(
+                      oneWrongEntry.get().getKey(),
+                      oneWrongEntry.get()
+                          .getValue()
+                          .stream()
+                          .map(Object::toString)
+                          .collect(Collectors.joining(", "))
+                  )
+          );
+        }
+        // map generic to actual types
+        Map<Generic, Type> map = merged.entrySet()
+            .stream()
+            .collect(
+                Collectors.toMap(
+                    Map.Entry::getKey,
+                    e -> e.getValue().stream().findFirst().orElseThrow()
+                )
+            );
+        gateConcreteTypes.put(gi, map);
+      }
+    }
+    return initialMapSize != gateConcreteTypes.size();
   }
 
   private void validateGateIndexes(Wire wire) throws NetworkStructureException {
@@ -400,13 +396,23 @@ public final class Network {
           .filter(oTEP -> iTEP.type.canTakeValuesOf(oTEP.type))
           .toList();
     }
-    if (oTEPs.isEmpty()) {
-      return this;
+    Network newNetwork;
+    while (true) {
+      if (oTEPs.isEmpty()) {
+        return this;
+      }
+      int i = wirer.applyAsInt(iTEP.type, oTEPs.stream().map(TypedEndPoint::type).toList());
+      Set<Wire> newWires = new LinkedHashSet<>(wires());
+      newWires.add(new Wire(oTEPs.get(i).endPoint, iTEP.endPoint));
+      try {
+        newNetwork = new Network(gates, newWires);
+        break;
+      } catch (TypeException e) {
+        oTEPs = new ArrayList<>(oTEPs);
+        oTEPs.remove(i);
+      }
     }
-    int i = wirer.applyAsInt(iTEP.type, oTEPs.stream().map(TypedEndPoint::type).toList());
-    Set<Wire> newWires = new LinkedHashSet<>(wires());
-    newWires.add(new Wire(oTEPs.get(i).endPoint, iTEP.endPoint));
-    return new Network(gates, newWires).wireFreeInputPorts(wirer);
+    return newNetwork.wireFreeInputPorts(wirer);
   }
 
   public Network wireFreeOutputPorts(
@@ -423,13 +429,23 @@ public final class Network {
         .map(ep -> new TypedEndPoint(ep, inputType(ep)))
         .filter(iTEP -> iTEP.type.canTakeValuesOf(oTEP.type))
         .toList();
-    if (iTEPs.isEmpty()) {
-      return this;
+    Network newNetwork;
+    while (true) {
+      if (iTEPs.isEmpty()) {
+        return this;
+      }
+      int i = wirer.applyAsInt(oTEP.type, iTEPs.stream().map(TypedEndPoint::type).toList());
+      Set<Wire> newWires = new LinkedHashSet<>(wires());
+      newWires.add(new Wire(oTEP.endPoint, iTEPs.get(i).endPoint));
+      try {
+        newNetwork = new Network(gates, newWires);
+        break;
+      } catch (TypeException e) {
+        iTEPs = new ArrayList<>(iTEPs);
+        iTEPs.remove(i);
+      }
     }
-    int i = wirer.applyAsInt(oTEP.type, iTEPs.stream().map(TypedEndPoint::type).toList());
-    Set<Wire> newWires = new LinkedHashSet<>(wires());
-    newWires.add(new Wire(oTEP.endPoint, iTEPs.get(i).endPoint));
-    return new Network(gates, newWires).wireFreeOutputPorts(wirer);
+    return newNetwork.wireFreeOutputPorts(wirer);
   }
 
   private Optional<Wire> wireTo(Wire.EndPoint dst) {

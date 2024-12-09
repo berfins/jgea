@@ -33,11 +33,17 @@ public record Generic(String name) implements Type {
   }
 
   @Override
-  public Type concrete(Map<Generic, Type> genericTypeMap) throws TypeException {
-    if (genericTypeMap.containsKey(this)) {
+  public Type concrete(Map<Generic, Type> genericTypeMap) {
+    Type concrete = genericTypeMap.get(this);
+    if (concrete != null && !concrete.equals(this)) {
       return genericTypeMap.get(this).concrete(genericTypeMap);
     }
-    throw new TypeException("Undefined generics %s".formatted(this));
+    return this;
+  }
+
+  @Override
+  public double dissimilarity(Object o1, Object o2) {
+    throw new UnsupportedOperationException("Cannot compute dissimilarity of generic type");
   }
 
   @Override
@@ -58,11 +64,6 @@ public record Generic(String name) implements Type {
   @Override
   public int sizeOf(Object o) {
     throw new UnsupportedOperationException("Cannot compute size of generic type");
-  }
-
-  @Override
-  public double dissimilarity(Object o1, Object o2) {
-    throw new UnsupportedOperationException("Cannot compute dissimilarity of generic type");
   }
 
   @Override

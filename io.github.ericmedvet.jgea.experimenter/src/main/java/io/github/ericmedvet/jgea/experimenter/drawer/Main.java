@@ -79,7 +79,7 @@ public class Main {
             ImageUtils.loadFromResource("stuck_out_tongue_winking_eye.png")
         );
 
-    System.exit(0);
+    //System.exit(0);
 
     int stateSize = 5;
     int l = 15;

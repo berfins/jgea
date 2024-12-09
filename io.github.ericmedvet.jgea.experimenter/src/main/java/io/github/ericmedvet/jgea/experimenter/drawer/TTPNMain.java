@@ -94,9 +94,26 @@ public class TTPNMain {
         );
   }
 
+  private static void loopedNet() throws NetworkStructureException, TypeException {
+    Network n = new Network(
+        List.of(
+            Gate.input(Base.INT),
+            Gates.pairer()
+        ),
+        Set.of(
+          //Wire.of(0,0,1,0),
+          //Wire.of(1,0,1,1)
+        )
+    );
+    TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
+    drawer.show(n);
+    drawer.show(n.wireFreeInputPorts((t, ts) -> 0));
+  }
+
   public static void main(
       String[] args
   ) throws NetworkStructureException, ProgramExecutionException, NoSuchMethodException, TypeException {
+    loopedNet();
     Network sn = new Network(
         List.of(
             Gate.input(Composed.sequence(Base.STRING)),
@@ -194,7 +211,9 @@ public class TTPNMain {
                 Gates.noop(),
                 Gates.length(),
                 Gates.iTh(),
-                Gates.sequencer()
+                Gates.sequencer(),
+                Gates.rToI(),
+                Gates.iToR()
             )
         ),
         10

@@ -133,6 +133,19 @@ public class Gates {
     );
   }
 
+  public static Gate iToR() {
+    return Gate.of(
+        List.of(Gate.Port.single(Base.INT)),
+        List.of(Base.REAL),
+        NamedFunction.from(
+            in -> Gate.Data.singleOne(
+                in.one(0, Integer.class).doubleValue()
+            ),
+            "iToR"
+        )
+    );
+  }
+
   public static Gate length() {
     return Gate.of(
         List.of(Gate.Port.single(Composed.sequence(Generic.of("t")))),
@@ -241,6 +254,19 @@ public class Gates {
                     .orElseThrow()
             ),
             "s+"
+        )
+    );
+  }
+
+  public static Gate rToI() {
+    return Gate.of(
+        List.of(Gate.Port.single(Base.REAL)),
+        List.of(Base.INT),
+        NamedFunction.from(
+            in -> Gate.Data.singleOne(
+                in.one(0, Double.class).intValue()
+            ),
+            "rToI"
         )
     );
   }
