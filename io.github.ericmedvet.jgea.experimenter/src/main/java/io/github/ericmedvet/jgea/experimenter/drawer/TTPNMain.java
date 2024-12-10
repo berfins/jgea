@@ -226,9 +226,13 @@ public class TTPNMain {
                 Gates.xor()
             )
         ),
-        10
+        20
     );
     drawer.show(nf.build(rnd));
+    drawer.show(nf.build(rnd));
+    drawer.show(nf.build(rnd));
+    Network newN = nf.build(rnd);
+    drawer.show(NetworkUtils.randomSubnetwork(newN, rnd, newN.gates().size() / 4));
   }
 
   @Typed("R")

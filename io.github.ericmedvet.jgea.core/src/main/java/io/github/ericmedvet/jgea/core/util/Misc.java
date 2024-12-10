@@ -197,7 +197,10 @@ public class Misc {
 
   @SuppressWarnings("unchecked")
   public static <T> T pickRandomly(Collection<T> ts, RandomGenerator random) {
-    return (T) ts.toArray()[random.nextInt(ts.size())];
+    if (ts instanceof List<T> list) {
+      return list.get(random.nextInt(ts.size()));
+    }
+    return ts.stream().limit(random.nextInt(ts.size())).reduce((t1, t2) -> t2).orElseThrow();
   }
 
   public static File robustGetFile(String pathName, boolean overwrite) throws IOException {

@@ -19,39 +19,39 @@
  */
 package io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn;
 
-import io.github.ericmedvet.jgea.core.IndependentFactory;
-import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
+import io.github.ericmedvet.jgea.core.operator.Mutation;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
-import java.util.*;
+import io.github.ericmedvet.jgea.core.util.Misc;
+import java.util.HashSet;
+import java.util.SequencedSet;
+import java.util.Set;
 import java.util.random.RandomGenerator;
-import java.util.stream.Stream;
 
-public class NetworkFactory implements IndependentFactory<Network> {
-  private final List<Type> inputTypes;
-  private final List<Type> outputTypes;
+public class NetworkMutation implements Mutation<Network> {
   private final SequencedSet<Gate> gates;
   private final int maxNOfGates;
 
-  public NetworkFactory(List<Type> inputTypes, List<Type> outputTypes, SequencedSet<Gate> gates, int maxNOfGates) {
-    this.inputTypes = inputTypes;
-    this.outputTypes = outputTypes;
+  public NetworkMutation(SequencedSet<Gate> gates, int maxNOfGates) {
     this.gates = gates;
     this.maxNOfGates = maxNOfGates;
   }
 
   @Override
-  public Network build(RandomGenerator rnd) {
-    try {
-      Network n = new Network(
-          Stream.concat(
-              inputTypes.stream().map(type -> (Gate) Gate.input(type)),
-              outputTypes.stream().map(Gate::output)
-          ).toList(),
-          Set.of()
-      );
-      return NetworkUtils.rewire(n, gates, rnd, maxNOfGates);
-    } catch (NetworkStructureException | TypeException e) {
-      throw new RuntimeException(e);
+  public Network mutate(Network n, RandomGenerator rnd) {
+    if (n.gates().size() >= maxNOfGates) {
+      return n;
     }
+    // cut one wire
+    Set<Wire> newWires = new HashSet<>(n.wires());
+    if (!newWires.isEmpty()) {
+      newWires.remove(Misc.pickRandomly(newWires, rnd));
+    }
+    try {
+      n = new Network(n.gates(), newWires);
+    } catch (NetworkStructureException | TypeException e) {
+      return n;
+    }
+    // attempt adding gates
+    return NetworkUtils.rewire(n, gates, rnd, maxNOfGates);
   }
 }
