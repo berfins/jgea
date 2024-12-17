@@ -40,7 +40,7 @@ public class ProgramSynthesisProblems {
 
   @SuppressWarnings("unused")
   @Cacheable
-  public static ProgramSynthesisProblem named(
+  public static ProgramSynthesisProblem synthetic(
       @Param("name") String name,
       @Param(value = "metric", dS = "avg_dissimilarity") ProgramSynthesisFitness.Metric metric,
       @Param(value = "dissimilarity", dS = "normalized") ProgramSynthesisFitness.Dissimilarity dissimilarity,

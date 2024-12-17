@@ -23,6 +23,7 @@ import io.github.ericmedvet.jgea.core.problem.MultiTargetProblem;
 import io.github.ericmedvet.jgea.core.problem.Problem;
 import io.github.ericmedvet.jgea.core.problem.ProblemWithValidation;
 import io.github.ericmedvet.jgea.core.problem.QualityBasedProblem;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.Program;
 import io.github.ericmedvet.jgea.core.representation.sequence.bit.BitString;
 import io.github.ericmedvet.jgea.core.representation.sequence.integer.IntString;
 import io.github.ericmedvet.jgea.core.representation.tree.Tree;
@@ -37,6 +38,8 @@ import io.github.ericmedvet.jgea.core.util.Sized;
 import io.github.ericmedvet.jgea.core.util.TextPlotter;
 import io.github.ericmedvet.jgea.experimenter.Run;
 import io.github.ericmedvet.jgea.experimenter.Utils;
+import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisFitness;
+import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisProblem;
 import io.github.ericmedvet.jgea.problem.simulation.SimulationBasedProblem;
 import io.github.ericmedvet.jnb.core.Cacheable;
 import io.github.ericmedvet.jnb.core.Discoverable;
@@ -523,6 +526,25 @@ public class Functions {
 
   @SuppressWarnings("unused")
   @Cacheable
+  public static <X> FormattedNamedFunction<X, Double> psMetric(
+      @Param(value = "of", dNPM = "f.identity()") Function<X, POCPopulationState<?, ?, Program, ?, ? extends ProgramSynthesisProblem>> beforeF,
+      @Param(value = "individual", dNPM = "ea.f.best()") Function<POCPopulationState<?, ?, Program, ?, ?>, Individual<?, Program, ?>> individualF,
+      @Param(value = "metric", dS = "fail_rate") ProgramSynthesisFitness.Metric metric,
+      @Param(value = "format", dS = "%5.3f") String format
+  ) {
+    Function<POCPopulationState<?, ?, Program, ?, ? extends ProgramSynthesisProblem>, Double> f = state -> state
+        .problem()
+        .qualityFunction()
+        .apply(individualF.apply(state).solution(), metric);
+    return FormattedNamedFunction.from(
+        f,
+        format,
+        NamedFunction.composeNames(NamedFunction.name(individualF), metric.name().toLowerCase())
+    ).compose(beforeF);
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
   public static <X, Q> FormattedNamedFunction<X, Q> quality(
       @Param(value = "of", dNPM = "f.identity()") Function<X, Individual<?, ?, Q>> beforeF,
       @Param(value = "format", dS = "%s") String format
@@ -868,4 +890,5 @@ public class Functions {
     };
     return NamedFunction.from(f, "video.plotter").compose(beforeF);
   }
+
 }

@@ -206,7 +206,7 @@ public class Misc {
       if (i == chosenI) {
         return t;
       }
-      i = i+1;
+      i = i + 1;
     }
     throw new IllegalArgumentException("Empty collection");
   }

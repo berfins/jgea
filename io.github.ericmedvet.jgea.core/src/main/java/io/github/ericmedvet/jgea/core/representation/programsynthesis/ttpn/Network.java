@@ -24,6 +24,7 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Gener
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
 import io.github.ericmedvet.jgea.core.util.Misc;
+import io.github.ericmedvet.jgea.core.util.Sized;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
@@ -31,7 +32,7 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public final class Network {
+public final class Network implements Sized {
   private final List<Gate> gates;
   private final Set<Wire> wires;
   private final Map<Wire.EndPoint, Type> inputConcreteTypes;
@@ -257,6 +258,11 @@ public final class Network {
 
   public Type outputType(Wire.EndPoint endPoint) {
     return gates.get(endPoint.gateIndex()).outputTypes().get(endPoint.portIndex());
+  }
+
+  @Override
+  public int size() {
+    return gates().size();
   }
 
   private boolean updateGateConcreteMaps() throws TypeException {

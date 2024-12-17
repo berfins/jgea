@@ -29,11 +29,11 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public interface ProgramSynthesisFitness extends ExampleBasedFitness<Program, List<Object>, List<Object>, ProgramSynthesisFitness.Outcome, Double> {
-  record Outcome(boolean exception, double distance) {}
-
-  enum Metric { FAIL_RATE, AVG_DISSIMILARITY }
-
   enum Dissimilarity { RAW, NORMALIZED }
+
+  enum Metric { FAIL_RATE, AVG_DISSIMILARITY, EXCEPTION_ERROR }
+
+  record Outcome(boolean actualException, boolean predictedException, double distance) {}
 
   Distance<List<Object>> outputsDistance();
 
@@ -68,13 +68,30 @@ public interface ProgramSynthesisFitness extends ExampleBasedFitness<Program, Li
     Function<List<Outcome>, Double> aggregateFunction = switch (metric) {
       case FAIL_RATE -> os -> (double) os.stream().filter(o -> o.distance == 0).count() / (double) os.size();
       case AVG_DISSIMILARITY -> os -> os.stream().mapToDouble(Outcome::distance).average().orElseThrow();
+      case EXCEPTION_ERROR -> os -> os.stream()
+          .mapToDouble(o -> o.actualException == o.predictedException ? 1d : 0d)
+          .average()
+          .orElseThrow();
     };
     return from(outputsDistance, aggregateFunction, caseProvider);
+  }
+
+  default Double apply(Program program, Metric metric) {
+    List<ProgramSynthesisFitness.Outcome> os = caseProvider().stream()
+        .map(c -> caseFunction().apply(program, c))
+        .toList();
+    return switch (metric) {
+      case FAIL_RATE -> (double) os.stream().filter(o -> o.distance > 0).count() / (double) os.size();
+      case AVG_DISSIMILARITY -> os.stream().mapToDouble(Outcome::distance).average().orElseThrow();
+      case EXCEPTION_ERROR ->
+        os.stream().mapToDouble(o -> o.actualException == o.predictedException ? 0d : 1d).average().orElseThrow();
+    };
   }
 
   @Override
   default BiFunction<List<Object>, List<Object>, Outcome> errorFunction() {
     return (actualOutputs, predictedOutputs) -> new Outcome(
+        actualOutputs == null,
         predictedOutputs == null,
         outputsDistance().apply(actualOutputs, predictedOutputs)
     );

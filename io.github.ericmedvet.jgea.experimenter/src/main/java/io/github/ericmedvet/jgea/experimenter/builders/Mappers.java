@@ -31,7 +31,7 @@ import io.github.ericmedvet.jgea.core.representation.graph.Graph;
 import io.github.ericmedvet.jgea.core.representation.graph.Node;
 import io.github.ericmedvet.jgea.core.representation.graph.numeric.functiongraph.FunctionGraph;
 import io.github.ericmedvet.jgea.core.representation.graph.numeric.operatorgraph.OperatorGraph;
-import io.github.ericmedvet.jgea.core.representation.programsynthesis.InstrumentedProgram;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.Program;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Gate;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Network;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.NetworkStructureException;
@@ -733,7 +733,7 @@ public class Mappers {
 
   @SuppressWarnings("unused")
   @Cacheable
-  public static <X> InvertibleMapper<X, InstrumentedProgram> ttpnToProgram(
+  public static <X> InvertibleMapper<X, Program> ttpnToProgram(
       @Param(value = "of", dNPM = "ea.m.identity()") InvertibleMapper<X, Network> beforeM,
       @Param(value = "maxNOfSteps", dI = 100) int maxNOfSteps,
       @Param(value = "maxNOfTokens", dI = 1000) int maxNOfTokens

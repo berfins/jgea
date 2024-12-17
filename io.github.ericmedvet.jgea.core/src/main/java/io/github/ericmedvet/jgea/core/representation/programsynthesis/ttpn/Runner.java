@@ -23,6 +23,7 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.Instrument
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.ProgramExecutionException;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.RunProfile;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
+import io.github.ericmedvet.jnb.datastructure.NamedFunction;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -61,15 +62,26 @@ public class Runner {
 
   public InstrumentedProgram asInstrumentedProgram(Network network) {
     return InstrumentedProgram.from(
-        inputs -> {
-          try {
-            return run(network, inputs);
-          } catch (ProgramExecutionException e) {
-            throw new RuntimeException(e);
-          }
-        },
-        List.of(),
-        List.of()
+        NamedFunction.from(
+            inputs -> {
+              try {
+                return run(network, inputs);
+              } catch (ProgramExecutionException e) {
+                throw new RuntimeException(e);
+              }
+            },
+            "ttpn[g=%d,w=%d]".formatted(network.gates().size(), network.wires().size())
+        ),
+        network.gates()
+            .stream()
+            .filter(g -> g instanceof Gate.InputGate)
+            .map(g -> ((Gate.InputGate) g).type())
+            .toList(),
+        network.gates()
+            .stream()
+            .filter(g -> g instanceof Gate.OutputGate)
+            .map(g -> ((Gate.OutputGate) g).type())
+            .toList()
     );
   }
 

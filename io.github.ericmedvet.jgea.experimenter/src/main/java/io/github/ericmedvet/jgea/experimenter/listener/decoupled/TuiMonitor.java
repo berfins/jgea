@@ -25,7 +25,9 @@ import com.googlecode.lanterna.input.KeyStroke;
 import com.googlecode.lanterna.input.KeyType;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
-import io.github.ericmedvet.jgea.core.util.*;
+import io.github.ericmedvet.jgea.core.util.Progress;
+import io.github.ericmedvet.jgea.core.util.StringUtils;
+import io.github.ericmedvet.jgea.core.util.TextPlotter;
 import io.github.ericmedvet.jgea.experimenter.listener.net.NetUtils;
 import io.github.ericmedvet.jgea.experimenter.listener.tui.table.*;
 import io.github.ericmedvet.jgea.experimenter.listener.tui.util.TuiDrawer;
@@ -55,8 +57,6 @@ public class TuiMonitor implements Runnable {
 
   private final Configuration configuration;
   private final ScheduledExecutorService uiExecutorService;
-
-  private Screen screen;
   private final Source<MachineKey, MachineInfo> machineSource;
   private final Source<ProcessKey, ProcessInfo> processSource;
   private final Source<ProcessKey, LogInfo> logSource;
@@ -70,8 +70,9 @@ public class TuiMonitor implements Runnable {
   private final Table<Pair<LocalDateTime, RunKey>, String, RunInfo> runTable;
   private final Table<Pair<LocalDateTime, DataItemKey>, String, DataItemInfo> dataItemTable;
   private final LogCapturer logCapturer;
-  private LocalDateTime lastRefreshLocalDateTime = LocalDateTime.MIN;
   private final Supplier<String> title;
+  private Screen screen;
+  private LocalDateTime lastRefreshLocalDateTime = LocalDateTime.MIN;
 
   public TuiMonitor(
       Supplier<String> title,
@@ -283,7 +284,7 @@ public class TuiMonitor implements Runnable {
           try {
             updateUI();
           } catch (Throwable e) {
-            L.warning("Unexpected exception: %s".formatted(e));
+            L.warning("Unexpected predictedException: %s".formatted(e));
           }
         },
         0,

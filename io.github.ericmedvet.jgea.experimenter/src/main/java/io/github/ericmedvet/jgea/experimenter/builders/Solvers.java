@@ -48,6 +48,7 @@ import io.github.ericmedvet.jgea.core.solver.pso.ParticleSwarmOptimization;
 import io.github.ericmedvet.jgea.core.solver.speciation.LazySpeciator;
 import io.github.ericmedvet.jgea.core.solver.speciation.SpeciatedEvolver;
 import io.github.ericmedvet.jgea.experimenter.Representation;
+import io.github.ericmedvet.jnb.core.Alias;
 import io.github.ericmedvet.jnb.core.Cacheable;
 import io.github.ericmedvet.jnb.core.Discoverable;
 import io.github.ericmedvet.jnb.core.Param;
@@ -185,6 +186,16 @@ public class Solvers {
     );
   }
 
+  @Alias(
+      name = "ttpnGp", value = // spotless:off
+      """
+          ga(name = "ttpnGp"; representation = ea.r.ttpn(); mapper = ea.m.ttpnToProgram(); crossoverP = 0.5)
+          """) // spotless:on
+  @Alias(
+      name = "srGp", value = // spotless:off
+      """
+          ga(name = "srGp"; representation = ea.r.srTree(); mapper = ea.m.srTreeToNurf())
+          """) // spotless:on
   @SuppressWarnings("unused")
   @Cacheable
   public static <G, S, Q> Function<S, StandardEvolver<G, S, Q>> ga(

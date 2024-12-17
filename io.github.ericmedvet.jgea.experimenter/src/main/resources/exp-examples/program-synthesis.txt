@@ -1,0 +1,36 @@
+$nEvals = [5000]
+
+ea.experiment(
+  runs = (randomGenerator = (seed = [1:1:1]) * [m.defaultRG()]) *
+    (problem = [
+      % ea.p.ps.synthetic(name = "vProduct"; nOfCases = 20)
+      ea.p.ps.synthetic(name = "vProduct"; nOfCases = 20; maxExceptionRate = 0.5)
+    ]) *
+    (solver = (nEval = $nEvals) * [
+      ea.s.ttpnGp()
+    ]) * [
+    ea.run()
+  ];
+  listeners = [
+    ea.l.console(
+      functions = [
+        ea.f.size(of = ea.f.genotype(of = ea.f.best()); format = "%3d");
+        ea.f.quality(of = ea.f.best(); format = "%6.2f");
+        f.percentile(of = f.each(of = ea.f.all(); mapF = ea.f.quality()); p = 75; format = "%6.2f");
+        ea.f.hist(of = f.each(of = ea.f.all(); mapF = ea.f.quality()));
+        ea.f.validationQuality(format = "%6.2f");
+        ea.f.psMetric();
+        ea.f.psMetric(metric = exception_error)
+      ];
+      onlyLast = false
+    );
+    ea.l.savePlotForExp(
+      path = "../../Documenti/experiments/{name}/{startTime}/best-fitness";
+      plot = ea.plot.multi.quality()
+    );
+    ea.l.savePlotForExp(
+      path = "../../Documenti/experiments/{name}/{startTime}/best-fail_rate";
+      plot = ea.plot.multi.xyExp(y = ea.f.psMetric())
+    )
+  ]
+)

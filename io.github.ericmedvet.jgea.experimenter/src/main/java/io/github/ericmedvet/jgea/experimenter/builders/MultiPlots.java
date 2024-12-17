@@ -34,18 +34,17 @@ public class MultiPlots {
 
   @SuppressWarnings("unused")
   @Alias(
-      name = "xyExp", value = // spotless:off
+      name = "xyExp", passThroughParams = {@PassThroughParam(name = "xQuantization", value = "1", type = ParamMap.Type.INT)}, value = // spotless:off
           """
               xy(
                 xSubplot = ea.f.runString(name = none; s = "_");
                 ySubplot = ea.f.runString(name = problem; s = "{run.problem.name}");
                 line = ea.f.runString(name = solver; s = "{run.solver.name}");
-                x = f.quantized(of = ea.f.nOfEvals(); q = 500)
+                x = f.quantized(of = ea.f.nOfEvals(); q = $xQuantization)
               )
               """) // spotless:on
   @Alias(
-      name = "quality", passThroughParams = {@PassThroughParam(name = "q", value = "f.identity()", type = ParamMap.Type.NAMED_PARAM_MAP)
-      }, value = // spotless:off
+      name = "quality", passThroughParams = {@PassThroughParam(name = "q", value = "f.identity()", type = ParamMap.Type.NAMED_PARAM_MAP)}, value = // spotless:off
       """
           xyExp(y = f.composition(of = ea.f.quality(of = ea.f.best()); then = $q))
           """) // spotless:on
