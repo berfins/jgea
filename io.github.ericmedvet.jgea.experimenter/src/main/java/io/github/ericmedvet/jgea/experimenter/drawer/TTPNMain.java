@@ -221,9 +221,9 @@ public class TTPNMain {
                 Gates.rBefore(),
                 Gates.sBefore(),
                 Gates.select(),
-                Gates.or(),
-                Gates.and(),
-                Gates.xor()
+                Gates.bOr(),
+                Gates.bAnd(),
+                Gates.bXor()
             )
         ),
         20

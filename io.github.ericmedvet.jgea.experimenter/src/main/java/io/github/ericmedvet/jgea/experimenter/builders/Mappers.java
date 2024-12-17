@@ -31,6 +31,12 @@ import io.github.ericmedvet.jgea.core.representation.graph.Graph;
 import io.github.ericmedvet.jgea.core.representation.graph.Node;
 import io.github.ericmedvet.jgea.core.representation.graph.numeric.functiongraph.FunctionGraph;
 import io.github.ericmedvet.jgea.core.representation.graph.numeric.operatorgraph.OperatorGraph;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.InstrumentedProgram;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Gate;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Network;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.NetworkStructureException;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Runner;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
 import io.github.ericmedvet.jgea.core.representation.sequence.bit.BitString;
 import io.github.ericmedvet.jgea.core.representation.sequence.integer.IntString;
 import io.github.ericmedvet.jgea.core.representation.tree.Tree;
@@ -50,7 +56,10 @@ import io.github.ericmedvet.jnb.datastructure.Pair;
 import io.github.ericmedvet.jsdynsym.buildable.builders.NumericalDynamicalSystems;
 import io.github.ericmedvet.jsdynsym.core.composed.Stepped;
 import io.github.ericmedvet.jsdynsym.core.numerical.*;
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.function.DoubleUnaryOperator;
 import java.util.function.Function;
 import java.util.random.RandomGenerator;
@@ -447,15 +456,21 @@ public class Mappers {
                         .formatted(items.size(), nmrf.nOfOutputs())
                 );
               }
-              return Grid.create(g.w(), g.h(), (x, y) -> {
-                double[] values = nmrf.apply(new double[]{(double) x / (double) g.w(), (double) y / (double) g.h()});
-                return items.get(
-                    IntStream.range(0, values.length)
-                        .boxed()
-                        .min(Comparator.comparingDouble(i -> values[i]))
-                        .orElse(0)
-                );
-              });
+              return Grid.create(
+                  g.w(),
+                  g.h(),
+                  (x, y) -> {
+                    double[] values = nmrf.apply(
+                        new double[]{(double) x / (double) g.w(), (double) y / (double) g.h()}
+                    );
+                    return items.get(
+                        IntStream.range(0, values.length)
+                            .boxed()
+                            .min(Comparator.comparingDouble(i -> values[i]))
+                            .orElse(0)
+                    );
+                  }
+              );
             },
             g -> NamedMultivariateRealFunction.from(
                 MultivariateRealFunction.from(vs -> new double[items.size()], 2, items.size()),
@@ -714,5 +729,34 @@ public class Mappers {
         return f.toString();
       }
     };
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  public static <X> InvertibleMapper<X, InstrumentedProgram> ttpnToProgram(
+      @Param(value = "of", dNPM = "ea.m.identity()") InvertibleMapper<X, Network> beforeM,
+      @Param(value = "maxNOfSteps", dI = 100) int maxNOfSteps,
+      @Param(value = "maxNOfTokens", dI = 1000) int maxNOfTokens
+  ) {
+    Runner runner = new Runner(maxNOfSteps, maxNOfTokens);
+    return beforeM.andThen(
+        InvertibleMapper.from(
+            (eProgram, ttpn) -> runner.asInstrumentedProgram(ttpn),
+            eProgram -> {
+              try {
+                return new Network(
+                    Stream.<Gate>concat(
+                        eProgram.inputTypes().stream().map(Gate::input),
+                        eProgram.outputTypes().stream().map(Gate::output)
+                    ).toList(),
+                    new LinkedHashSet<>()
+                );
+              } catch (NetworkStructureException | TypeException e) {
+                throw new RuntimeException(e);
+              }
+            },
+            "program[s=%d,t=%d]".formatted(maxNOfSteps, maxNOfTokens)
+        )
+    );
   }
 }

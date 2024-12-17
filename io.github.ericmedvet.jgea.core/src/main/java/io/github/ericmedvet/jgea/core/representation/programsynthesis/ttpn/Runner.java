@@ -30,12 +30,22 @@ import java.util.stream.Stream;
 
 public class Runner {
 
-  private final int maxSteps;
-  private final int maxTokens;
+  private final int maxNOfSteps;
+  private final int maxNOfTokens;
 
-  public Runner(int maxSteps, int maxTokens) {
-    this.maxSteps = maxSteps;
-    this.maxTokens = maxTokens;
+  public Runner(int maxNOfSteps, int maxNOfTokens) {
+    this.maxNOfSteps = maxNOfSteps;
+    this.maxNOfTokens = maxNOfTokens;
+  }
+
+  private static <T> Queue<T> emptyQueue() {
+    return new ArrayDeque<>();
+  }
+
+  private static <T> List<T> takeAll(Queue<T> queue) {
+    List<T> list = new ArrayList<>(queue);
+    queue.clear();
+    return list;
   }
 
   private static <T> List<T> takeExactly(Queue<T> queue, int n) {
@@ -49,14 +59,18 @@ public class Runner {
     return Optional.of(queue.remove());
   }
 
-  private static <T> Queue<T> emptyQueue() {
-    return new ArrayDeque<>();
-  }
-
-  private static <T> List<T> takeAll(Queue<T> queue) {
-    List<T> list = new ArrayList<>(queue);
-    queue.clear();
-    return list;
+  public InstrumentedProgram asInstrumentedProgram(Network network) {
+    return InstrumentedProgram.from(
+        inputs -> {
+          try {
+            return run(network, inputs);
+          } catch (ProgramExecutionException e) {
+            throw new RuntimeException(e);
+          }
+        },
+        List.of(),
+        List.of()
+    );
   }
 
   public InstrumentedProgram.Outcome run(Network network, List<Object> inputs) throws ProgramExecutionException {
@@ -109,7 +123,7 @@ public class Runner {
     Queue<Object> networkInputsQueue = new ArrayDeque<>(inputs);
     SortedMap<Integer, Object> outputs = new TreeMap<>();
     // iterate
-    while (k < maxSteps) {
+    while (k < maxNOfSteps) {
       for (int i = 0; i < network.gates().size(); i++) {
         int gi = i;
         Gate g = network.gates().get(gi);
@@ -187,8 +201,10 @@ public class Runner {
                   )
               )
       );
-      if (state.count() > maxTokens) {
-        throw new ProgramExecutionException("Exceeded number of tokens: %d > %d".formatted(state.count(), maxTokens));
+      if (state.count() > maxNOfTokens) {
+        throw new ProgramExecutionException(
+            "Exceeded number of tokens: %d > %d".formatted(state.count(), maxNOfTokens)
+        );
       }
       states.add(state);
       // increment k
@@ -220,19 +236,5 @@ public class Runner {
       }
     }
     return new InstrumentedProgram.Outcome(outputs.values().stream().toList(), new RunProfile(states));
-  }
-
-  public InstrumentedProgram asInstrumentedProgram(Network network) {
-    return InstrumentedProgram.from(
-        inputs -> {
-          try {
-            return run(network, inputs);
-          } catch (ProgramExecutionException e) {
-            throw new RuntimeException(e);
-          }
-        },
-        List.of(),
-        List.of()
-    );
   }
 }

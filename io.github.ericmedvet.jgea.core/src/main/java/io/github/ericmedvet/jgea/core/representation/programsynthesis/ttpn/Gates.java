@@ -35,13 +35,39 @@ public class Gates {
   private Gates() {
   }
 
-  public static Gate and() {
+  public static Gate bAnd() {
     return Gate.of(
         List.of(Gate.Port.single(Base.BOOLEAN), Gate.Port.single(Base.BOOLEAN)),
         List.of(Base.BOOLEAN),
         NamedFunction.from(
             in -> Gate.Data.singleOne(in.one(0, Boolean.class) && in.one(1, Boolean.class)),
             "and"
+        )
+    );
+  }
+
+  public static Gate bOr() {
+    return Gate.of(
+        List.of(Gate.Port.single(Base.BOOLEAN), Gate.Port.single(Base.BOOLEAN)),
+        List.of(Base.BOOLEAN),
+        NamedFunction.from(
+            in -> Gate.Data.singleOne(in.one(0, Boolean.class) || in.one(1, Boolean.class)),
+            "or"
+        )
+    );
+  }
+
+  public static Gate bXor() {
+    return Gate.of(
+        List.of(Gate.Port.single(Base.BOOLEAN), Gate.Port.single(Base.BOOLEAN)),
+        List.of(Base.BOOLEAN),
+        NamedFunction.from(
+            in -> {
+              boolean b0 = in.one(0, Boolean.class);
+              boolean b1 = in.one(1, Boolean.class);
+              return Gate.Data.singleOne((b0 && !b1) || (b1 && !b0));
+            },
+            "xor"
         )
     );
   }
@@ -209,17 +235,6 @@ public class Gates {
         List.of(Gate.Port.single(Generic.of("t"))),
         List.of(Generic.of("t")),
         NamedFunction.from(in -> Gate.Data.singleOne(in.one(0)), "noop")
-    );
-  }
-
-  public static Gate or() {
-    return Gate.of(
-        List.of(Gate.Port.single(Base.BOOLEAN), Gate.Port.single(Base.BOOLEAN)),
-        List.of(Base.BOOLEAN),
-        NamedFunction.from(
-            in -> Gate.Data.singleOne(in.one(0, Boolean.class) || in.one(1, Boolean.class)),
-            "or"
-        )
     );
   }
 
@@ -446,21 +461,6 @@ public class Gates {
                 in.one(0, List.class).get(1)
             ),
             "unpairer"
-        )
-    );
-  }
-
-  public static Gate xor() {
-    return Gate.of(
-        List.of(Gate.Port.single(Base.BOOLEAN), Gate.Port.single(Base.BOOLEAN)),
-        List.of(Base.BOOLEAN),
-        NamedFunction.from(
-            in -> {
-              boolean b0 = in.one(0, Boolean.class);
-              boolean b1 = in.one(1, Boolean.class);
-              return Gate.Data.singleOne((b0 && !b1) || (b1 && !b0));
-            },
-            "xor"
         )
     );
   }
