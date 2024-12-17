@@ -200,7 +200,15 @@ public class Misc {
     if (ts instanceof List<T> list) {
       return list.get(random.nextInt(ts.size()));
     }
-    return ts.stream().limit(random.nextInt(ts.size())).reduce((t1, t2) -> t2).orElseThrow();
+    int chosenI = random.nextInt(ts.size());
+    int i = 0;
+    for (T t : ts) {
+      if (i == chosenI) {
+        return t;
+      }
+      i = i+1;
+    }
+    throw new IllegalArgumentException("Empty collection");
   }
 
   public static File robustGetFile(String pathName, boolean overwrite) throws IOException {
