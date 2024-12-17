@@ -2373,6 +2373,34 @@ Aliases: `ea.p.mr`, `ea.p.multivariateRegression`, `ea.problem.mr`, `ea.problem.
 
 Produces <code><abbr title="io.github.ericmedvet.jgea.problem.regression.multivariate.MultivariateRegressionProblem">MultivariateRegressionProblem</abbr></code>; built from `io.github.ericmedvet.jgea.experimenter.builders.MultivariateRegressionProblems.fromData()` by jgea-experimenter:2.7.1-SNAPSHOT
 
+## Package `ea.problem.programSynthesis`
+
+Aliases: `ea.p.programSynthesis`, `ea.p.ps`, `ea.problem.programSynthesis`, `ea.problem.ps`
+
+### Builder `ea.problem.programSynthesis.named()`
+
+`ea.p.ps.named(name; metric; dissimilarity; maxDissimilarity; randomGenerator; nOfCases; nOfValidationCases; maxExceptionRate; ints; reals; strings; intRange; realRange; stringLengthRange; sequenceSizeRange)`
+
+| Param | Type | Default | Java type |
+| --- | --- | --- | --- |
+| `name` | s |  | <code><abbr title="java.lang.String">String</abbr></code> |
+| `metric` | e | `AVG_DISSIMILARITY` | <code><abbr title="io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisFitness$Metric">ProgramSynthesisFitness$Metric</abbr></code> |
+| `dissimilarity` | e | `NORMALIZED` | <code><abbr title="io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisFitness$Dissimilarity">ProgramSynthesisFitness$Dissimilarity</abbr></code> |
+| `maxDissimilarity` | d | `100.0` | <code>double</code> |
+| `randomGenerator` | npm | `m.defaultRG()` | <code><abbr title="java.util.random.RandomGenerator">RandomGenerator</abbr></code> |
+| `nOfCases` | i | `10` | <code>int</code> |
+| `nOfValidationCases` | i | `100` | <code>int</code> |
+| `maxExceptionRate` | d | `0.1` | <code>double</code> |
+| `ints` | i[] | `[1, 2, 3, 5, 10]` | <code><abbr title="java.util.List">List</abbr>&lt;<abbr title="java.lang.Integer">Integer</abbr>&gt;</code> |
+| `reals` | d[] | `[1.0, 2.0, 3.0, 1.5, 2.5, 3.14]` | <code><abbr title="java.util.List">List</abbr>&lt;<abbr title="java.lang.Double">Double</abbr>&gt;</code> |
+| `strings` | s[] | `[cat, dog, Hello World!, mummy]` | <code><abbr title="java.util.List">List</abbr>&lt;<abbr title="java.lang.String">String</abbr>&gt;</code> |
+| `intRange` | npm | `m.range(min = -10; max = 100)` | <code><abbr title="io.github.ericmedvet.jnb.datastructure.DoubleRange">DoubleRange</abbr></code> |
+| `realRange` | npm | `m.range(min = -10; max = 10)` | <code><abbr title="io.github.ericmedvet.jnb.datastructure.DoubleRange">DoubleRange</abbr></code> |
+| `stringLengthRange` | npm | `m.range(min = 2; max = 20)` | <code><abbr title="io.github.ericmedvet.jnb.datastructure.DoubleRange">DoubleRange</abbr></code> |
+| `sequenceSizeRange` | npm | `m.range(min = 1; max = 8)` | <code><abbr title="io.github.ericmedvet.jnb.datastructure.DoubleRange">DoubleRange</abbr></code> |
+
+Produces <code><abbr title="io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisProblem">ProgramSynthesisProblem</abbr></code>; built from `io.github.ericmedvet.jgea.experimenter.builders.ProgramSynthesisProblems.named()` by jgea-experimenter:2.7.1-SNAPSHOT
+
 ## Package `ea.problem.synthetic`
 
 Aliases: `ea.p.s`, `ea.p.synthetic`, `ea.problem.s`, `ea.problem.synthetic`

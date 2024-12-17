@@ -23,7 +23,10 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.Instrument
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.Program;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.ProgramExecutionException;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.*;
-import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.*;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Base;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Composed;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.StringParser;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
 import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
 import io.github.ericmedvet.jgea.core.util.IntRange;
 import io.github.ericmedvet.jgea.problem.programsynthesis.DataFactory;
@@ -35,7 +38,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.random.RandomGenerator;
-import java.util.stream.IntStream;
 
 public class TTPNMain {
   private static void doComputationStuff(Network n) throws NoSuchMethodException, ProgramExecutionException {
@@ -248,11 +250,4 @@ public class TTPNMain {
     }
   }
 
-  @Typed("R")
-  public static Double vProduct(@Typed("[R]") List<Double> v1, @Typed("[R]") List<Double> v2) {
-    if (v1.size() != v2.size()) {
-      throw new IllegalArgumentException("Input sizes are different: %d and %d".formatted(v1.size(), v2.size()));
-    }
-    return IntStream.range(0, v1.size()).mapToDouble(i -> v1.get(i) * v2.get(i)).sum();
-  }
 }
