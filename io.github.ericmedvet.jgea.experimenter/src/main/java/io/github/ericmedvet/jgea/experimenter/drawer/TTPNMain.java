@@ -30,7 +30,6 @@ import io.github.ericmedvet.jgea.problem.programsynthesis.DataFactory;
 import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisFitness;
 import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisProblem;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
-
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Random;
@@ -230,8 +229,23 @@ public class TTPNMain {
         20
     );
     Network newN = nf.build(rnd);
-    drawer.show(newN);
-    drawer.show(NetworkUtils.randomSubnetwork(newN, rnd, newN.gates().size() / 4));
+    //drawer.show(newN);
+    //drawer.show(NetworkUtils.randomSubnetwork(newN, rnd, newN.gates().size() / 4));
+
+    for (int i = 0; i < 1000; i++) {
+      Network nn = nf.build(rnd);
+      Network snn = NetworkUtils.randomSubnetwork(newN, rnd, nn.gates().size() / 2);
+      Network hnn = NetworkUtils.randomHoledNetwork(newN, rnd, nn.gates().size() / 4);
+      System.out.printf(
+          "n.g:%3d n.w:%3d\tsn.g:%3d sn.w:%3d\thn.g:%3d hn.w:%3d%n",
+          nn.gates().size(),
+          nn.wires().size(),
+          snn.gates().size(),
+          snn.wires().size(),
+          hnn.gates().size(),
+          hnn.wires().size()
+      );
+    }
   }
 
   @Typed("R")

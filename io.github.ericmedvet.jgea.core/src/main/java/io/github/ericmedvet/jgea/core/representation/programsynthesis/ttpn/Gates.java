@@ -28,6 +28,7 @@ import io.github.ericmedvet.jnb.datastructure.NamedFunction;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class Gates {
 
@@ -41,6 +42,22 @@ public class Gates {
         NamedFunction.from(
             in -> Gate.Data.singleOne(in.one(0, Boolean.class) && in.one(1, Boolean.class)),
             "and"
+        )
+    );
+  }
+
+  public static Gate concat() {
+    return Gate.of(
+        List.of(
+            Gate.Port.single(Composed.sequence(Generic.of("t"))),
+            Gate.Port.single(Composed.sequence(Generic.of("t")))
+        ),
+        List.of(Composed.sequence(Generic.of("t"))),
+        NamedFunction.from(
+            in -> Gate.Data.singleOne(
+                Stream.concat(in.one(0, List.class).stream(), in.one(1, List.class).stream()).toList()
+            ),
+            "concat"
         )
     );
   }
@@ -349,6 +366,17 @@ public class Gates {
         NamedFunction.from(
             in -> Gate.Data.singleOne(in.one(0, Double.class).compareTo(in.one(1, Double.class)) < 0),
             "sBefore"
+        )
+    );
+  }
+
+  public static Gate sConcat() {
+    return Gate.of(
+        List.of(Gate.Port.single(Base.STRING), Gate.Port.single(Base.STRING)),
+        List.of(Base.STRING),
+        NamedFunction.from(
+            in -> Gate.Data.singleOne(in.one(0, String.class) + in.one(1, String.class)),
+            "sConcat"
         )
     );
   }
