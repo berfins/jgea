@@ -239,13 +239,14 @@ public class TTPNMain {
       Network snn = NetworkUtils.randomSubnetwork(newN, rnd, nn.gates().size() / 2);
       Network hnn = NetworkUtils.randomHoledNetwork(newN, rnd, nn.gates().size() / 4);
       System.out.printf(
-          "n.g:%3d n.w:%3d\tsn.g:%3d sn.w:%3d\thn.g:%3d hn.w:%3d%n",
+          "n.g:%3d n.w:%3d\tsn.g:%3d sn.w:%3d\thn.g:%3d hn.w:%3d\tsubnets:%2d%n",
           nn.gates().size(),
           nn.wires().size(),
           snn.gates().size(),
           snn.wires().size(),
           hnn.gates().size(),
-          hnn.wires().size()
+          hnn.wires().size(),
+          hnn.disjointSubnetworks().size()
       );
     }
   }

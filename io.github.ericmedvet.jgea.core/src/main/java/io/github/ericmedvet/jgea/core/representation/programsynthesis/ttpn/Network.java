@@ -515,4 +515,47 @@ public final class Network implements Sized {
         .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
+  public List<Network> disjointSubnetworks() throws NetworkStructureException, TypeException {
+    List<Network> networks = new ArrayList<>();
+    SequencedSet<Integer> allGis = new LinkedHashSet<>(IntStream.range(0, gates.size()).boxed().toList());
+    while (!allGis.isEmpty()) {
+      SequencedSet<Integer> subnetGis = new LinkedHashSet<>();
+      findWiredGates(allGis.getFirst(), subnetGis);
+      List<Integer> selectedGis = subnetGis.stream().toList();
+      SequencedSet<Wire> wires = wires()
+          .stream()
+          .filter(w -> subnetGis.contains(w.src().gateIndex()) && subnetGis.contains(w.dst().gateIndex()))
+          .map(
+              w -> Wire.of(
+                  selectedGis.indexOf(w.src().gateIndex()),
+                  w.src().portIndex(),
+                  selectedGis.indexOf(w.dst().gateIndex()),
+                  w.dst().portIndex()
+              )
+          )
+          .collect(Collectors.toCollection(LinkedHashSet::new));
+      networks.add(
+          new Network(
+              subnetGis.stream().map(gates::get).toList(),
+              wires
+          )
+      );
+      allGis.removeAll(subnetGis);
+    }
+    return networks;
+  }
+
+  private void findWiredGates(int gi, SequencedSet<Integer> gis) {
+    if (gis.contains(gi)) {
+      return;
+    }
+    gis.add(gi);
+    for (Wire w : wiresFrom(gi)) {
+      findWiredGates(w.dst().gateIndex(), gis);
+    }
+    for (Wire w : wiresTo(gi)) {
+      findWiredGates(w.src().gateIndex(), gis);
+    }
+  }
+
 }
