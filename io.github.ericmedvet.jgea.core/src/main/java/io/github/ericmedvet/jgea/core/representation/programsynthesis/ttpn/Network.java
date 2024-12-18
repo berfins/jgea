@@ -79,6 +79,22 @@ public final class Network implements Sized {
 
   private record TypedEndPoint(Wire.EndPoint endPoint, Type type) {}
 
+  public List<Type> inputTypes() {
+    return gates()
+        .stream()
+        .filter(g -> g instanceof Gate.InputGate)
+        .map(g -> ((Gate.InputGate) g).type())
+        .toList();
+  }
+
+  public List<Type> outputTypes() {
+    return gates()
+        .stream()
+        .filter(g -> g instanceof Gate.OutputGate)
+        .map(g -> ((Gate.OutputGate) g).type())
+        .toList();
+  }
+
   private void computeConcreteTypes() throws TypeException {
     // fill with non-generic types
     for (int gi = 0; gi < gates.size(); gi = gi + 1) {

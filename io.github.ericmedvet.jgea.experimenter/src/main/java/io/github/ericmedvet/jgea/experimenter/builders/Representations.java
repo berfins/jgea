@@ -228,16 +228,8 @@ public class Representations {
         .collect(Collectors.toCollection(LinkedHashSet::new));
     return ttpn -> new Representation<>(
         new NetworkFactory(
-            ttpn.gates()
-                .stream()
-                .filter(g -> g instanceof Gate.InputGate)
-                .map(g -> ((Gate.InputGate) g).type())
-                .toList(),
-            ttpn.gates()
-                .stream()
-                .filter(g -> g instanceof Gate.OutputGate)
-                .map(g -> ((Gate.OutputGate) g).type())
-                .toList(),
+            ttpn.inputTypes(),
+            ttpn.outputTypes(),
             actualGates,
             maxNOfGates
         ),

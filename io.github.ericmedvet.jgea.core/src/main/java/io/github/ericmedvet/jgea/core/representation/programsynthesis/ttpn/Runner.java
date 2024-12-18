@@ -87,11 +87,7 @@ public class Runner {
 
   public InstrumentedProgram.Outcome run(Network network, List<Object> inputs) throws ProgramExecutionException {
     // check validity
-    List<Type> inputTypes = network.gates()
-        .stream()
-        .filter(g -> g instanceof Gate.InputGate)
-        .map(g -> ((Gate.InputGate) g).type())
-        .toList();
+    List<Type> inputTypes = network.inputTypes();
     SortedMap<Integer, Type> outputTypes = new TreeMap<>(
         IntStream.range(0, network.gates().size())
             .filter(gi -> network.gates().get(gi) instanceof Gate.OutputGate)
