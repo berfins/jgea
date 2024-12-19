@@ -137,8 +137,25 @@ public class TTPNMain {
         );
   }
 
+  private static void weirdOne() throws NetworkStructureException, TypeException {
+    Network n = new Network(
+        List.of(
+            Gate.input(Composed.sequence(Base.REAL)),
+            Gates.queuer(),
+            Gates.queuer(),
+            Gates.noop()
+        ),
+        Set.of(
+            Wire.of(0, 0, 1, 1),
+            Wire.of(1, 0, 2, 0),
+            Wire.of(2, 0, 3, 0)
+        )
+    );
+    new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT).show(n);
+  }
+
   private static void factory() {
-    RandomGenerator rnd = new Random(1);
+    RandomGenerator rnd = new Random();
     NetworkFactory factory = new NetworkFactory(
         List.of(Composed.sequence(Base.REAL), Composed.sequence(Base.REAL)),
         List.of(Base.REAL),
@@ -147,7 +164,8 @@ public class TTPNMain {
     );
     Network n = factory.build(rnd);
     System.out.println(n);
-    System.exit(0);
+    TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
+    drawer.show(n);
   }
 
   private static void loopedNet() throws NetworkStructureException, TypeException {
@@ -163,14 +181,10 @@ public class TTPNMain {
     );
     TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
     drawer.show(n);
-    drawer.show(n.wireFreeInputPorts(ts -> 0));
+    drawer.show(n.wireFreeInputEndPoints(ts -> 0));
   }
 
-  public static void main(
-      String[] args
-  ) throws NetworkStructureException, ProgramExecutionException, NoSuchMethodException, TypeException {
-    //loopedNet();
-    factory();
+  private static void doFactoryStuff() throws NetworkStructureException, TypeException {
     Network sn = new Network(
         List.of(
             Gate.input(Composed.sequence(Base.STRING)),
@@ -230,7 +244,7 @@ public class TTPNMain {
         )
     );
     System.out.println("===\n" + pn);
-    Network mn = n.mergedWith(pn).wireFreeInputPorts(ts -> 0).wireFreeOutputPorts(ts -> 0);
+    Network mn = n.mergedWith(pn).wireFreeInputEndPoints(ts -> 0).wireFreeOutputEndPoints(ts -> 0);
     System.out.println("===\n" + mn);
 
     RandomGenerator rnd = new Random();
@@ -265,6 +279,14 @@ public class TTPNMain {
           hnn.disjointSubnetworks().size()
       );
     }
+
+  }
+
+  public static void main(
+      String[] args
+  ) throws NetworkStructureException, ProgramExecutionException, NoSuchMethodException, TypeException {
+    //weirdOne();
+    factory();
   }
 
 }

@@ -33,13 +33,13 @@ public class NetworkUtils {
   }
 
   public static Network grow(Network n, SequencedSet<Gate> gates, RandomGenerator rnd, int maxNOfGates) {
-    while (!n.freeInputPorts().isEmpty() || !n.freeOutputPorts().isEmpty()) {
-      SequencedSet<Type> oTypes = n.freeOutputPorts()
+    while (!n.freeInputEndPoints().isEmpty() || !n.freeOutputEndPoints().isEmpty()) {
+      SequencedSet<Type> oTypes = n.freeOutputEndPoints()
           .stream()
           .map(n::concreteOutputType)
           .filter(Objects::nonNull)
           .collect(Collectors.toCollection(LinkedHashSet::new));
-      SequencedSet<Type> iTypes = n.freeInputPorts()
+      SequencedSet<Type> iTypes = n.freeInputEndPoints()
           .stream()
           .map(n::inputType)
           .filter(Objects::nonNull)
@@ -48,8 +48,8 @@ public class NetworkUtils {
       Gate gate = suitableGates.get(rnd.nextInt(suitableGates.size()));
       try {
         n = n.mergedWith(new Network(List.of(gate), Set.of()))
-            .wireFreeOutputPorts(ts -> rnd.nextInt(ts.size()))
-            .wireFreeInputPorts(ts -> rnd.nextInt(ts.size()));
+            .wireFreeOutputEndPoints(ts -> rnd.nextInt(ts.size()))
+            .wireFreeInputEndPoints(ts -> rnd.nextInt(ts.size()));
       } catch (NetworkStructureException | TypeException e) {
         return n;
       }
@@ -195,4 +195,19 @@ public class NetworkUtils {
     }
     return gates.stream().toList();
   }
+
+  public static List<Integer> compatibleInputPorts(Gate gate, Type type) {
+    return IntStream.range(0, gate.inputPorts().size())
+        .filter(pi -> gate.inputPorts().get(pi).type().canTakeValuesOf(type))
+        .boxed()
+        .toList();
+  }
+
+  public static List<Integer> compatibleOutputPorts(Gate gate, Type type) {
+    return IntStream.range(0, gate.outputTypes().size())
+        .filter(pi -> gate.outputTypes().get(pi).canTakeValuesOf(type))
+        .boxed()
+        .toList();
+  }
+
 }

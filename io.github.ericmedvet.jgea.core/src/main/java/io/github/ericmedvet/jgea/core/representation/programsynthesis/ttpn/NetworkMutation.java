@@ -49,6 +49,7 @@ public class NetworkMutation implements Mutation<Network> {
     try {
       n = new Network(n.gates(), newWires);
     } catch (NetworkStructureException | TypeException e) {
+      System.err.println("mutation exception");
       return n;
     }
     // attempt adding gates

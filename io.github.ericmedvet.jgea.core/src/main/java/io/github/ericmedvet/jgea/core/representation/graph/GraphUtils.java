@@ -76,7 +76,7 @@ public class GraphUtils {
       }
       Graph.Arc<N2> toArc = Graph.Arc.of(nodeF.apply(fromSourceNode), nodeF.apply(fromTargetNode));
       if (!toGraph.nodes().contains(toArc.getSource()) || !toGraph.nodes().contains(toArc.getTarget())) {
-
+        // TODO fix this
         System.out.println(fromArc);
         System.out.println(toArc);
         System.out.println(
@@ -91,8 +91,6 @@ public class GraphUtils {
                 .filter(n -> n.equals(fromArc.getTarget()))
                 .toList()
         );
-
-        System.out.println("OCIO!");
       }
       Collection<A1> fromArcValues = arcMap.getOrDefault(toArc, new ArrayList<>());
       fromArcValues.add(fromGraph.getArcValue(fromArc));

@@ -36,7 +36,7 @@ public record Tuple(List<Type> types) implements Composed {
   @Override
   public boolean canTakeValuesOf(Type other) {
     if (other instanceof Tuple(List<Type>otherTypes)) {
-      if (otherTypes.size() != types.size()) {
+      if (otherTypes.size() == types.size()) {
         for (int i = 0; i < types.size(); i++) {
           if (!types.get(i).canTakeValuesOf(otherTypes.get(i))) {
             return false;

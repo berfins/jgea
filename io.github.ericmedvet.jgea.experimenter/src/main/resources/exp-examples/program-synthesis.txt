@@ -3,8 +3,7 @@ $nEvals = [5000]
 ea.experiment(
   runs = (randomGenerator = (seed = [1:1:1]) * [m.defaultRG()]) *
     (problem = [
-      % ea.p.ps.synthetic(name = "vProduct"; nOfCases = 20)
-      ea.p.ps.synthetic(name = "vProduct"; nOfCases = 20; maxExceptionRate = 0.5)
+      ea.p.ps.synthetic(name = "vProduct"; nOfCases = 20; maxExceptionRate = 0)
     ]) *
     (solver = (nEval = $nEvals) * [
       ea.s.ttpnGp()
