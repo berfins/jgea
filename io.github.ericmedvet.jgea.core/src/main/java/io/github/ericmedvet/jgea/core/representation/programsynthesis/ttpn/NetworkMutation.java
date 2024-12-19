@@ -52,6 +52,6 @@ public class NetworkMutation implements Mutation<Network> {
       return n;
     }
     // attempt adding gates
-    return NetworkUtils.rewire(n, gates, rnd, maxNOfGates);
+    return NetworkUtils.grow(n, gates, rnd, maxNOfGates);
   }
 }

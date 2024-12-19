@@ -22,7 +22,9 @@ package io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn;
 import io.github.ericmedvet.jgea.core.IndependentFactory;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
-import java.util.*;
+import java.util.List;
+import java.util.SequencedSet;
+import java.util.Set;
 import java.util.random.RandomGenerator;
 import java.util.stream.Stream;
 
@@ -49,7 +51,7 @@ public class NetworkFactory implements IndependentFactory<Network> {
           ).toList(),
           Set.of()
       );
-      return NetworkUtils.rewire(n, gates, rnd, maxNOfGates);
+      return NetworkUtils.grow(n, gates, rnd, maxNOfGates);
     } catch (NetworkStructureException | TypeException e) {
       throw new RuntimeException(e);
     }

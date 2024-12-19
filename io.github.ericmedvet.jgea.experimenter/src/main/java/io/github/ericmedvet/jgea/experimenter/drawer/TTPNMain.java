@@ -23,22 +23,64 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.Instrument
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.Program;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.ProgramExecutionException;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.*;
-import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.*;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Base;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Composed;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.StringParser;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
 import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
 import io.github.ericmedvet.jgea.core.util.IntRange;
 import io.github.ericmedvet.jgea.problem.programsynthesis.DataFactory;
 import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisFitness;
 import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisProblem;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
-
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.random.RandomGenerator;
-import java.util.stream.Collectors;
 
 public class TTPNMain {
+  private static List<Gate> allGates() {
+    return List.of(
+        Gates.rPMathOperator(Element.Operator.MULTIPLICATION),
+        Gates.rPMathOperator(Element.Operator.ADDITION),
+        Gates.rPMathOperator(Element.Operator.SUBTRACTION),
+        Gates.rPMathOperator(Element.Operator.DIVISION),
+        Gates.iPMathOperator(Element.Operator.MULTIPLICATION),
+        Gates.iPMathOperator(Element.Operator.ADDITION),
+        Gates.iPMathOperator(Element.Operator.SUBTRACTION),
+        Gates.iPMathOperator(Element.Operator.DIVISION),
+        Gates.rSPSum(),
+        Gates.rSPMult(),
+        Gates.rSSum(),
+        Gates.rSMult(),
+        Gates.iSPSum(),
+        Gates.iSPMult(),
+        Gates.iSSum(),
+        Gates.iSMult(),
+        Gates.splitter(),
+        Gates.sSplitter(),
+        Gates.pairer(),
+        Gates.unpairer(),
+        Gates.noop(),
+        Gates.length(),
+        Gates.iTh(),
+        Gates.sequencer(),
+        Gates.rToI(),
+        Gates.iToR(),
+        Gates.sink(),
+        Gates.queuer(),
+        Gates.equal(),
+        Gates.iBefore(),
+        Gates.rBefore(),
+        Gates.sBefore(),
+        Gates.select(),
+        Gates.bOr(),
+        Gates.bAnd(),
+        Gates.bXor()
+    );
+  }
+
   private static void doComputationStuff(Network n) throws NoSuchMethodException, ProgramExecutionException {
     DataFactory df = new DataFactory(
         List.of(1, 2, 3),
@@ -95,28 +137,12 @@ public class TTPNMain {
         );
   }
 
-  private static void loopedNet() throws NetworkStructureException, TypeException {
-    Network n = new Network(
-        List.of(
-            Gate.input(Base.INT),
-            Gates.pairer()
-        ),
-        Set.of(
-            //Wire.of(0,0,1,0),
-            //Wire.of(1,0,1,1)
-        )
-    );
-    TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
-    drawer.show(n);
-    drawer.show(n.wireFreeInputPorts(ts -> 0));
-  }
-
   private static void factory() {
     RandomGenerator rnd = new Random(1);
     NetworkFactory factory = new NetworkFactory(
         List.of(Composed.sequence(Base.REAL), Composed.sequence(Base.REAL)),
         List.of(Base.REAL),
-        allGates().stream().collect(Collectors.toCollection(LinkedHashSet::new)),
+        new LinkedHashSet<>(allGates()),
         10
     );
     Network n = factory.build(rnd);
@@ -124,45 +150,20 @@ public class TTPNMain {
     System.exit(0);
   }
 
-  private static List<Gate> allGates() {
-    return List.of(
-        Gates.rPMathOperator(Element.Operator.MULTIPLICATION),
-        Gates.rPMathOperator(Element.Operator.ADDITION),
-        Gates.rPMathOperator(Element.Operator.SUBTRACTION),
-        Gates.rPMathOperator(Element.Operator.DIVISION),
-        Gates.iPMathOperator(Element.Operator.MULTIPLICATION),
-        Gates.iPMathOperator(Element.Operator.ADDITION),
-        Gates.iPMathOperator(Element.Operator.SUBTRACTION),
-        Gates.iPMathOperator(Element.Operator.DIVISION),
-        Gates.rSPSum(),
-        Gates.rSPMult(),
-        Gates.rSSum(),
-        Gates.rSMult(),
-        Gates.iSPSum(),
-        Gates.iSPMult(),
-        Gates.iSSum(),
-        Gates.iSMult(),
-        Gates.splitter(),
-        Gates.sSplitter(),
-        Gates.pairer(),
-        Gates.unpairer(),
-        Gates.noop(),
-        Gates.length(),
-        Gates.iTh(),
-        Gates.sequencer(),
-        Gates.rToI(),
-        Gates.iToR(),
-        Gates.sink(),
-        Gates.queuer(),
-        Gates.equal(),
-        Gates.iBefore(),
-        Gates.rBefore(),
-        Gates.sBefore(),
-        Gates.select(),
-        Gates.bOr(),
-        Gates.bAnd(),
-        Gates.bXor()
+  private static void loopedNet() throws NetworkStructureException, TypeException {
+    Network n = new Network(
+        List.of(
+            Gate.input(Base.INT),
+            Gates.pairer()
+        ),
+        Set.of(
+          //Wire.of(0,0,1,0),
+          //Wire.of(1,0,1,1)
+        )
     );
+    TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
+    drawer.show(n);
+    drawer.show(n.wireFreeInputPorts(ts -> 0));
   }
 
   public static void main(

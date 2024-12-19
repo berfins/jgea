@@ -32,6 +32,34 @@ public class NetworkUtils {
   private NetworkUtils() {
   }
 
+  public static Network grow(Network n, SequencedSet<Gate> gates, RandomGenerator rnd, int maxNOfGates) {
+    while (!n.freeInputPorts().isEmpty() || !n.freeOutputPorts().isEmpty()) {
+      SequencedSet<Type> oTypes = n.freeOutputPorts()
+          .stream()
+          .map(n::concreteOutputType)
+          .filter(Objects::nonNull)
+          .collect(Collectors.toCollection(LinkedHashSet::new));
+      SequencedSet<Type> iTypes = n.freeInputPorts()
+          .stream()
+          .map(n::inputType)
+          .filter(Objects::nonNull)
+          .collect(Collectors.toCollection(LinkedHashSet::new));
+      List<Gate> suitableGates = suitableGates(gates, oTypes, iTypes);
+      Gate gate = suitableGates.get(rnd.nextInt(suitableGates.size()));
+      try {
+        n = n.mergedWith(new Network(List.of(gate), Set.of()))
+            .wireFreeOutputPorts(ts -> rnd.nextInt(ts.size()))
+            .wireFreeInputPorts(ts -> rnd.nextInt(ts.size()));
+      } catch (NetworkStructureException | TypeException e) {
+        return n;
+      }
+      if (n.gates().size() > maxNOfGates) {
+        return n;
+      }
+    }
+    return n;
+  }
+
   public static Network randomHoledNetwork(
       Network n,
       RandomGenerator rnd,
@@ -133,34 +161,6 @@ public class NetworkUtils {
         gis.stream().map(gi -> n.gates().get(gi)).toList(),
         wires
     );
-  }
-
-  public static Network rewire(Network n, SequencedSet<Gate> gates, RandomGenerator rnd, int maxNOfGates) {
-    while (!n.freeInputPorts().isEmpty() || !n.freeOutputPorts().isEmpty()) {
-      SequencedSet<Type> oTypes = n.freeOutputPorts()
-          .stream()
-          .map(n::concreteOutputType)
-          .filter(Objects::nonNull)
-          .collect(Collectors.toCollection(LinkedHashSet::new));
-      SequencedSet<Type> iTypes = n.freeInputPorts()
-          .stream()
-          .map(n::inputType)
-          .filter(Objects::nonNull)
-          .collect(Collectors.toCollection(LinkedHashSet::new));
-      List<Gate> suitableGates = suitableGates(gates, oTypes, iTypes);
-      Gate gate = suitableGates.get(rnd.nextInt(suitableGates.size()));
-      try {
-        n = n.mergedWith(new Network(List.of(gate), Set.of()))
-            .wireFreeOutputPorts(ts -> rnd.nextInt(ts.size()))
-            .wireFreeInputPorts(ts -> rnd.nextInt(ts.size()));
-      } catch (NetworkStructureException | TypeException e) {
-        return n;
-      }
-      if (n.gates().size() > maxNOfGates) {
-        return n;
-      }
-    }
-    return n;
   }
 
   private static List<Gate> suitableGates(
