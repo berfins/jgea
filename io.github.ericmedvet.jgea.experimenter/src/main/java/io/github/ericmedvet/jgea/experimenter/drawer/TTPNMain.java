@@ -141,14 +141,12 @@ public class TTPNMain {
     Network n = new Network(
         List.of(
             Gate.input(Composed.sequence(Base.REAL)),
-            Gates.queuer(),
-            Gates.queuer(),
-            Gates.noop()
+            Gates.select(),
+            Gates.length()
         ),
         Set.of(
             Wire.of(0, 0, 1, 1),
-            Wire.of(1, 0, 2, 0),
-            Wire.of(2, 0, 3, 0)
+            Wire.of(1, 0, 2, 0)
         )
     );
     new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT).show(n);

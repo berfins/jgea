@@ -24,6 +24,7 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
 import java.util.*;
 import java.util.random.RandomGenerator;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class NetworkFactory implements IndependentFactory<Network> {
@@ -50,12 +51,17 @@ public class NetworkFactory implements IndependentFactory<Network> {
           Set.of()
       );
       while (n.gates().size() < maxNOfGates) {
-        n = growOnOutputs(n, rnd);
-        //n = growOnInputs(n, rnd);
+        if (rnd.nextBoolean()) {
+          n = growOnOutputs(n, rnd);
+        } else {
+          n = growOnInputs(n, rnd);
+        }
         //n = n.wireFreeOutputEndPoints(ts -> rnd.nextInt(ts.size()));
         //n = n.wireFreeInputEndPoints(ts -> rnd.nextInt(ts.size()));
         System.out.println("=========");
         System.out.println(n);
+        System.out.println("===");
+        wireSubnetworks(n, rnd);
       }
       return n;
       //return NetworkUtils.grow(n, gates, rnd, maxNOfGates);
@@ -72,7 +78,6 @@ public class NetworkFactory implements IndependentFactory<Network> {
         .min(Comparator.comparingInt(WeightedEndPoint::distance))
         .map(WeightedEndPoint::endPoint);
     if (oFreeEndPoint.isEmpty()) {
-      System.out.println("\tno free out");
       return n;
     }
     Wire.EndPoint freeEndPoint = oFreeEndPoint.get();
@@ -102,7 +107,6 @@ public class NetworkFactory implements IndependentFactory<Network> {
         .min(Comparator.comparingInt(WeightedEndPoint::distance))
         .map(WeightedEndPoint::endPoint);
     if (oFreeEndPoint.isEmpty()) {
-      System.out.println("\tno free in");
       return n;
     }
     Wire.EndPoint freeEndPoint = oFreeEndPoint.get();
@@ -122,6 +126,70 @@ public class NetworkFactory implements IndependentFactory<Network> {
     newWires.add(wire);
     System.out.printf("\tIN NEW GATE: %d:%s\tNEW WIRE: %s%n", n.gates().size(), gate, wire);
     return new Network(newGates, newWires);
+  }
+
+  private Network wireSubnetworks(Network n, RandomGenerator rnd) {
+    enum IOType { I, O }
+    record EnrichedEndPoint(int subnetIndex, int nOfWires, Type type, IOType ioType, Wire.EndPoint endPoint) {}
+    List<EnrichedEndPoint> eeps = new ArrayList<>();
+    List<List<Integer>> subnetsGis = n.disjointSubnetworksGateIndexes();
+    for (int si = 0; si < subnetsGis.size(); si = si + 1) {
+      for (int gi : subnetsGis.get(si)) {
+        for (int pi = 0; pi < n.gates().get(gi).outputTypes().size(); pi = pi + 1) {
+          Wire.EndPoint ep = new Wire.EndPoint(gi, pi);
+          eeps.add(
+              new EnrichedEndPoint(
+                  si,
+                  n.wiresFrom(gi, pi).size(),
+                  n.concreteOutputType(ep),
+                  IOType.O,
+                  ep
+              )
+          );
+        }
+        for (int pi = 0; pi < n.gates().get(gi).inputPorts().size(); pi = pi + 1) {
+          Wire.EndPoint ep = new Wire.EndPoint(gi, pi);
+          eeps.add(
+              new EnrichedEndPoint(
+                  si,
+                  n.wireTo(gi, pi).isEmpty() ? 0 : 1,
+                  n.concreteInputType(ep),
+                  IOType.I,
+                  ep
+              )
+          );
+        }
+      }
+    }
+    Map<Type, List<EnrichedEndPoint>> iEeps = eeps.stream()
+        .filter(eep -> eep.ioType == IOType.I && eep.nOfWires == 0)
+        .collect(Collectors.groupingBy(eep -> eep.type));
+    Map<Type, List<EnrichedEndPoint>> oEeps = eeps.stream()
+        .filter(eep -> eep.ioType == IOType.O)
+        .collect(Collectors.groupingBy(eep -> eep.type));
+    iEeps.forEach(
+        (t, lEeps) -> System.out.printf(
+            "input %s:%n\t%s%n",
+            t,
+            lEeps.stream()
+                .map(EnrichedEndPoint::toString)
+                .collect(
+                    Collectors.joining("\n\t")
+                )
+        )
+    );
+    oEeps.forEach(
+        (t, lEeps) -> System.out.printf(
+            "output %s:%n\t%s%n",
+            t,
+            lEeps.stream()
+                .map(EnrichedEndPoint::toString)
+                .collect(
+                    Collectors.joining("\n\t")
+                )
+        )
+    );
+    return n;
   }
 
 }

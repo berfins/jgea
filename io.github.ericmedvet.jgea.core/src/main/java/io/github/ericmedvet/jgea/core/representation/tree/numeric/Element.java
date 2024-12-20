@@ -27,10 +27,10 @@ public interface Element {
 
   enum Operator implements Element, ToDoubleFunction<double[]>, Serializable {
     ADDITION("+", x -> x[0] + x[1], 2), SUBTRACTION("-", x -> x[0] - x[1], 2), DIVISION(
-        "/",
+        "÷",
         x -> x[0] / x[1],
         2
-    ), PROT_DIVISION("p/", x -> (x[1] != 0d) ? (x[0] / x[1]) : 1, 2), MULTIPLICATION("*", x -> x[0] * x[1], 2), LOG(
+    ), PROT_DIVISION("p÷", x -> (x[1] != 0d) ? (x[0] / x[1]) : 1, 2), MULTIPLICATION("*", x -> x[0] * x[1], 2), LOG(
         "log",
         x -> Math.log(x[0]),
         1
@@ -38,7 +38,7 @@ public interface Element {
         "sin",
         x -> Math.sin(x[0]),
         1
-    ), COS("cos", x -> Math.cos(x[0]), 1), INVERSE("1/", x -> 1d / x[0], 1), OPPOSITE("_", x -> 0d - x[0], 1), SQRT(
+    ), COS("cos", x -> Math.cos(x[0]), 1), INVERSE("1÷", x -> 1d / x[0], 1), OPPOSITE("_", x -> 0d - x[0], 1), SQRT(
         "√",
         x -> Math.sqrt(x[0]),
         1

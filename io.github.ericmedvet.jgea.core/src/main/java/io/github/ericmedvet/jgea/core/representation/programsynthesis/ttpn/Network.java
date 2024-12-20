@@ -150,7 +150,10 @@ public final class Network implements Sized {
   }
 
   public Type concreteInputType(Wire.EndPoint endPoint) {
-    return inputConcreteTypes.get(endPoint);
+    return inputConcreteTypes.getOrDefault(
+        endPoint,
+        gates.get(endPoint.gateIndex()).inputPorts().get(endPoint.portIndex()).type()
+    );
   }
 
   public Map<Generic, Type> concreteMapping(int gi) {
@@ -158,37 +161,45 @@ public final class Network implements Sized {
   }
 
   public Type concreteOutputType(Wire.EndPoint endPoint) {
-    return outputConcreteTypes.get(endPoint);
+    return outputConcreteTypes.getOrDefault(
+        endPoint,
+        gates.get(endPoint.gateIndex()).outputTypes().get(endPoint.portIndex())
+    );
   }
 
-  public List<Network> disjointSubnetworks() throws NetworkStructureException, TypeException {
-    List<Network> networks = new ArrayList<>();
+  public List<List<Integer>> disjointSubnetworksGateIndexes() {
+    List<List<Integer>> subnetworkGis = new ArrayList<>();
     SequencedSet<Integer> allGis = new LinkedHashSet<>(IntStream.range(0, gates.size()).boxed().toList());
     while (!allGis.isEmpty()) {
       SequencedSet<Integer> subnetGis = new LinkedHashSet<>();
       findWiredGates(allGis.getFirst(), subnetGis);
-      List<Integer> selectedGis = subnetGis.stream().toList();
-      SequencedSet<Wire> wires = wires()
-          .stream()
-          .filter(w -> subnetGis.contains(w.src().gateIndex()) && subnetGis.contains(w.dst().gateIndex()))
-          .map(
-              w -> Wire.of(
-                  selectedGis.indexOf(w.src().gateIndex()),
-                  w.src().portIndex(),
-                  selectedGis.indexOf(w.dst().gateIndex()),
-                  w.dst().portIndex()
-              )
-          )
-          .collect(Collectors.toCollection(LinkedHashSet::new));
-      networks.add(
-          new Network(
-              subnetGis.stream().map(gates::get).toList(),
-              wires
-          )
-      );
+      subnetworkGis.add(subnetGis.stream().toList());
       allGis.removeAll(subnetGis);
     }
-    return networks;
+    return subnetworkGis;
+  }
+
+  public List<Network> disjointSubnetworks() throws NetworkStructureException, TypeException {
+    List<Network> list = new ArrayList<>();
+    for (List<Integer> integers : disjointSubnetworksGateIndexes()) {
+      Network network = new Network(
+          integers.stream().map(gates::get).toList(),
+          wires()
+              .stream()
+              .filter(w -> integers.contains(w.src().gateIndex()) && integers.contains(w.dst().gateIndex()))
+              .map(
+                  w -> Wire.of(
+                      integers.indexOf(w.src().gateIndex()),
+                      w.src().portIndex(),
+                      integers.indexOf(w.dst().gateIndex()),
+                      w.dst().portIndex()
+                  )
+              )
+              .collect(Collectors.toCollection(LinkedHashSet::new))
+      );
+      list.add(network);
+    }
+    return list;
   }
 
   private void findWiredGates(int gi, SequencedSet<Integer> gis) {
@@ -358,7 +369,7 @@ public final class Network implements Sized {
     }
     int d = wires.stream()
         .filter(w -> !visitedGis.contains(w.dst().gateIndex()))
-        .mapToInt(w -> outputDistanceFrom(gateClass, w.dst().gateIndex(), visitedGis) + 1)
+        .mapToInt(w -> outputDistanceFrom(gateClass, w.dst().gateIndex(), visitedGis))
         .min()
         .orElse(Integer.MAX_VALUE);
     return (d == Integer.MAX_VALUE) ? Integer.MAX_VALUE : (d + 1);
@@ -403,7 +414,7 @@ public final class Network implements Sized {
           if (oToWire.isPresent()) {
             Wire toWire = oToWire.get();
             Type concreteType = concreteOutputType(toWire.src());
-            if (concreteType != null) {
+            if (!concreteType.isGeneric()) {
               maps.add(gate.inputPorts().get(j).type().resolveGenerics(concreteType));
             }
           }
@@ -412,7 +423,7 @@ public final class Network implements Sized {
         for (int j = 0; j < gate.outputTypes().size(); j++) {
           for (Wire fromWire : wiresFrom(new Wire.EndPoint(gi, j))) {
             Type concreteType = concreteInputType(fromWire.dst());
-            if (concreteType != null && !concreteType.isGeneric()) {
+            if (!concreteType.isGeneric()) {
               maps.add(gate.outputTypes().get(j).resolveGenerics(concreteType));
             }
           }
