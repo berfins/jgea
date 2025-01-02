@@ -153,17 +153,18 @@ public class TTPNMain {
   }
 
   private static void factory() {
-    RandomGenerator rnd = new Random();
+    RandomGenerator rnd = new Random(1);
     NetworkFactory factory = new NetworkFactory(
         List.of(Composed.sequence(Base.REAL), Composed.sequence(Base.REAL)),
         List.of(Base.REAL),
         new LinkedHashSet<>(allGates()),
         10
     );
-    Network n = factory.build(rnd);
-    System.out.println(n);
     TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
-    drawer.show(n);
+    factory.build(rnd, n -> {
+      drawer.show(n);
+      System.out.printf("======%n%s%n===%n", n);
+    });
   }
 
   private static void loopedNet() throws NetworkStructureException, TypeException {

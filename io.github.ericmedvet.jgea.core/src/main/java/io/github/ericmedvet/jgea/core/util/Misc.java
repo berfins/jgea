@@ -138,7 +138,7 @@ public class Misc {
   public static <T> Set<T> intersection(Set<T> set1, Set<T> set2) {
     return union(set1, set2).stream()
         .filter(t -> set1.contains(t) && set2.contains(t))
-        .collect(Collectors.toSet());
+        .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
   public static double median(double... values) {
@@ -195,7 +195,6 @@ public class Misc {
     return first(options.keySet());
   }
 
-  @SuppressWarnings("unchecked")
   public static <T> T pickRandomly(Collection<T> ts, RandomGenerator random) {
     if (ts instanceof List<T> list) {
       return list.get(random.nextInt(ts.size()));
