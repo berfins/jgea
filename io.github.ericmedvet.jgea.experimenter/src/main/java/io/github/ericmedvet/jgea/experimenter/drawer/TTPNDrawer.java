@@ -28,6 +28,7 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.problem.image.ImageUtils;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
 import io.github.ericmedvet.jviz.core.drawer.Drawer;
+
 import java.awt.*;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
@@ -45,7 +46,7 @@ public class TTPNDrawer implements Drawer<Network> {
   }
 
   public record Configuration(
-      Color bgColor, Color fgColor, Map<Base, Color> baseTypeColors, Color otherTypeColor, double gateW,
+      Color bgColor, Color fgColor, Map<Base, Color> baseTypeColors, Color otherTypeColor, double gateW, double wireW,
       double gateWHRatio, double portRadiusHRate, double gapWRate, double gapHRate, double marginWRate,
       double marginHRate, double gateOutputWRate, double gateOutputHRate, double ioGateOutputWRate,
       double ioGateOutputHRate, double textHMarginRate
@@ -61,6 +62,7 @@ public class TTPNDrawer implements Drawer<Network> {
         ),
         Color.GRAY,
         100,
+        5,
         1.5d,
         0.1d,
         0.5d,
@@ -238,9 +240,27 @@ public class TTPNDrawer implements Drawer<Network> {
     //draw gates
     IntStream.range(0, network.gates().size()).forEach(gi -> drawGate(g, m, gi, network));
     //draw wires
+    network.wires().forEach(w -> drawWire(g, m, w, network));
+  }
+
+  private void drawWire(Graphics2D g, Metrics m, Wire w, Network network) {
+    Path2D path = computeWirePath(m, w, network);
+    Stroke stroke = g.getStroke();
     g.setColor(configuration.fgColor);
-    network.wires()
-        .forEach(w -> g.draw(computeWirePath(m, w, network)));
+    g.setStroke(new BasicStroke(
+        (float) configuration.wireW,
+        BasicStroke.CAP_BUTT,
+        BasicStroke.JOIN_BEVEL
+    ));
+    g.draw(path);
+    g.setColor(configuration.bgColor);
+    g.setStroke(new BasicStroke(
+        (float) configuration.wireW-2f,
+        BasicStroke.CAP_BUTT,
+        BasicStroke.JOIN_BEVEL
+    ));
+    g.draw(path);
+    g.setStroke(stroke);
   }
 
   private void drawGate(Graphics2D g, Metrics m, int gi, Network network) {
