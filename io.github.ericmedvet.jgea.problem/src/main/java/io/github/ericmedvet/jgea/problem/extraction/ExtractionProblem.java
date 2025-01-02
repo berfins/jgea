@@ -20,17 +20,25 @@
 
 package io.github.ericmedvet.jgea.problem.extraction;
 
+import io.github.ericmedvet.jgea.core.order.ParetoDominance;
+import io.github.ericmedvet.jgea.core.order.PartialComparator;
 import io.github.ericmedvet.jgea.core.problem.MultiHomogeneousObjectiveProblem;
+import io.github.ericmedvet.jgea.core.problem.SimpleMultiHomogeneousObjectiveProblem;
 import io.github.ericmedvet.jgea.core.representation.graph.finiteautomata.Extractor;
 import io.github.ericmedvet.jgea.core.util.IntRange;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import io.github.ericmedvet.jnb.datastructure.Pair;
-import java.util.*;
 
-public class ExtractionProblem<S> implements MultiHomogeneousObjectiveProblem<Extractor<S>, Double> {
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+public class ExtractionProblem<S> implements SimpleMultiHomogeneousObjectiveProblem<Extractor<S>, Double> {
 
   private final ExtractionFitness<S> fitnessFunction;
   private final ExtractionFitness<S> validationFunction;
+  private final SequencedMap<String, Objective<Map<String, Double>, Double>> objectives;
+  private final PartialComparator<MultiHomogeneousObjectiveProblem.Outcome<Map<String, Double>, Double>> qualityComparator;
 
   public ExtractionProblem(
       Set<Extractor<S>> extractors,
@@ -46,6 +54,14 @@ public class ExtractionProblem<S> implements MultiHomogeneousObjectiveProblem<Ex
         metrics
     );
     validationFunction = new ExtractionFitness<>(validationDataset.first(), validationDataset.second(), metrics);
+    objectives = Arrays.stream(metrics).collect(
+        Collectors.toMap(
+            Enum::toString,
+            m -> Objective.from(m.toString(), Double::compareTo),
+            (c1, c2) -> c1,
+            LinkedHashMap::new
+        ));
+    qualityComparator = Outcome.partialComparator(ParetoDominance.build(Double.class, objectives.size()));
   }
 
   private static <S> Pair<List<S>, Set<IntRange>> buildDataset(
@@ -75,17 +91,22 @@ public class ExtractionProblem<S> implements MultiHomogeneousObjectiveProblem<Ex
     return new Pair<>(builtSequence, desiredExtractions);
   }
 
-  @Override
-  public List<Comparator<Double>> comparators() {
-    return Collections.nCopies(fitnessFunction.getMetrics().size(), Double::compareTo);
-  }
-
-  @Override
-  public ExtractionFitness<S> qualityFunction() {
-    return fitnessFunction;
-  }
-
   public ExtractionFitness<S> validationQualityFunction() {
     return validationFunction;
+  }
+
+  @Override
+  public SequencedMap<String, Objective<Map<String, Double>, Double>> objectives() {
+    return objectives;
+  }
+
+  @Override
+  public Function<Extractor<S>, Map<String, Double>> outcomeFunction() {
+    return fitnessFunction::apply;
+  }
+
+  @Override
+  public PartialComparator<Outcome<Map<String, Double>, Double>> qualityComparator() {
+    return qualityComparator;
   }
 }

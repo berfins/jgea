@@ -38,7 +38,12 @@ import java.util.function.Predicate;
 import java.util.random.RandomGenerator;
 import java.util.stream.Stream;
 
-public abstract class AbstractPopulationBasedIterativeSolver<T extends POCPopulationState<I, G, S, Q, P>, P extends QualityBasedProblem<S, Q>, I extends Individual<G, S, Q>, G, S, Q> implements IterativeSolver<T, P, S> {
+public abstract class AbstractPopulationBasedIterativeSolver<
+    T extends POCPopulationState<I, G, S, Q, P>,
+    P extends QualityBasedProblem<S, Q>,
+    I extends Individual<G, S, Q>,
+    G, S, Q
+  > implements IterativeSolver<T, P, S> {
 
   protected final Function<? super G, ? extends S> solutionMapper;
   protected final Factory<? extends G> genotypeFactory;

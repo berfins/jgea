@@ -24,8 +24,9 @@ import io.github.ericmedvet.jgea.core.representation.graph.finiteautomata.Extrac
 import io.github.ericmedvet.jgea.core.util.IntRange;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
-public class ExtractionFitness<S> implements Function<Extractor<S>, List<Double>> {
+public class ExtractionFitness<S> implements Function<Extractor<S>, SequencedMap<String, Double>> {
 
   private final Aggregator<S> aggregator;
 
@@ -37,7 +38,7 @@ public class ExtractionFitness<S> implements Function<Extractor<S>, List<Double>
     ONE_MINUS_PREC, ONE_MINUS_REC, ONE_MINUS_FM, SYMBOL_FNR, SYMBOL_FPR, SYMBOL_ERROR, SYMBOL_WEIGHTED_ERROR
   }
 
-  private static class Aggregator<S> implements Function<Set<IntRange>, List<Double>> {
+  private static class Aggregator<S> implements Function<Set<IntRange>, SequencedMap<String, Double>> {
 
     private final List<S> sequence;
     private final Set<IntRange> desiredExtractions;
@@ -54,7 +55,7 @@ public class ExtractionFitness<S> implements Function<Extractor<S>, List<Double>
     }
 
     @Override
-    public List<Double> apply(Set<IntRange> extractions) {
+    public SequencedMap<String, Double> apply(Set<IntRange> extractions) {
       Map<Metric, Double> values = new EnumMap<>(Metric.class);
       if (metrics.contains(Metric.ONE_MINUS_FM) || metrics.contains(Metric.ONE_MINUS_PREC) || metrics.contains(
           Metric.ONE_MINUS_REC
@@ -91,11 +92,12 @@ public class ExtractionFitness<S> implements Function<Extractor<S>, List<Double>
             (falsePositiveSymbols / (trueNegativeChars + falsePositiveSymbols) + falseNegativeSymbols / (truePositiveSymbols + falseNegativeSymbols)) / 2d
         );
       }
-      List<Double> results = new ArrayList<>(metrics.size());
-      for (Metric metric : metrics) {
-        results.add(values.get(metric));
-      }
-      return results;
+      return metrics.stream().collect(Collectors.toMap(
+          Enum::toString,
+          values::get,
+          (v1, v2) -> v1,
+          LinkedHashMap::new
+      ));
     }
 
     public Set<IntRange> getDesiredExtractions() {
@@ -128,7 +130,7 @@ public class ExtractionFitness<S> implements Function<Extractor<S>, List<Double>
   }
 
   @Override
-  public List<Double> apply(Extractor<S> e) {
+  public SequencedMap<String, Double> apply(Extractor<S> e) {
     return aggregator.apply(e.extractNonOverlapping(aggregator.sequence));
   }
 

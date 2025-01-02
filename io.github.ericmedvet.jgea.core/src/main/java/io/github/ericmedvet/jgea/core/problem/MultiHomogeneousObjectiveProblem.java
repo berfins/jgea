@@ -19,17 +19,63 @@
  */
 package io.github.ericmedvet.jgea.core.problem;
 
-import io.github.ericmedvet.jgea.core.order.ParetoDominance;
 import io.github.ericmedvet.jgea.core.order.PartialComparator;
-import java.util.Comparator;
-import java.util.List;
 
-public interface MultiHomogeneousObjectiveProblem<S, O> extends QualityBasedProblem<S, List<O>> {
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
-  List<Comparator<O>> comparators();
+public interface MultiHomogeneousObjectiveProblem<S, O, Q> extends QualityBasedProblem<S,
+    MultiHomogeneousObjectiveProblem.Outcome<O, Q>> {
+
+  record Objective<O, Q>(
+      Function<? super O, ? extends Q> function,
+      Comparator<Q> comparator
+  ) {
+  }
+
+  interface Outcome<O, Q> {
+    O outcome();
+
+    Map<String, Q> objectives();
+
+    static <O, Q> MultiHomogeneousObjectiveProblem.Outcome<O, Q> from(
+        O o,
+        SequencedMap<String, Objective<O, Q>> objectives
+    ) {
+      record HardOutcome<O, Q>(
+          O outcome,
+          Map<String, Q> objectives
+      ) implements Outcome<O, Q> {}
+      return new HardOutcome<>(
+          o,
+          objectives.entrySet().stream().collect(Collectors.toMap(
+              Map.Entry::getKey,
+              e -> e.getValue().function().apply(o),
+              (q1, q2) -> q1,
+              LinkedHashMap::new
+          ))
+      );
+    }
+
+    static <O, Q> PartialComparator<Outcome<O, Q>> partialComparator(
+        PartialComparator<List<Q>>
+            partialComparator
+    ) {
+      return (o1, o2) -> partialComparator.compare(
+          o1.objectives().keySet().stream().map(k -> o1.objectives().get(k)).toList(),
+          o1.objectives().keySet().stream().map(k -> o2.objectives().get(k)).toList()
+      );
+    }
+  }
+
+  SequencedMap<String, Objective<O, Q>> objectives();
+
+  Function<S, O> outcomeFunction();
 
   @Override
-  default PartialComparator<List<O>> qualityComparator() {
-    return new ParetoDominance<>(comparators());
+  default Function<S, Outcome<O, Q>> qualityFunction() {
+    return s -> Outcome.from(outcomeFunction().apply(s), objectives());
   }
+
 }

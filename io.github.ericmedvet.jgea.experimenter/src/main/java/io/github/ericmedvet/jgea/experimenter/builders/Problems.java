@@ -21,10 +21,7 @@
 package io.github.ericmedvet.jgea.experimenter.builders;
 
 import io.github.ericmedvet.jgea.core.order.PartialComparator;
-import io.github.ericmedvet.jgea.core.problem.MultiHomogeneousObjectiveProblem;
-import io.github.ericmedvet.jgea.core.problem.MultiTargetProblem;
-import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
-import io.github.ericmedvet.jgea.core.problem.TotalOrderQualityBasedProblem;
+import io.github.ericmedvet.jgea.core.problem.*;
 import io.github.ericmedvet.jgea.problem.simulation.SimulationBasedProblem;
 import io.github.ericmedvet.jgea.problem.simulation.SimulationBasedTotalOrderProblem;
 import io.github.ericmedvet.jnb.core.*;
@@ -35,7 +32,9 @@ import io.github.ericmedvet.jsdynsym.control.SimulationWithExample;
 import io.github.ericmedvet.jsdynsym.control.SingleAgentTask;
 import io.github.ericmedvet.jsdynsym.core.numerical.NumericalDynamicalSystem;
 import io.github.ericmedvet.jsdynsym.core.numerical.NumericalStatelessSystem;
+
 import java.util.Comparator;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -81,7 +80,8 @@ public class Problems {
     }
   }
 
-  private interface SimulationBasedTotalOrderProblemWithExample<S, B, O extends Simulation.Outcome<B>, Q extends Comparable<Q>> extends SimulationBasedTotalOrderProblem<S, B, O, Q>, ProblemWithExampleSolution<S> {
+  private interface SimulationBasedTotalOrderProblemWithExample<S, B, O extends Simulation.Outcome<B>,
+      Q extends Comparable<Q>> extends SimulationBasedTotalOrderProblem<S, B, O, Q>, ProblemWithExampleSolution<S> {
     static <S, B, O extends Simulation.Outcome<B>, Q extends Comparable<Q>> SimulationBasedTotalOrderProblemWithExample<S, B, O, Q> from(
         Function<O, Q> behaviorQualityFunction,
         Simulation<S, B, O> simulation,
@@ -116,7 +116,9 @@ public class Problems {
   }
 
   @SuppressWarnings("unused")
-  public static <B, Q extends Comparable<Q>> SimulationBasedTotalOrderProblem<NumericalDynamicalSystem<?>, SingleAgentTask.Step<double[], double[], B>, Simulation.Outcome<SingleAgentTask.Step<double[], double[], B>>, Q> numEnvTo(
+  public static <B, Q extends Comparable<Q>> SimulationBasedTotalOrderProblem<NumericalDynamicalSystem<?>,
+      SingleAgentTask.Step<double[], double[], B>, Simulation.Outcome<SingleAgentTask.Step<double[], double[], B>>,
+      Q> numEnvTo(
       @Param(value = "name", iS = "{environment.name}") String name,
       @Param(value = "dT", dD = 0.1) double dT,
       @Param(value = "initialT", dD = 0) double initialT,
@@ -130,7 +132,8 @@ public class Problems {
   ) {
     int nOfOutputs = environment.defaultAgentAction().length;
     int nOfInputs = environment.step(0, environment.defaultAgentAction()).length;
-    @SuppressWarnings("unchecked") Supplier<Environment<double[], double[], B>> envSupplier = () -> (Environment<double[], double[], B>) nb
+    @SuppressWarnings("unchecked") Supplier<Environment<double[], double[], B>> envSupplier =
+        () -> (Environment<double[], double[], B>) nb
         .build((NamedParamMap) map.value("environment", ParamMap.Type.NAMED_PARAM_MAP));
     return SimulationBasedTotalOrderProblemWithExample.from(
         outcomeQualityFunction,
@@ -141,7 +144,8 @@ public class Problems {
   }
 
   @SuppressWarnings("unused")
-  public static <S, B, O extends Simulation.Outcome<B>, Q extends Comparable<Q>> SimulationBasedTotalOrderProblem<S, B, O, Q> simTo(
+  public static <S, B, O extends Simulation.Outcome<B>, Q extends Comparable<Q>> SimulationBasedTotalOrderProblem<S,
+      B, O, Q> simTo(
       @Param(value = "name", iS = "{simulation.name}") String name,
       @Param("simulation") Simulation<S, B, O> simulation,
       @Param("f") Function<O, Q> outcomeQualityFunction,
@@ -195,7 +199,7 @@ public class Problems {
   }
 
   @SuppressWarnings("unused")
-  public static <S> MultiHomogeneousObjectiveProblem<S, Double> toMho(
+  public static <S> SimpleMultiHomogeneousObjectiveProblem<S, Double> mtpToMho(
       @Param(value = "name", iS = "mt2mo({mtProblem.name})") String name,
       @Param("mtProblem") MultiTargetProblem<S> mtProblem
   ) {
@@ -223,5 +227,12 @@ public class Problems {
         return Comparator.comparing(comparableFunction);
       }
     };
+  }
+
+  public static <S, O, C extends Comparable<C>> MultiHomogeneousObjectiveProblem<S, C> toMho(
+      @Param("problem") QualityBasedProblem<S, O> problem
+
+  ) {
+    return null; // TODO complete
   }
 }

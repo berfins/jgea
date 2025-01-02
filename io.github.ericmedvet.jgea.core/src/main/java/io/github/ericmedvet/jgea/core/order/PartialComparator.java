@@ -81,6 +81,10 @@ public interface PartialComparator<K> {
     return (c1, c2) -> compare(function.apply(c1), function.apply(c2));
   }
 
+  default <T> PartialComparator<T> on(Function<? super T, ? extends K> function) {
+    return (t1, t2) -> compare(function.apply(t1), function.apply(t2));
+  }
+
   default PartialComparator<K> reversed() {
     PartialComparator<K> thisComparator = this;
     return (k1, k2) -> {

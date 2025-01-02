@@ -21,11 +21,13 @@
 package io.github.ericmedvet.jgea.core.problem;
 
 import io.github.ericmedvet.jgea.core.distance.Distance;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import io.github.ericmedvet.jgea.core.order.ParetoDominance;
+import io.github.ericmedvet.jgea.core.order.PartialComparator;
+
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public interface MultiTargetProblem<S> extends TotalOrderQualityBasedProblem<S, Double> {
   Distance<S> distance();
@@ -45,19 +47,42 @@ public interface MultiTargetProblem<S> extends TotalOrderQualityBasedProblem<S, 
     return Double::compareTo;
   }
 
-  default MultiHomogeneousObjectiveProblem<S, Double> toMHOProblem() {
-    List<Comparator<Double>> comparators = Collections.nCopies(targets().size(), Double::compareTo);
-    Function<S, List<Double>> f = s -> targets().stream().map(t -> distance().apply(s, t)).toList();
+  default SimpleMultiHomogeneousObjectiveProblem<S, Double> toMHOProblem() {
+    List<S> targets = targets().stream().toList();
+    SequencedMap<String, Comparator<Double>> comparators = IntStream.range(
+        0,
+        targets.size()
+    ).boxed().collect(
+        Collectors.toMap(
+            "target%d"::formatted,
+            i -> Double::compareTo,
+            (c1, c2) -> c1,
+            TreeMap::new
+        ));
+    Function<S, Map<String, Double>> outcomeF = s -> IntStream.range(0, targets().size())
+        .boxed().collect(Collectors.toMap(
+            "target%d"::formatted,
+            i -> distance().apply(s, targets.get(i)),
+            (c1, c2) -> c1,
+            TreeMap::new
+        ));
+    PartialComparator<MultiHomogeneousObjectiveProblem.Outcome<Map<String, Double>, Double>> partialComparator = MultiHomogeneousObjectiveProblem.Outcome.partialComparator(
+        ParetoDominance.build(Double.class, comparators.size()));
     record MHOProblem<S>(
-        List<Comparator<Double>> comparators, Function<S, List<Double>> qualityFunction
-    ) implements MultiHomogeneousObjectiveProblem<S, Double> {}
+        SequencedMap<String, Comparator<Double>> comparators,
+        PartialComparator<Outcome<Map<String, Double>, Double>> qualityComparator,
+        Function<S, Map<String, Double>> outcomeFunction
+    ) implements SimpleMultiHomogeneousObjectiveProblem<S, Double> {}
     record MHOProblemWithExample<S>(
-        List<Comparator<Double>> comparators, Function<S, List<Double>> qualityFunction, S example
-    ) implements MultiHomogeneousObjectiveProblem<S, Double>, ProblemWithExampleSolution<S> {}
+        SequencedMap<String, Comparator<Double>> comparators,
+        PartialComparator<Outcome<Map<String, Double>, Double>> qualityComparator,
+        Function<S, Map<String, Double>> outcomeFunction,
+        S example
+    ) implements SimpleMultiHomogeneousObjectiveProblem<S, Double>, ProblemWithExampleSolution<S> {}
     if (this instanceof ProblemWithExampleSolution<?> pwes) {
       //noinspection unchecked
-      return new MHOProblemWithExample<>(comparators, f, (S) pwes.example());
+      return new MHOProblemWithExample<>(comparators, partialComparator, outcomeF, (S) pwes.example());
     }
-    return new MHOProblem<>(comparators, f);
+    return new MHOProblem<>(comparators, partialComparator, outcomeF);
   }
 }

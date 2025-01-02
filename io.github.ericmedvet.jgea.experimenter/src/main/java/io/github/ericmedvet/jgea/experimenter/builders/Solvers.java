@@ -277,7 +277,7 @@ public class Solvers {
 
   @SuppressWarnings("unused")
   @Cacheable
-  public static <G, S> Function<S, NsgaII<G, S>> nsga2(
+  public static <G, O, S> Function<S, NsgaII<G, O, S>> nsga2(
       @Param(value = "name", dS = "nsga2") String name,
       @Param("representation") Function<G, Representation<G>> representation,
       @Param(value = "mapper", dNPM = "ea.m.identity()") InvertibleMapper<G, S> mapper,
