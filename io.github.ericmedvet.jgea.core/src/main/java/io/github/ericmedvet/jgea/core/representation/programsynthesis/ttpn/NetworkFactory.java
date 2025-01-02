@@ -23,7 +23,6 @@ import io.github.ericmedvet.jgea.core.IndependentFactory;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
 import io.github.ericmedvet.jgea.core.util.Misc;
-
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -37,12 +36,20 @@ public class NetworkFactory implements IndependentFactory<Network> {
   private final List<Type> outputTypes;
   private final SequencedSet<Gate> gates;
   private final int maxNOfGates;
+  private final int maxNOfAttempts;
 
-  public NetworkFactory(List<Type> inputTypes, List<Type> outputTypes, SequencedSet<Gate> gates, int maxNOfGates) {
+  public NetworkFactory(
+      List<Type> inputTypes,
+      List<Type> outputTypes,
+      SequencedSet<Gate> gates,
+      int maxNOfGates,
+      int maxNOfAttempts
+  ) {
     this.inputTypes = inputTypes;
     this.outputTypes = outputTypes;
     this.gates = gates;
     this.maxNOfGates = maxNOfGates;
+    this.maxNOfAttempts = maxNOfAttempts;
   }
 
   @Override
@@ -51,10 +58,11 @@ public class NetworkFactory implements IndependentFactory<Network> {
   }
 
   public Network build(RandomGenerator rnd, Consumer<Network> consumer) {
-    enum GateAddition {GROW_IN, GROW_OUT, LINK_IO}
-    enum WireAddition {INTRA_SUBNETS, INTER_SUBNETS}
+    enum GateAddition { GROW_IN, GROW_OUT, LINK_IO }
+    enum WireAddition { INTRA_SUBNETS, INTER_SUBNETS }
     List<GateAddition> gateAdditions = new ArrayList<>(Arrays.stream(GateAddition.values()).toList());
     List<WireAddition> wireAdditions = new ArrayList<>(Arrays.stream(WireAddition.values()).toList());
+    int nOfAttempts = 0;
     try {
       Network n = new Network(
           Stream.concat(
@@ -65,36 +73,41 @@ public class NetworkFactory implements IndependentFactory<Network> {
       );
       int targetNOfGates = rnd.nextInt(n.gates().size(), maxNOfGates);
       while (true) {
-        consumer.accept(n);
-        int nOfGates = n.gates().size();
-        int nOfWires = n.wires().size();
-        if (n.gates().size() < targetNOfGates) {
-          Collections.shuffle(gateAdditions, rnd);
-          for (GateAddition gateAddition : gateAdditions) {
-            System.out.println(gateAddition);
-            n = switch (gateAddition) {
-              case GROW_IN -> growOnInputs(n, rnd);
-              case GROW_OUT -> growOnOutputs(n, rnd);
-              case LINK_IO -> growOnBoth(n, rnd);
+        try {
+          consumer.accept(n);
+          int nOfGates = n.gates().size();
+          int nOfWires = n.wires().size();
+          if (n.gates().size() < targetNOfGates) {
+            Collections.shuffle(gateAdditions, rnd);
+            for (GateAddition gateAddition : gateAdditions) {
+              n = switch (gateAddition) {
+                case GROW_IN -> growOnInputs(n, rnd);
+                case GROW_OUT -> growOnOutputs(n, rnd);
+                case LINK_IO -> growOnBoth(n, rnd);
+              };
+              if (n.gates().size() != nOfGates) {
+                break;
+              }
+            }
+          }
+          Collections.shuffle(wireAdditions, rnd);
+          for (WireAddition wireAddition : wireAdditions) {
+            n = switch (wireAddition) {
+              case INTER_SUBNETS -> wire(n, true, rnd);
+              case INTRA_SUBNETS -> wire(n, false, rnd);
             };
-            if (n.gates().size() != nOfGates) {
+            if (n.wires().size() != nOfWires) {
               break;
             }
           }
-        }
-        Collections.shuffle(wireAdditions, rnd);
-        for (WireAddition wireAddition : wireAdditions) {
-          System.out.println(wireAddition);
-          n = switch (wireAddition) {
-            case INTER_SUBNETS -> wire(n, true, rnd);
-            case INTRA_SUBNETS -> wire(n, false, rnd);
-          };
-          if (n.wires().size() != nOfWires) {
+          if (nOfGates == n.gates().size() && nOfWires == n.wires().size()) {
             break;
           }
-        }
-        if (nOfGates == n.gates().size() && nOfWires == n.wires().size()) {
-          break;
+        } catch (NetworkStructureException | TypeException e) {
+          nOfAttempts = nOfAttempts + 1;
+          if (nOfAttempts > maxNOfAttempts) {
+            return n;
+          }
         }
       }
       return n;
@@ -115,10 +128,15 @@ public class NetworkFactory implements IndependentFactory<Network> {
       for (Wire.EndPoint oEp : oEps) {
         Type oType = n.concreteOutputType(oEp);
         for (Gate gate : shuffledGates) {
-          List<Integer> suitableIps = IntStream.range(0, gate.inputPorts().size()).filter(pi -> gate.inputPorts()
-              .get(pi)
-              .type()
-              .canTakeValuesOf(oType)).boxed().toList();
+          List<Integer> suitableIps = IntStream.range(0, gate.inputPorts().size())
+              .filter(
+                  pi -> gate.inputPorts()
+                      .get(pi)
+                      .type()
+                      .canTakeValuesOf(oType)
+              )
+              .boxed()
+              .toList();
           List<Integer> suitableOps = IntStream.range(0, gate.outputTypes().size())
               .filter(pi -> iType.canTakeValuesOf(gate.outputTypes().get(pi)))
               .boxed()
@@ -138,34 +156,6 @@ public class NetworkFactory implements IndependentFactory<Network> {
       }
     }
     return n;
-  }
-
-  private Network growOnOutputs(Network n, RandomGenerator rnd) throws NetworkStructureException, TypeException {
-    record WeightedEndPoint(Wire.EndPoint endPoint, int distance) {}
-    Optional<Wire.EndPoint> oFreeEndPoint = n.freeOutputEndPoints()
-        .stream()
-        .map(ep -> new WeightedEndPoint(ep, n.inputDistanceFrom(Gate.InputGate.class, ep.gateIndex())))
-        .min(Comparator.comparingInt(WeightedEndPoint::distance))
-        .map(WeightedEndPoint::endPoint);
-    if (oFreeEndPoint.isEmpty()) {
-      return n;
-    }
-    Wire.EndPoint freeEndPoint = oFreeEndPoint.get();
-    Type type = n.concreteOutputType(freeEndPoint);
-    List<Gate> suitableGates = gates.stream()
-        .filter(g -> !NetworkUtils.compatibleInputPorts(g, type).isEmpty())
-        .toList();
-    if (suitableGates.isEmpty()) {
-      return n;
-    }
-    Gate gate = suitableGates.get(rnd.nextInt(suitableGates.size()));
-    List<Integer> pis = NetworkUtils.compatibleInputPorts(gate, type);
-    Wire wire = new Wire(freeEndPoint, new Wire.EndPoint(n.gates().size(), pis.get(rnd.nextInt(pis.size()))));
-    List<Gate> newGates = new ArrayList<>(n.gates());
-    Set<Wire> newWires = new LinkedHashSet<>(n.wires());
-    newGates.add(gate);
-    newWires.add(wire);
-    return new Network(newGates, newWires);
   }
 
   private Network growOnInputs(Network n, RandomGenerator rnd) throws NetworkStructureException, TypeException {
@@ -196,8 +186,40 @@ public class NetworkFactory implements IndependentFactory<Network> {
     return new Network(newGates, newWires);
   }
 
-  private Network wire(Network n, boolean forceDifferentSubnets, RandomGenerator rnd) throws NetworkStructureException, TypeException {
-    enum IOType {I, O}
+  private Network growOnOutputs(Network n, RandomGenerator rnd) throws NetworkStructureException, TypeException {
+    record WeightedEndPoint(Wire.EndPoint endPoint, int distance) {}
+    Optional<Wire.EndPoint> oFreeEndPoint = n.freeOutputEndPoints()
+        .stream()
+        .map(ep -> new WeightedEndPoint(ep, n.inputDistanceFrom(Gate.InputGate.class, ep.gateIndex())))
+        .min(Comparator.comparingInt(WeightedEndPoint::distance))
+        .map(WeightedEndPoint::endPoint);
+    if (oFreeEndPoint.isEmpty()) {
+      return n;
+    }
+    Wire.EndPoint freeEndPoint = oFreeEndPoint.get();
+    Type type = n.concreteOutputType(freeEndPoint);
+    List<Gate> suitableGates = gates.stream()
+        .filter(g -> !NetworkUtils.compatibleInputPorts(g, type).isEmpty())
+        .toList();
+    if (suitableGates.isEmpty()) {
+      return n;
+    }
+    Gate gate = suitableGates.get(rnd.nextInt(suitableGates.size()));
+    List<Integer> pis = NetworkUtils.compatibleInputPorts(gate, type);
+    Wire wire = new Wire(freeEndPoint, new Wire.EndPoint(n.gates().size(), pis.get(rnd.nextInt(pis.size()))));
+    List<Gate> newGates = new ArrayList<>(n.gates());
+    Set<Wire> newWires = new LinkedHashSet<>(n.wires());
+    newGates.add(gate);
+    newWires.add(wire);
+    return new Network(newGates, newWires);
+  }
+
+  private Network wire(
+      Network n,
+      boolean forceDifferentSubnets,
+      RandomGenerator rnd
+  ) throws NetworkStructureException, TypeException {
+    enum IOType { I, O }
     record EnrichedEndPoint(int subnetIndex, int nOfWires, Type type, IOType ioType, Wire.EndPoint endPoint) {}
     List<EnrichedEndPoint> eeps = new ArrayList<>();
     List<List<Integer>> subnetsGis = n.disjointSubnetworksGateIndexes();
@@ -231,18 +253,22 @@ public class NetworkFactory implements IndependentFactory<Network> {
     }
     Map<Type, List<EnrichedEndPoint>> iEeps = eeps.stream()
         .filter(eep -> eep.ioType == IOType.I && eep.nOfWires == 0)
-        .collect(Collectors.groupingBy(
-            eep -> eep.type,
-            LinkedHashMap::new,
-            Collectors.mapping(Function.identity(), Collectors.toList())
-        ));
+        .collect(
+            Collectors.groupingBy(
+                eep -> eep.type,
+                LinkedHashMap::new,
+                Collectors.mapping(Function.identity(), Collectors.toList())
+            )
+        );
     Map<Type, List<EnrichedEndPoint>> oEeps = eeps.stream()
         .filter(eep -> eep.ioType == IOType.O)
-        .collect(Collectors.groupingBy(
-            eep -> eep.type,
-            LinkedHashMap::new,
-            Collectors.mapping(Function.identity(), Collectors.toList())
-        ));
+        .collect(
+            Collectors.groupingBy(
+                eep -> eep.type,
+                LinkedHashMap::new,
+                Collectors.mapping(Function.identity(), Collectors.toList())
+            )
+        );
     // get common types
     Set<Type> types = Misc.intersection(iEeps.keySet(), oEeps.keySet());
     if (types.isEmpty()) {

@@ -28,7 +28,6 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.problem.image.ImageUtils;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
 import io.github.ericmedvet.jviz.core.drawer.Drawer;
-
 import java.awt.*;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
@@ -247,18 +246,22 @@ public class TTPNDrawer implements Drawer<Network> {
     Path2D path = computeWirePath(m, w, network);
     Stroke stroke = g.getStroke();
     g.setColor(configuration.fgColor);
-    g.setStroke(new BasicStroke(
-        (float) configuration.wireW,
-        BasicStroke.CAP_BUTT,
-        BasicStroke.JOIN_BEVEL
-    ));
+    g.setStroke(
+        new BasicStroke(
+            (float) configuration.wireW,
+            BasicStroke.CAP_BUTT,
+            BasicStroke.JOIN_BEVEL
+        )
+    );
     g.draw(path);
     g.setColor(configuration.bgColor);
-    g.setStroke(new BasicStroke(
-        (float) configuration.wireW-2f,
-        BasicStroke.CAP_BUTT,
-        BasicStroke.JOIN_BEVEL
-    ));
+    g.setStroke(
+        new BasicStroke(
+            (float) configuration.wireW - 2f,
+            BasicStroke.CAP_BUTT,
+            BasicStroke.JOIN_BEVEL
+        )
+    );
     g.draw(path);
     g.setStroke(stroke);
   }

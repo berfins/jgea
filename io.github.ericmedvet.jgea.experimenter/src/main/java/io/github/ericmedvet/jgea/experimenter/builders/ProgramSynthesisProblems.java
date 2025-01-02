@@ -29,6 +29,8 @@ import io.github.ericmedvet.jnb.core.Cacheable;
 import io.github.ericmedvet.jnb.core.Discoverable;
 import io.github.ericmedvet.jnb.core.Param;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
+import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 import java.util.random.RandomGenerator;
 
@@ -57,31 +59,31 @@ public class ProgramSynthesisProblems {
       @Param(value = "stringLengthRange", dNPM = "m.range(min=2;max=20)") DoubleRange stringLengthRange,
       @Param(value = "sequenceSizeRange", dNPM = "m.range(min=1;max=8)") DoubleRange sequenceSizeRange
   ) {
-    try {
-      Program tProgram = Program.from(Problems.class.getMethod(name, List.class, List.class));
-      DataFactory dataFactory = new DataFactory(
-          ints,
-          reals,
-          strings,
-          new IntRange((int) intRange.min(), (int) intRange.max()),
-          realRange,
-          new IntRange((int) stringLengthRange.min(), (int) stringLengthRange.max()),
-          new IntRange((int) sequenceSizeRange.min(), (int) sequenceSizeRange.max())
-      );
-      return ProgramSynthesisProblem.from(
-          tProgram,
-          metric,
-          dissimilarity,
-          maxDissimilarity,
-          dataFactory,
-          randomGenerator,
-          nOfCases,
-          nOfValidationCases,
-          maxExceptionRate
-      );
-    } catch (NoSuchMethodException e) {
-      throw new RuntimeException(e);
+    List<Method> methods = Arrays.stream(Problems.class.getMethods()).filter(m -> m.getName().equals(name)).toList();
+    if (methods.isEmpty()) {
+      throw new IllegalArgumentException("No synthetic problem with name '%s'".formatted(name));
     }
+    Program tProgram = Program.from(methods.getFirst());
+    DataFactory dataFactory = new DataFactory(
+        ints,
+        reals,
+        strings,
+        new IntRange((int) intRange.min(), (int) intRange.max()),
+        realRange,
+        new IntRange((int) stringLengthRange.min(), (int) stringLengthRange.max()),
+        new IntRange((int) sequenceSizeRange.min(), (int) sequenceSizeRange.max())
+    );
+    return ProgramSynthesisProblem.from(
+        tProgram,
+        metric,
+        dissimilarity,
+        maxDissimilarity,
+        dataFactory,
+        randomGenerator,
+        nOfCases,
+        nOfValidationCases,
+        maxExceptionRate
+    );
   }
 
 }

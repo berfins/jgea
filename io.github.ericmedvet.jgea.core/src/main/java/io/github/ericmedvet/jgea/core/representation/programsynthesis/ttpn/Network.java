@@ -278,7 +278,7 @@ public final class Network implements Sized {
                 .formatted(
                     i,
                     gates.get(i),
-                    gates.get(i).hasGenerics() ? "{with %s} ".formatted(
+                    (gates.get(i).hasGenerics() && !gateConcreteTypes.get(i).isEmpty()) ? "{with %s} ".formatted(
                         gateConcreteTypes.get(i)
                             .entrySet()
                             .stream()
@@ -399,7 +399,7 @@ public final class Network implements Sized {
 
   @Override
   public int size() {
-    return gates().size();
+    return gates().size() + wires.size();
   }
 
   private boolean updateGateConcreteMaps() throws TypeException {

@@ -20,11 +20,33 @@
 package io.github.ericmedvet.jgea.problem.programsynthesis;
 
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Typed;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class Problems {
   private Problems() {
+  }
+
+  @Typed("S")
+  public static String biLongestString(@Typed("S") String s1, @Typed("S") String s2) {
+    return s1.length() >= s2.length() ? s1 : s2;
+  }
+
+  @Typed("I")
+  public static Integer dIntSum(@Typed("R") Double v1, @Typed("R") Double v2) {
+    return (int) (v1 + v2);
+  }
+
+  @Typed("[<S,I>]")
+  public static List<List<Object>> sLengther(@Typed("[S]") List<String> strings) {
+    return strings.stream().map(s -> List.<Object>of(s, s.length())).toList();
+  }
+
+  @Typed("S")
+  public static String triLongestString(@Typed("S") String s1, @Typed("S") String s2, @Typed("S") String s3) {
+    return Stream.of(s1, s2, s3).max(Comparator.comparingInt(String::length)).orElseThrow();
   }
 
   @Typed("R")

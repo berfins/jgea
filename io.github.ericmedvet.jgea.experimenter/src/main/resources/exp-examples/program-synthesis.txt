@@ -1,9 +1,12 @@
-$nEvals = [5000]
+$nEvals = [10000]
 
 ea.experiment(
   runs = (randomGenerator = (seed = [1:1:1]) * [m.defaultRG()]) *
     (problem = [
-      ea.p.ps.synthetic(name = "vProduct"; nOfCases = 20; maxExceptionRate = 0)
+      ea.p.ps.synthetic(name = "dIntSum"; nOfCases = 10; maxExceptionRate = 10);
+      ea.p.ps.synthetic(name = "sLengther"; nOfCases = 10; maxExceptionRate = 10);
+      ea.p.ps.synthetic(name = "biLongestString"; nOfCases = 10; maxExceptionRate = 10);
+      ea.p.ps.synthetic(name = "triLongestString"; nOfCases = 10; maxExceptionRate = 10)
     ]) *
     (solver = (nEval = $nEvals) * [
       ea.s.ttpnGp()
@@ -14,11 +17,12 @@ ea.experiment(
     ea.l.console(
       functions = [
         ea.f.size(of = ea.f.genotype(of = ea.f.best()); format = "%3d");
+        ea.f.hist(of = f.each(of = ea.f.all(); mapF = ea.f.size(of = ea.f.genotype())));
         ea.f.quality(of = ea.f.best(); format = "%6.2f");
-        f.percentile(of = f.each(of = ea.f.all(); mapF = ea.f.quality()); p = 75; format = "%6.2f");
         ea.f.hist(of = f.each(of = ea.f.all(); mapF = ea.f.quality()));
         ea.f.validationQuality(format = "%6.2f");
-        ea.f.psMetric();
+        ea.f.psMetric(metric = avg_dissimilarity);
+        ea.f.psMetric(metric = fail_rate);
         ea.f.psMetric(metric = exception_error)
       ];
       onlyLast = false

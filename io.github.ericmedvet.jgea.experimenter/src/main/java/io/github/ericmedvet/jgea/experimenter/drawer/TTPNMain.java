@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.random.RandomGenerator;
+import java.util.stream.IntStream;
 
 public class TTPNMain {
   private static List<Gate> allGates() {
@@ -153,18 +154,17 @@ public class TTPNMain {
   }
 
   private static void factory() {
-    RandomGenerator rnd = new Random(1);
+    RandomGenerator rnd = new Random();
     NetworkFactory factory = new NetworkFactory(
         List.of(Composed.sequence(Base.REAL), Composed.sequence(Base.REAL)),
         List.of(Base.REAL),
         new LinkedHashSet<>(allGates()),
-        10
+        32,
+        0
     );
     TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
-    factory.build(rnd, n -> {
-      drawer.show(n);
-      System.out.printf("======%n%s%n===%n", n);
-    });
+    factory.build(rnd, drawer::show);
+    IntStream.range(0, 1000).forEach(i -> factory.build(rnd, n -> System.out.printf("======%n%s%n===%n", n)));
   }
 
   private static void loopedNet() throws NetworkStructureException, TypeException {
@@ -257,7 +257,8 @@ public class TTPNMain {
         List.of(Composed.sequence(Base.REAL), Composed.sequence(Base.REAL)),
         List.of(Base.REAL),
         new LinkedHashSet<>(allGates()),
-        20
+        20,
+        0
     );
     Network newN = nf.build(rnd);
     //drawer.show(newN);

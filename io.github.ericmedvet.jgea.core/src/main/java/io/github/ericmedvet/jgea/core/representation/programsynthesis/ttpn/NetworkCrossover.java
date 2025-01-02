@@ -59,7 +59,6 @@ public class NetworkCrossover implements Crossover<Network> {
       );
       return hn1.mergedWith(sn2);
     } catch (NetworkStructureException | TypeException e) {
-      System.err.println("crossover exception");
       return n1;
     }
   }
