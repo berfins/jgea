@@ -133,12 +133,13 @@ public class NsgaII<G, O, S> extends AbstractPopulationBasedIterativeSolver<POCP
             partialComparator(problem)
         )
         .fronts();
+    SequencedMap<String, MultiHomogeneousObjectiveProblem.Objective<O, Double>> objectives = problem.objectives();
     return IntStream.range(0, fronts.size())
         .mapToObj(fi -> {
           List<? extends Individual<G, S, MultiHomogeneousObjectiveProblem.Outcome<O, Double>>> is = fronts.get(fi)
               .stream()
               .toList();
-          List<Double> distances = distances(is, problem.objectives());
+          List<Double> distances = distances(is, objectives);
           return IntStream.range(0, is.size())
               .mapToObj(ii -> {
                 Individual<G, S, MultiHomogeneousObjectiveProblem.Outcome<O, Double>> individual = is.get(ii);

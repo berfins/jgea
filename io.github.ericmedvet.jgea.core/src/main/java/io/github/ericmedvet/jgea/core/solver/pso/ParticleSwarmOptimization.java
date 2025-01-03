@@ -26,6 +26,7 @@ import io.github.ericmedvet.jgea.core.problem.TotalOrderQualityBasedProblem;
 import io.github.ericmedvet.jgea.core.solver.AbstractPopulationBasedIterativeSolver;
 import io.github.ericmedvet.jgea.core.solver.SolverException;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Callable;
@@ -166,8 +167,9 @@ public class ParticleSwarmOptimization<S, Q> extends AbstractPopulationBasedIter
                   .toList()
           )
       );
-      List<PSOIndividual<S, Q>> sortedIndividuals = individuals.stream().sorted(comparator(state.problem())).toList();
-      if (comparator(state.problem()).compare(sortedIndividuals.getFirst(), knownBest) < 0) {
+      Comparator<? super PSOIndividual<S, Q>> comparator = comparator(state.problem());
+      List<PSOIndividual<S, Q>> sortedIndividuals = individuals.stream().sorted(comparator).toList();
+      if (comparator.compare(sortedIndividuals.getFirst(), knownBest) < 0) {
         knownBest = sortedIndividuals.getFirst();
       }
       return state.updatedWithIteration(populationSize, populationSize, sortedIndividuals, knownBest);

@@ -20,8 +20,6 @@
 
 package io.github.ericmedvet.jgea.problem.extraction;
 
-import io.github.ericmedvet.jgea.core.order.ParetoDominance;
-import io.github.ericmedvet.jgea.core.order.PartialComparator;
 import io.github.ericmedvet.jgea.core.problem.SimpleMultiHomogeneousObjectiveProblem;
 import io.github.ericmedvet.jgea.core.representation.graph.finiteautomata.Extractor;
 import io.github.ericmedvet.jgea.core.util.IntRange;
@@ -35,7 +33,6 @@ public class ExtractionProblem<S> implements SimpleMultiHomogeneousObjectiveProb
   private final ExtractionFitness<S> fitnessFunction;
   private final ExtractionFitness<S> validationFunction;
   private final SequencedMap<String, Comparator<Double>> comparators;
-  private final PartialComparator<Outcome<Map<String, Double>, Double>> qualityComparator;
 
   public ExtractionProblem(
       Set<Extractor<S>> extractors,
@@ -58,7 +55,6 @@ public class ExtractionProblem<S> implements SimpleMultiHomogeneousObjectiveProb
                 m -> Double::compareTo
             )
         );
-    qualityComparator = Outcome.partialComparator(ParetoDominance.build(Double.class, comparators.size()));
   }
 
   private static <S> Pair<List<S>, Set<IntRange>> buildDataset(
@@ -100,10 +96,5 @@ public class ExtractionProblem<S> implements SimpleMultiHomogeneousObjectiveProb
   @Override
   public Function<Extractor<S>, Map<String, Double>> outcomeFunction() {
     return fitnessFunction::apply;
-  }
-
-  @Override
-  public PartialComparator<Outcome<Map<String, Double>, Double>> qualityComparator() {
-    return qualityComparator;
   }
 }

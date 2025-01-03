@@ -19,6 +19,7 @@
  */
 package io.github.ericmedvet.jgea.core.problem;
 
+import io.github.ericmedvet.jgea.core.order.ParetoDominance;
 import io.github.ericmedvet.jgea.core.order.PartialComparator;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import java.util.*;
@@ -32,41 +33,7 @@ public interface MultiHomogeneousObjectiveProblem<S, O, Q> extends QualityBasedP
   ) {
   }
 
-  interface Outcome<O, Q> {
-    O outcome();
-
-    Map<String, Q> objectives();
-
-    static <O, Q> MultiHomogeneousObjectiveProblem.Outcome<O, Q> from(
-        O o,
-        SequencedMap<String, Objective<O, Q>> objectives
-    ) {
-      record HardOutcome<O, Q>(
-          O outcome,
-          Map<String, Q> objectives
-      ) implements Outcome<O, Q> {}
-      return new HardOutcome<>(
-          o,
-          objectives.entrySet()
-              .stream()
-              .collect(
-                  Misc.toSequencedMap(
-                      Map.Entry::getKey,
-                      e -> e.getValue().function().apply(o)
-                  )
-              )
-      );
-    }
-
-    static <O, Q> PartialComparator<Outcome<O, Q>> partialComparator(
-        PartialComparator<List<Q>> partialComparator
-    ) {
-      return (o1, o2) -> partialComparator.compare(
-          o1.objectives().keySet().stream().map(k -> o1.objectives().get(k)).toList(),
-          o1.objectives().keySet().stream().map(k -> o2.objectives().get(k)).toList()
-      );
-    }
-  }
+  record Outcome<O, Q>(O outcome, Map<String, Q> objectives) {}
 
   SequencedMap<String, Objective<O, Q>> objectives();
 
@@ -74,7 +41,35 @@ public interface MultiHomogeneousObjectiveProblem<S, O, Q> extends QualityBasedP
 
   @Override
   default Function<S, Outcome<O, Q>> qualityFunction() {
-    return s -> Outcome.from(outcomeFunction().apply(s), objectives());
+    return s -> {
+      O o = outcomeFunction().apply(s);
+      return new Outcome<>(
+          o,
+          objectives().entrySet()
+              .stream()
+              .collect(
+                  Misc.toSequencedMap(
+                      Map.Entry::getKey,
+                      e -> e.getValue().function.apply(o)
+                  )
+              )
+      );
+    };
   }
 
+  @Override
+  default PartialComparator<Outcome<O, Q>> qualityComparator() {
+    ParetoDominance<Q> objectivesComparator = new ParetoDominance<>(
+        objectives().values()
+            .stream()
+            .map(Objective::comparator)
+            .toList()
+    );
+    return objectivesComparator.on(
+        (Outcome<O, Q> o) -> objectives().keySet()
+            .stream()
+            .map(n -> o.objectives().get(n))
+            .toList()
+    );
+  }
 }

@@ -20,8 +20,6 @@
 
 package io.github.ericmedvet.jgea.problem.synthetic.numerical;
 
-import io.github.ericmedvet.jgea.core.order.ParetoDominance;
-import io.github.ericmedvet.jgea.core.order.PartialComparator;
 import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
 import io.github.ericmedvet.jgea.core.problem.SimpleMultiHomogeneousObjectiveProblem;
 import io.github.ericmedvet.jgea.core.util.Misc;
@@ -32,7 +30,6 @@ import java.util.stream.Stream;
 public record Cones(
     SequencedMap<String, Comparator<Double>> comparators,
     Function<List<Double>, Map<String, Double>> outcomeFunction,
-    PartialComparator<Outcome<Map<String, Double>, Double>> qualityComparator,
     List<Double> example
 ) implements SimpleMultiHomogeneousObjectiveProblem<List<Double>, Double>, ProblemWithExampleSolution<List<Double>> {
 
@@ -64,7 +61,6 @@ public record Cones(
               Map.entry("volume", lateralSurface)
           );
         },
-        Outcome.partialComparator(new ParetoDominance<>(COMPARATORS.values().stream().toList())),
         List.of(0d, 0d)
     );
   }

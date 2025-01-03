@@ -77,17 +77,34 @@ public class CooperativeSolver<T1 extends POCPopulationState<Individual<G1, S1, 
     this.qualityAggregator = qualityAggregator;
   }
 
+  private static <S, Q> QualityBasedProblem<S, Q> problem(
+      Function<S, Q> qualityFunction,
+      PartialComparator<Q> qualityComparator
+  ) {
+    return new QualityBasedProblem<>() {
+      @Override
+      public PartialComparator<Q> qualityComparator() {
+        return qualityComparator;
+      }
+
+      @Override
+      public Function<S, Q> qualityFunction() {
+        return qualityFunction;
+      }
+    };
+  }
+
   @Override
   public CooperativeState<T1, T2, G1, G2, S1, S2, S, Q, QualityBasedProblem<S1, Q>, QualityBasedProblem<S2, Q>, QualityBasedProblem<S, Q>> init(
       QualityBasedProblem<S, Q> problem,
       RandomGenerator random,
       ExecutorService executor
   ) throws SolverException {
-    QualityBasedProblem<S1, Q> dummyProblem1 = QualityBasedProblem.create(
+    QualityBasedProblem<S1, Q> dummyProblem1 = problem(
         s1 -> null,
         (q1, q2) -> PartialComparator.PartialComparatorOutcome.SAME
     );
-    QualityBasedProblem<S2, Q> dummyProblem2 = QualityBasedProblem.create(
+    QualityBasedProblem<S2, Q> dummyProblem2 = problem(
         s2 -> null,
         (q1, q2) -> PartialComparator.PartialComparatorOutcome.SAME
     );
@@ -101,7 +118,7 @@ public class CooperativeSolver<T1 extends POCPopulationState<Individual<G1, S1, 
     );
     AtomicLong counter = new AtomicLong(0);
     Collection<Individual<Void, S, Q>> evaluatedIndividuals = Collections.synchronizedCollection(new ArrayList<>());
-    QualityBasedProblem<S1, Q> problem1 = QualityBasedProblem.create(
+    QualityBasedProblem<S1, Q> problem1 = problem(
         s1 -> {
           List<S> solutions = representatives2.stream()
               .map(s2 -> solutionAggregator.apply(s1, s2.solution()))
@@ -127,7 +144,7 @@ public class CooperativeSolver<T1 extends POCPopulationState<Individual<G1, S1, 
         },
         problem.qualityComparator()
     );
-    QualityBasedProblem<S2, Q> problem2 = QualityBasedProblem.create(
+    QualityBasedProblem<S2, Q> problem2 = problem(
         s2 -> {
           List<S> solutions = representatives1.stream()
               .map(s1 -> solutionAggregator.apply(s1.solution(), s2))
@@ -176,7 +193,7 @@ public class CooperativeSolver<T1 extends POCPopulationState<Individual<G1, S1, 
     Collection<Individual<G2, S2, Q>> representatives2 = extractor2.select(coState.state2().pocPopulation(), random);
     Collection<Individual<Void, S, Q>> evaluatedIndividuals = Collections.synchronizedCollection(new ArrayList<>());
     AtomicLong counter = new AtomicLong(0);
-    QualityBasedProblem<S1, Q> problem1 = QualityBasedProblem.create(
+    QualityBasedProblem<S1, Q> problem1 = problem(
         s1 -> {
           List<S> solutions = representatives2.stream()
               .map(s2 -> solutionAggregator.apply(s1, s2.solution()))
@@ -202,7 +219,7 @@ public class CooperativeSolver<T1 extends POCPopulationState<Individual<G1, S1, 
         },
         coState.problem().qualityComparator()
     );
-    QualityBasedProblem<S2, Q> problem2 = QualityBasedProblem.create(
+    QualityBasedProblem<S2, Q> problem2 = problem(
         s2 -> {
           List<S> solutions = representatives1.stream()
               .map(s1 -> solutionAggregator.apply(s1.solution(), s2))

@@ -22,6 +22,7 @@ package io.github.ericmedvet.jgea.core.solver.mapelites;
 import io.github.ericmedvet.jgea.core.Factory;
 import io.github.ericmedvet.jgea.core.distance.Distance;
 import io.github.ericmedvet.jgea.core.operator.Mutation;
+import io.github.ericmedvet.jgea.core.order.PartialComparator;
 import io.github.ericmedvet.jgea.core.order.PartiallyOrderedCollection;
 import io.github.ericmedvet.jgea.core.problem.QualityBasedProblem;
 import io.github.ericmedvet.jgea.core.solver.AbstractPopulationBasedIterativeSolver;
@@ -300,13 +301,16 @@ public class CoMapElites<G1, G2, S1, S2, S, Q> extends AbstractPopulationBasedIt
     // update strategies
     updateStrategies(newState, coMEIndividuals);
     // update archive
+    PartialComparator<? super CoMEPartialIndividual<?, ?, G1, G2, S1, S2, S, Q>> partialComparator = partialComparator(
+        problem
+    );
     Archive<CoMEPartialIndividual<G1, S1, G1, G2, S1, S2, S, Q>> archive1 = newState.archive1()
         .updated(
             coMEIndividuals.stream()
                 .map(CoMEPartialIndividual::from1)
                 .toList(),
             MEIndividual::bins,
-            partialComparator(problem)
+            partialComparator
         );
     Archive<CoMEPartialIndividual<G2, S2, G1, G2, S1, S2, S, Q>> archive2 = newState.archive2()
         .updated(
@@ -314,7 +318,7 @@ public class CoMapElites<G1, G2, S1, S2, S, Q> extends AbstractPopulationBasedIt
                 .map(CoMEPartialIndividual::from2)
                 .toList(),
             MEIndividual::bins,
-            partialComparator(problem)
+            partialComparator
         );
     // return state
     return newState.updatedWithIteration(populationSize, populationSize, archive1, archive2, strategy1, strategy2);
@@ -389,17 +393,20 @@ public class CoMapElites<G1, G2, S1, S2, S, Q> extends AbstractPopulationBasedIt
     // update strategies
     updateStrategies(state, offspring);
     // update archives
+    PartialComparator<? super CoMEPartialIndividual<?, ?, G1, G2, S1, S2, S, Q>> partialComparator = partialComparator(
+        state.problem()
+    );
     Archive<CoMEPartialIndividual<G1, S1, G1, G2, S1, S2, S, Q>> archive1 = state.archive1()
         .updated(
             offspring.stream().map(CoMEPartialIndividual::from1).toList(),
             MEIndividual::bins,
-            partialComparator(state.problem())
+            partialComparator
         );
     Archive<CoMEPartialIndividual<G2, S2, G1, G2, S1, S2, S, Q>> archive2 = state.archive2()
         .updated(
             offspring.stream().map(CoMEPartialIndividual::from2).toList(),
             MEIndividual::bins,
-            partialComparator(state.problem())
+            partialComparator
         );
     // return state
     return state.updatedWithIteration(

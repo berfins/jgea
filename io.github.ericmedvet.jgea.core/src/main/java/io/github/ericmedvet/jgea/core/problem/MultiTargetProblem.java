@@ -21,8 +21,6 @@
 package io.github.ericmedvet.jgea.core.problem;
 
 import io.github.ericmedvet.jgea.core.distance.Distance;
-import io.github.ericmedvet.jgea.core.order.ParetoDominance;
-import io.github.ericmedvet.jgea.core.order.PartialComparator;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -71,25 +69,19 @@ public interface MultiTargetProblem<S> extends TotalOrderQualityBasedProblem<S, 
                 TreeMap::new
             )
         );
-    PartialComparator<MultiHomogeneousObjectiveProblem.Outcome<Map<String, Double>, Double>> partialComparator = MultiHomogeneousObjectiveProblem.Outcome
-        .partialComparator(
-            ParetoDominance.build(Double.class, comparators.size())
-        );
     record MHOProblem<S>(
         SequencedMap<String, Comparator<Double>> comparators,
-        PartialComparator<Outcome<Map<String, Double>, Double>> qualityComparator,
         Function<S, Map<String, Double>> outcomeFunction
     ) implements SimpleMultiHomogeneousObjectiveProblem<S, Double> {}
     record MHOProblemWithExample<S>(
         SequencedMap<String, Comparator<Double>> comparators,
-        PartialComparator<Outcome<Map<String, Double>, Double>> qualityComparator,
         Function<S, Map<String, Double>> outcomeFunction,
         S example
     ) implements SimpleMultiHomogeneousObjectiveProblem<S, Double>, ProblemWithExampleSolution<S> {}
     if (this instanceof ProblemWithExampleSolution<?> pwes) {
       //noinspection unchecked
-      return new MHOProblemWithExample<>(comparators, partialComparator, outcomeF, (S) pwes.example());
+      return new MHOProblemWithExample<>(comparators, outcomeF, (S) pwes.example());
     }
-    return new MHOProblem<>(comparators, partialComparator, outcomeF);
+    return new MHOProblem<>(comparators, outcomeF);
   }
 }

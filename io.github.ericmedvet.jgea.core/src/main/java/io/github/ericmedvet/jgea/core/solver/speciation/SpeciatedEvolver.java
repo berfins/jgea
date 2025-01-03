@@ -122,9 +122,10 @@ public class SpeciatedEvolver<G, S, Q> extends AbstractPopulationBasedIterativeS
     );
     // put elites
     Collection<Individual<G, S, Q>> elites = new ArrayList<>();
+    PartialComparator<? super Individual<?, ?, Q>> partialComparator = partialComparator(state.problem());
     individuals.stream()
         .reduce(
-            (i1, i2) -> partialComparator(state.problem())
+            (i1, i2) -> partialComparator
                 .compare(i1, i2)
                 .equals(PartialComparator.PartialComparatorOutcome.BEFORE) ? i1 : i2
         )
@@ -134,7 +135,7 @@ public class SpeciatedEvolver<G, S, Q> extends AbstractPopulationBasedIterativeS
         species.elements()
             .stream()
             .reduce(
-                (i1, i2) -> partialComparator(state.problem())
+                (i1, i2) -> partialComparator
                     .compare(i1, i2)
                     .equals(PartialComparator.PartialComparatorOutcome.BEFORE) ? i1 : i2
             )
@@ -152,7 +153,7 @@ public class SpeciatedEvolver<G, S, Q> extends AbstractPopulationBasedIterativeS
         )
     );
     List<Individual<G, S, Q>> sortedRepresenters = new ArrayList<>(representers);
-    sortedRepresenters.sort(partialComparator(state.problem()).comparator());
+    sortedRepresenters.sort(partialComparator.comparator());
     List<Double> weights = representers.stream()
         .map(r -> Math.pow(rankBase, sortedRepresenters.indexOf(r)))
         .toList();
@@ -171,7 +172,7 @@ public class SpeciatedEvolver<G, S, Q> extends AbstractPopulationBasedIterativeS
     for (int i = 0; i < allSpecies.size(); i++) {
       int size = sizes.get(i);
       List<Individual<G, S, Q>> species = new ArrayList<>(allSpecies.get(i).elements());
-      species.sort(partialComparator(state.problem()).comparator());
+      species.sort(partialComparator.comparator());
       List<ChildGenotype<G>> speciesOffspringChildGenotypes = new ArrayList<>();
       int speciesCounter = 0;
       while (speciesOffspringChildGenotypes.size() < size) {
@@ -202,7 +203,7 @@ public class SpeciatedEvolver<G, S, Q> extends AbstractPopulationBasedIterativeS
     return state.updatedWithIteration(
         newIndividuals.size(),
         newIndividuals.size() + (remap ? elites.size() : 0),
-        PartiallyOrderedCollection.from(newIndividuals, partialComparator(state.problem())),
+        PartiallyOrderedCollection.from(newIndividuals, partialComparator),
         allSpecies
     );
   }

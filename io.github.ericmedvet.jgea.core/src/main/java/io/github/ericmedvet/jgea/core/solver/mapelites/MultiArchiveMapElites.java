@@ -22,6 +22,7 @@ package io.github.ericmedvet.jgea.core.solver.mapelites;
 
 import io.github.ericmedvet.jgea.core.Factory;
 import io.github.ericmedvet.jgea.core.operator.Mutation;
+import io.github.ericmedvet.jgea.core.order.PartialComparator;
 import io.github.ericmedvet.jgea.core.problem.QualityBasedProblem;
 import io.github.ericmedvet.jgea.core.solver.AbstractPopulationBasedIterativeSolver;
 import io.github.ericmedvet.jgea.core.solver.Individual;
@@ -80,6 +81,7 @@ public class MultiArchiveMapElites<G, S, Q> extends AbstractPopulationBasedItera
             executor
         )
     );
+    PartialComparator<? super MEIndividual<G, S, Q>> partialComparator = partialComparator(problem);
     return newState.updatedWithIteration(
         populationSize,
         populationSize,
@@ -92,7 +94,7 @@ public class MultiArchiveMapElites<G, S, Q> extends AbstractPopulationBasedItera
                             .map(i -> MEIndividual.from(i, listsOfDescriptors.get(j)))
                             .toList(),
                         MEIndividual::bins,
-                        partialComparator(problem)
+                        partialComparator
                     )
             )
             .toList()
@@ -129,6 +131,7 @@ public class MultiArchiveMapElites<G, S, Q> extends AbstractPopulationBasedItera
             executor
         )
     );
+    PartialComparator<? super MEIndividual<G, S, Q>> partialComparator = partialComparator(state.problem());
     return state.updatedWithIteration(
         populationSize,
         populationSize,
@@ -141,7 +144,7 @@ public class MultiArchiveMapElites<G, S, Q> extends AbstractPopulationBasedItera
                             .map(i -> MEIndividual.from(i, listsOfDescriptors.get(j)))
                             .toList(),
                         MEIndividual::bins,
-                        partialComparator(state.problem())
+                        partialComparator
                     )
             )
             .toList()

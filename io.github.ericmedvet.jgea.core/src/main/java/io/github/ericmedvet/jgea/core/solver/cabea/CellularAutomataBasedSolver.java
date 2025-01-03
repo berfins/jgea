@@ -130,11 +130,12 @@ public class CellularAutomataBasedSolver<G, S, Q> extends AbstractPopulationBase
       GridPopulationState<G, S, Q, QualityBasedProblem<S, Q>> state
   ) throws SolverException {
     AtomicLong counter = new AtomicLong(state.nOfBirths());
+    PartialComparator<? super Individual<?, ?, Q>> partialComparator = partialComparator(state.problem());
     List<Callable<CellProcessOutcome<Individual<G, S, Q>>>> callables = state.gridPopulation()
         .entries()
         .stream()
         .filter(e -> e.value() != null)
-        .map(e -> processCell(e, state, new Random(random.nextLong()), counter))
+        .map(e -> processCell(e, partialComparator, state, new Random(random.nextLong()), counter))
         // this new random is needed for determinism, because process is done concurrently
         .toList();
     Collection<CellProcessOutcome<Individual<G, S, Q>>> newEntries;
@@ -151,6 +152,7 @@ public class CellularAutomataBasedSolver<G, S, Q> extends AbstractPopulationBase
 
   private Callable<CellProcessOutcome<Individual<G, S, Q>>> processCell(
       Grid.Entry<Individual<G, S, Q>> entry,
+      PartialComparator<? super Individual<?, ?, Q>> partialComparator,
       GridPopulationState<G, S, Q, QualityBasedProblem<S, Q>> state,
       RandomGenerator random,
       AtomicLong counter
@@ -170,7 +172,7 @@ public class CellularAutomataBasedSolver<G, S, Q> extends AbstractPopulationBase
           .toList(); // neighbors does not include self
       PartiallyOrderedCollection<Individual<G, S, Q>> localPoc = PartiallyOrderedCollection.from(
           neighbors,
-          partialComparator(state.problem())
+          partialComparator
       );
       GeneticOperator<G> operator = Misc.pickRandomly(operators, random);
       List<Individual<G, S, Q>> parents = new ArrayList<>(operator.arity());
@@ -194,7 +196,7 @@ public class CellularAutomataBasedSolver<G, S, Q> extends AbstractPopulationBase
           state.problem().qualityFunction(),
           state.nOfIterations()
       );
-      if (partialComparator(state.problem())
+      if (partialComparator
           .compare(child, entry.value())
           .equals(PartialComparator.PartialComparatorOutcome.BEFORE)) {
         return new CellProcessOutcome<>(true, new Grid.Entry<>(entry.key(), child));

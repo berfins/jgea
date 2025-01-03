@@ -20,8 +20,6 @@
 
 package io.github.ericmedvet.jgea.problem.synthetic;
 
-import io.github.ericmedvet.jgea.core.order.ParetoDominance;
-import io.github.ericmedvet.jgea.core.order.PartialComparator;
 import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
 import io.github.ericmedvet.jgea.core.problem.SimpleMultiHomogeneousObjectiveProblem;
 import io.github.ericmedvet.jgea.core.representation.sequence.integer.IntString;
@@ -33,7 +31,6 @@ import java.util.stream.IntStream;
 public record MultiObjectiveIntOneMax(
     SequencedMap<String, Comparator<Double>> comparators,
     Function<IntString, Map<String, Double>> outcomeFunction,
-    PartialComparator<Outcome<Map<String, Double>, Double>> qualityComparator,
     IntString example
 ) implements SimpleMultiHomogeneousObjectiveProblem<IntString, Double>, ProblemWithExampleSolution<IntString> {
   public MultiObjectiveIntOneMax(int p, int upperBound) {
@@ -57,7 +54,6 @@ public record MultiObjectiveIntOneMax(
                         .count() / (double) is.size()
                 )
             ),
-        Outcome.partialComparator(new ParetoDominance<>(Collections.nCopies(upperBound - 1, Double::compareTo))),
         new IntString(Collections.nCopies(p, 0), 0, upperBound)
     );
   }
