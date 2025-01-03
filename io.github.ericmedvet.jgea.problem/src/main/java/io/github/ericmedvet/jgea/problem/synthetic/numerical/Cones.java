@@ -22,14 +22,11 @@ package io.github.ericmedvet.jgea.problem.synthetic.numerical;
 
 import io.github.ericmedvet.jgea.core.order.ParetoDominance;
 import io.github.ericmedvet.jgea.core.order.PartialComparator;
-import io.github.ericmedvet.jgea.core.problem.MultiHomogeneousObjectiveProblem;
 import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
 import io.github.ericmedvet.jgea.core.problem.SimpleMultiHomogeneousObjectiveProblem;
-
+import io.github.ericmedvet.jgea.core.util.Misc;
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public record Cones(
@@ -43,15 +40,15 @@ public record Cones(
       Map.entry("lateralSurface", (Comparator<Double>) Double::compareTo),
       Map.entry("totalSurface", (Comparator<Double>) Double::compareTo),
       Map.entry("volume", ((Comparator<Double>) Double::compareTo).reversed())
-  ).collect(Collectors.toMap(
-      Map.Entry::getKey,
-      Map.Entry::getValue,
-      (c1, c2) -> c1,
-      LinkedHashMap::new
-  ));
+  )
+      .collect(
+          Misc.toSequencedMap(
+              Map.Entry::getKey,
+              Map.Entry::getValue
+          )
+      );
 
-  public Cones(
-  ) {
+  public Cones() {
     this(
         COMPARATORS,
         vs -> {

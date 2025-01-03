@@ -22,9 +22,9 @@ package io.github.ericmedvet.jgea.problem.extraction;
 
 import io.github.ericmedvet.jgea.core.representation.graph.finiteautomata.Extractor;
 import io.github.ericmedvet.jgea.core.util.IntRange;
+import io.github.ericmedvet.jgea.core.util.Misc;
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class ExtractionFitness<S> implements Function<Extractor<S>, SequencedMap<String, Double>> {
 
@@ -92,12 +92,13 @@ public class ExtractionFitness<S> implements Function<Extractor<S>, SequencedMap
             (falsePositiveSymbols / (trueNegativeChars + falsePositiveSymbols) + falseNegativeSymbols / (truePositiveSymbols + falseNegativeSymbols)) / 2d
         );
       }
-      return metrics.stream().collect(Collectors.toMap(
-          Enum::toString,
-          values::get,
-          (v1, v2) -> v1,
-          LinkedHashMap::new
-      ));
+      return metrics.stream()
+          .collect(
+              Misc.toSequencedMap(
+                  Enum::toString,
+                  values::get
+              )
+          );
     }
 
     public Set<IntRange> getDesiredExtractions() {

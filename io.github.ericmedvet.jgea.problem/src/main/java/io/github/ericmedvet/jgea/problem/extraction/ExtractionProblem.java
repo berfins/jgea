@@ -22,23 +22,20 @@ package io.github.ericmedvet.jgea.problem.extraction;
 
 import io.github.ericmedvet.jgea.core.order.ParetoDominance;
 import io.github.ericmedvet.jgea.core.order.PartialComparator;
-import io.github.ericmedvet.jgea.core.problem.MultiHomogeneousObjectiveProblem;
 import io.github.ericmedvet.jgea.core.problem.SimpleMultiHomogeneousObjectiveProblem;
 import io.github.ericmedvet.jgea.core.representation.graph.finiteautomata.Extractor;
 import io.github.ericmedvet.jgea.core.util.IntRange;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import io.github.ericmedvet.jnb.datastructure.Pair;
-
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class ExtractionProblem<S> implements SimpleMultiHomogeneousObjectiveProblem<Extractor<S>, Double> {
 
   private final ExtractionFitness<S> fitnessFunction;
   private final ExtractionFitness<S> validationFunction;
-  private final SequencedMap<String, Objective<Map<String, Double>, Double>> objectives;
-  private final PartialComparator<MultiHomogeneousObjectiveProblem.Outcome<Map<String, Double>, Double>> qualityComparator;
+  private final SequencedMap<String, Comparator<Double>> comparators;
+  private final PartialComparator<Outcome<Map<String, Double>, Double>> qualityComparator;
 
   public ExtractionProblem(
       Set<Extractor<S>> extractors,
@@ -54,14 +51,14 @@ public class ExtractionProblem<S> implements SimpleMultiHomogeneousObjectiveProb
         metrics
     );
     validationFunction = new ExtractionFitness<>(validationDataset.first(), validationDataset.second(), metrics);
-    objectives = Arrays.stream(metrics).collect(
-        Collectors.toMap(
-            Enum::toString,
-            m -> Objective.from(m.toString(), Double::compareTo),
-            (c1, c2) -> c1,
-            LinkedHashMap::new
-        ));
-    qualityComparator = Outcome.partialComparator(ParetoDominance.build(Double.class, objectives.size()));
+    comparators = Arrays.stream(metrics)
+        .collect(
+            Misc.toSequencedMap(
+                Enum::toString,
+                m -> Double::compareTo
+            )
+        );
+    qualityComparator = Outcome.partialComparator(ParetoDominance.build(Double.class, comparators.size()));
   }
 
   private static <S> Pair<List<S>, Set<IntRange>> buildDataset(
@@ -96,8 +93,8 @@ public class ExtractionProblem<S> implements SimpleMultiHomogeneousObjectiveProb
   }
 
   @Override
-  public SequencedMap<String, Objective<Map<String, Double>, Double>> objectives() {
-    return objectives;
+  public SequencedMap<String, Comparator<Double>> comparators() {
+    return comparators;
   }
 
   @Override

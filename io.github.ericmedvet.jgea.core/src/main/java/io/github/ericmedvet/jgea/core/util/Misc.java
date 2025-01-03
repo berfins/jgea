@@ -31,6 +31,7 @@ import java.util.logging.Logger;
 import java.util.random.RandomGenerator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -311,6 +312,24 @@ public class Misc {
       offset = offset + j;
     }
     return ranges;
+  }
+
+  public static <T, K, U> Collector<T, ?, SequencedMap<K, U>> toSequencedMap(
+      Function<? super T, ? extends K> keyMapper,
+      Function<? super T, ? extends U> valueMapper
+  ) {
+    return Collectors.toMap(
+        keyMapper,
+        valueMapper,
+        (u1, u2) -> u1,
+        LinkedHashMap::new
+    );
+  }
+
+  public static <T, U> Collector<T, ?, SequencedMap<T, U>> toSequencedMap(
+      Function<? super T, ? extends U> valueMapper
+  ) {
+    return toSequencedMap(Function.identity(), valueMapper);
   }
 
   public static <K, V, U> Map<K, U> transformValues(Map<K, V> map, Function<? super V, ? extends U> transformer) {

@@ -20,13 +20,11 @@
 package io.github.ericmedvet.jgea.core.problem;
 
 import io.github.ericmedvet.jgea.core.order.PartialComparator;
-
+import io.github.ericmedvet.jgea.core.util.Misc;
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
-public interface MultiHomogeneousObjectiveProblem<S, O, Q> extends QualityBasedProblem<S,
-    MultiHomogeneousObjectiveProblem.Outcome<O, Q>> {
+public interface MultiHomogeneousObjectiveProblem<S, O, Q> extends QualityBasedProblem<S, MultiHomogeneousObjectiveProblem.Outcome<O, Q>> {
 
   record Objective<O, Q>(
       Function<? super O, ? extends Q> function,
@@ -49,18 +47,19 @@ public interface MultiHomogeneousObjectiveProblem<S, O, Q> extends QualityBasedP
       ) implements Outcome<O, Q> {}
       return new HardOutcome<>(
           o,
-          objectives.entrySet().stream().collect(Collectors.toMap(
-              Map.Entry::getKey,
-              e -> e.getValue().function().apply(o),
-              (q1, q2) -> q1,
-              LinkedHashMap::new
-          ))
+          objectives.entrySet()
+              .stream()
+              .collect(
+                  Misc.toSequencedMap(
+                      Map.Entry::getKey,
+                      e -> e.getValue().function().apply(o)
+                  )
+              )
       );
     }
 
     static <O, Q> PartialComparator<Outcome<O, Q>> partialComparator(
-        PartialComparator<List<Q>>
-            partialComparator
+        PartialComparator<List<Q>> partialComparator
     ) {
       return (o1, o2) -> partialComparator.compare(
           o1.objectives().keySet().stream().map(k -> o1.objectives().get(k)).toList(),

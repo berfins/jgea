@@ -23,7 +23,6 @@ package io.github.ericmedvet.jgea.core.problem;
 import io.github.ericmedvet.jgea.core.distance.Distance;
 import io.github.ericmedvet.jgea.core.order.ParetoDominance;
 import io.github.ericmedvet.jgea.core.order.PartialComparator;
-
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -52,22 +51,30 @@ public interface MultiTargetProblem<S> extends TotalOrderQualityBasedProblem<S, 
     SequencedMap<String, Comparator<Double>> comparators = IntStream.range(
         0,
         targets.size()
-    ).boxed().collect(
-        Collectors.toMap(
-            "target%d"::formatted,
-            i -> Double::compareTo,
-            (c1, c2) -> c1,
-            TreeMap::new
-        ));
+    )
+        .boxed()
+        .collect(
+            Collectors.toMap(
+                "target%d"::formatted,
+                i -> Double::compareTo,
+                (c1, c2) -> c1,
+                TreeMap::new
+            )
+        );
     Function<S, Map<String, Double>> outcomeF = s -> IntStream.range(0, targets().size())
-        .boxed().collect(Collectors.toMap(
-            "target%d"::formatted,
-            i -> distance().apply(s, targets.get(i)),
-            (c1, c2) -> c1,
-            TreeMap::new
-        ));
-    PartialComparator<MultiHomogeneousObjectiveProblem.Outcome<Map<String, Double>, Double>> partialComparator = MultiHomogeneousObjectiveProblem.Outcome.partialComparator(
-        ParetoDominance.build(Double.class, comparators.size()));
+        .boxed()
+        .collect(
+            Collectors.toMap(
+                "target%d"::formatted,
+                i -> distance().apply(s, targets.get(i)),
+                (c1, c2) -> c1,
+                TreeMap::new
+            )
+        );
+    PartialComparator<MultiHomogeneousObjectiveProblem.Outcome<Map<String, Double>, Double>> partialComparator = MultiHomogeneousObjectiveProblem.Outcome
+        .partialComparator(
+            ParetoDominance.build(Double.class, comparators.size())
+        );
     record MHOProblem<S>(
         SequencedMap<String, Comparator<Double>> comparators,
         PartialComparator<Outcome<Map<String, Double>, Double>> qualityComparator,
