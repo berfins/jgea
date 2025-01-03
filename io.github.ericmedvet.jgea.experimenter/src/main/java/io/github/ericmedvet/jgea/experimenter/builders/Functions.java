@@ -19,10 +19,7 @@
  */
 package io.github.ericmedvet.jgea.experimenter.builders;
 
-import io.github.ericmedvet.jgea.core.problem.MultiTargetProblem;
-import io.github.ericmedvet.jgea.core.problem.Problem;
-import io.github.ericmedvet.jgea.core.problem.ProblemWithValidation;
-import io.github.ericmedvet.jgea.core.problem.QualityBasedProblem;
+import io.github.ericmedvet.jgea.core.problem.*;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.Program;
 import io.github.ericmedvet.jgea.core.representation.sequence.bit.BitString;
 import io.github.ericmedvet.jgea.core.representation.sequence.integer.IntString;
@@ -102,6 +99,26 @@ public class Functions {
         (x, y) -> a.get(List.of(x, y))
     );
     return NamedFunction.from(f, "archive.to.grid").compose(beforeF);
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  public static <X, B> FormattedNamedFunction<X, B> behavior(
+      @Param(value = "of", dNPM = "f.identity()") Function<X, BehaviorBasedProblem.Outcome<B, ?>> beforeF,
+      @Param(value = "format", dS = "%s") String format
+  ) {
+    Function<BehaviorBasedProblem.Outcome<B, ?>, B> f = BehaviorBasedProblem.Outcome::behavior;
+    return FormattedNamedFunction.from(f, format, "behavior").compose(beforeF);
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  public static <X, BQ> FormattedNamedFunction<X, BQ> behaviorQuality(
+      @Param(value = "of", dNPM = "f.identity()") Function<X, BehaviorBasedProblem.Outcome<?, BQ>> beforeF,
+      @Param(value = "format", dS = "%s") String format
+  ) {
+    Function<BehaviorBasedProblem.Outcome<?, BQ>, BQ> f = BehaviorBasedProblem.Outcome::behaviorQuality;
+    return FormattedNamedFunction.from(f, format, "behavior.quality").compose(beforeF);
   }
 
   @SuppressWarnings("unused")

@@ -32,7 +32,7 @@ public class ParetoDominance<C> implements PartialComparator<List<C>> {
     this.comparators = comparators;
   }
 
-  public static <C extends Comparable<C>> ParetoDominance<C> build(Class<C> cClass, int n) {
+  public static <C extends Comparable<C>> ParetoDominance<C> from(Class<C> cClass, int n) {
     return new ParetoDominance<>(Collections.nCopies(n, Comparable::compareTo));
   }
 

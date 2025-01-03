@@ -87,7 +87,7 @@ public class MapperGeneration implements GrammarBasedProblem<String, Pair<Tree<E
 
   @Override
   public PartialComparator<List<Double>> qualityComparator() {
-    return ParetoDominance.build(Double.class, dimensionality);
+    return ParetoDominance.from(Double.class, dimensionality);
   }
 
   @Override

@@ -422,6 +422,21 @@ public class Mappers {
 
   @SuppressWarnings("unused")
   @Cacheable
+  public static <X> InvertibleMapper<X, String> isToString(
+      @Param(value = "of", dNPM = "ea.m.identity()") InvertibleMapper<X, IntString> beforeM,
+      @Param(value = "alphabet", dS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ") String alphabet
+  ) {
+    return beforeM.andThen(
+        InvertibleMapper.from(
+            (str, is) -> is.genes().stream().map(i -> alphabet.substring(i, i + 1)).collect(Collectors.joining()),
+            str -> new IntString(Collections.nCopies(str.length(), 0), 0, alphabet.length()),
+            "isToString[alphabetSize=%d]".formatted(alphabet.length())
+        )
+    );
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
   public static <X> InvertibleMapper<X, NamedMultivariateRealFunction> multiSrTreeToNmrf(
       @Param(value = "of", dNPM = "ea.m.identity()") InvertibleMapper<X, List<Tree<Element>>> beforeM,
       @Param(value = "postOperator", dNPM = "ds.f.doubleOp(activationF=identity)") Function<Double, Double> postOperator

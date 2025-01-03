@@ -343,6 +343,20 @@ public class Misc {
         );
   }
 
+  public static <K, V, U> SequencedMap<K, U> sequencedTransformValues(
+      SequencedMap<K, V> map,
+      Function<? super V, ? extends U> transformer
+  ) {
+    return map.entrySet()
+        .stream()
+        .collect(
+            Misc.toSequencedMap(
+                Map.Entry::getKey,
+                e -> transformer.apply(e.getValue())
+            )
+        );
+  }
+
   public static <T> Set<T> union(Set<T> set1, Set<T> set2) {
     return Stream.of(set1, set2).flatMap(Set::stream).collect(Collectors.toSet());
   }
