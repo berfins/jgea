@@ -23,6 +23,7 @@ package io.github.ericmedvet.jgea.core.order;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Function;
 
 public class ParetoDominance<C> implements PartialComparator<List<C>> {
 
@@ -32,20 +33,31 @@ public class ParetoDominance<C> implements PartialComparator<List<C>> {
     this.comparators = comparators;
   }
 
-  public static <C extends Comparable<C>> ParetoDominance<C> from(Class<C> cClass, int n) {
+  public static <C extends Comparable<C>> ParetoDominance<C> from(@SuppressWarnings("unused") Class<C> cClass, int n) {
     return new ParetoDominance<>(Collections.nCopies(n, Comparable::compareTo));
   }
 
   @Override
-  public PartialComparatorOutcome compare(List<C> k1, List<C> k2) {
-    if (k1.size() != k2.size() || k1.size() != comparators.size()) {
+  public PartialComparatorOutcome compare(List<C> cs1, List<C> cs2) {
+    return compare(cs1, cs2, Function.identity(), comparators);
+  }
+
+  public static <K, C> PartialComparatorOutcome compare(
+      K k1,
+      K k2,
+      Function<? super K, ? extends List<C>> function,
+      List<Comparator<C>> comparators
+  ) {
+    List<C> cs1 = function.apply(k1);
+    List<C> cs2 = function.apply(k2);
+    if (cs1.size() != cs2.size() || cs1.size() != comparators.size()) {
       throw new IllegalArgumentException("Cannot compare: lists sizes mismatch.");
     }
     int afterCount = 0;
     int beforeCount = 0;
-    for (int i = 0; i < k1.size(); i++) {
-      C o1 = k1.get(i);
-      C o2 = k2.get(i);
+    for (int i = 0; i < cs1.size(); i++) {
+      C o1 = cs1.get(i);
+      C o2 = cs2.get(i);
       int outcome = comparators.get(i).compare(o1, o2);
       if (outcome < 0) {
         beforeCount = beforeCount + 1;
@@ -64,4 +76,5 @@ public class ParetoDominance<C> implements PartialComparator<List<C>> {
     }
     return PartialComparatorOutcome.NOT_COMPARABLE;
   }
+
 }

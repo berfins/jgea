@@ -18,8 +18,8 @@ ea.experiment(
     ea.l.console(
       functions = [
         ea.f.size(of = ea.f.genotype(of = ea.f.best()); format = "%3d");
-        f.mapValue(key = b; of = ea.f.behaviorQuality(of = ea.f.quality(of = ea.f.best())); format = "%3d");
-        f.mapValue(key = c; of = ea.f.behaviorQuality(of = ea.f.quality(of = ea.f.best())); format = "%3d")
+        f.mapValue(key = b; of = ea.f.quality(of = ea.f.best()); format = "%3d");
+        f.mapValue(key = c; of = ea.f.quality(of = ea.f.best()); format = "%3d")
       ];
       onlyLast = false
     )

@@ -21,15 +21,11 @@ package io.github.ericmedvet.jgea.core.problem;
 
 import io.github.ericmedvet.jgea.core.order.ParetoDominance;
 import io.github.ericmedvet.jgea.core.order.PartialComparator;
-
 import java.util.Comparator;
 import java.util.SequencedMap;
 import java.util.function.Function;
 
-// TODO: (b) add simple MOProblem with Q = Map<String,O>, (c) remove old
-// MO problem
-
-public interface MOProblem<S, Q, O> extends QualityBasedProblem<S, Q> {
+public interface MultiObjectiveProblem<S, Q, O> extends QualityBasedProblem<S, Q> {
   record Objective<Q, O>(
       Function<? super Q, ? extends O> function,
       Comparator<O> comparator
@@ -52,16 +48,16 @@ public interface MOProblem<S, Q, O> extends QualityBasedProblem<S, Q> {
 
   @Override
   default PartialComparator<Q> qualityComparator() {
-    ParetoDominance<O> paretoDominance = new ParetoDominance<>(
-        objectives().values()
-            .stream()
-            .map(Objective::comparator)
-            .toList()
-    );
-    return paretoDominance.on(
+    return (q1, q2) -> ParetoDominance.compare(
+        q1,
+        q2,
         q -> objectives().values()
             .stream()
             .map(obj -> (O) obj.function.apply(q))
+            .toList(),
+        objectives().values()
+            .stream()
+            .map(Objective::comparator)
             .toList()
     );
   }

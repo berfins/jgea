@@ -19,19 +19,19 @@
  */
 package io.github.ericmedvet.jgea.problem.synthetic;
 
-import io.github.ericmedvet.jgea.core.problem.BehaviorBasedMOProblem;
-import io.github.ericmedvet.jgea.core.problem.MOProblem;
 import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
+import io.github.ericmedvet.jgea.core.problem.SimpleMOProblem;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public record LettersMax(
-    Function<? super String, ? extends Map<String, Integer>> behaviorFunction,
-    SequencedMap<String, MOProblem.Objective<Map<String, Integer>, Integer>> behaviorObjectives,
+    Function<String, SequencedMap<String, Integer>> qualityFunction,
+    SequencedMap<String, Comparator<Integer>> comparators,
     String example
-) implements BehaviorBasedMOProblem<String, Map<String, Integer>, Integer>, ProblemWithExampleSolution<String> {
+) implements SimpleMOProblem<String, Integer>, ProblemWithExampleSolution<String> {
+
   public LettersMax(
       SequencedSet<String> letters,
       int l
@@ -41,18 +41,15 @@ public record LettersMax(
         letters.stream()
             .collect(
                 Misc.toSequencedMap(
-                    c -> new Objective<>(
-                        occurrences -> occurrences.get(c),
-                        ((Comparator<Integer>) Integer::compareTo).reversed()
-                    )
+                    letter -> ((Comparator<Integer>) Integer::compareTo).reversed()
                 )
             ),
         String.join("", Collections.nCopies(l, "."))
     );
   }
 
-  private static Map<String, Integer> countCharOccurrences(String s, SequencedSet<String> letters) {
-    Map<String, Integer> rawCount = new HashMap<>(
+  private static SequencedMap<String, Integer> countCharOccurrences(String s, SequencedSet<String> letters) {
+    SequencedMap<String, Integer> rawCount = new LinkedHashMap<>(
         s.codePoints()
             .mapToObj(c -> String.valueOf((char) c))
             .collect(
