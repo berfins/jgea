@@ -21,11 +21,12 @@ package io.github.ericmedvet.jgea.core.problem;
 
 import io.github.ericmedvet.jgea.core.order.ParetoDominance;
 import io.github.ericmedvet.jgea.core.order.PartialComparator;
+
 import java.util.Comparator;
 import java.util.SequencedMap;
 import java.util.function.Function;
 
-// TODO: (a) add method for getting TotalOrderedProblem, (b) add simple MOProblem with Q = Map<String,O>, (c) remove old
+// TODO: (b) add simple MOProblem with Q = Map<String,O>, (c) remove old
 // MO problem
 
 public interface MOProblem<S, Q, O> extends QualityBasedProblem<S, Q> {
@@ -35,6 +36,19 @@ public interface MOProblem<S, Q, O> extends QualityBasedProblem<S, Q> {
   ) {}
 
   SequencedMap<String, Objective<Q, O>> objectives();
+
+  default TotalOrderQualityBasedProblem<S, Q> asTotalOrderQualityBasedProblem(String objective) {
+    Function<? super Q, ? extends O> oFunction = objectives().get(objective).function();
+    Comparator<O> oComparator = objectives().get(objective).comparator();
+    return TotalOrderQualityBasedProblem.from(
+        qualityFunction(),
+        Comparator.comparing(oFunction, oComparator)
+    );
+  }
+
+  default TotalOrderQualityBasedProblem<S, Q> asTotalOrderQualityBasedProblem() {
+    return asTotalOrderQualityBasedProblem(objectives().firstEntry().getKey());
+  }
 
   @Override
   default PartialComparator<Q> qualityComparator() {

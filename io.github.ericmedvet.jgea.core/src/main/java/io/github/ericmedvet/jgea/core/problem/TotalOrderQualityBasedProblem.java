@@ -20,7 +20,9 @@
 package io.github.ericmedvet.jgea.core.problem;
 
 import io.github.ericmedvet.jgea.core.order.PartialComparator;
+
 import java.util.Comparator;
+import java.util.function.Function;
 
 public interface TotalOrderQualityBasedProblem<S, Q> extends QualityBasedProblem<S, Q> {
   Comparator<Q> totalOrderComparator();
@@ -37,5 +39,16 @@ public interface TotalOrderQualityBasedProblem<S, Q> extends QualityBasedProblem
       }
       return PartialComparator.PartialComparatorOutcome.AFTER;
     };
+  }
+
+  static <S, Q> TotalOrderQualityBasedProblem<S, Q> from(
+      Function<S, Q> qualityFunction,
+      Comparator<Q> totalOrderComparator
+  ) {
+    record HardTotalOrderQualityBasedProblem<S, Q>(
+        Function<S, Q> qualityFunction,
+        Comparator<Q> totalOrderComparator
+    ) implements TotalOrderQualityBasedProblem<S, Q> {}
+    return new HardTotalOrderQualityBasedProblem<>(qualityFunction, totalOrderComparator);
   }
 }

@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.SequencedMap;
 import java.util.function.Function;
 
+// TODO: (a) generalize this by making Map<String, O> -> BQ, (b) make a SimpleBBMOProblem with BQ = Map<String, O>
 public interface BehaviorBasedMOProblem<S, B, O> extends MOProblem<S, BehaviorBasedProblem.Outcome<B, Map<String, O>>, O>, BehaviorBasedProblem<S, B, Map<String, O>> {
 
   SequencedMap<String, Objective<B, O>> behaviorObjectives();
