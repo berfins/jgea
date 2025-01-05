@@ -22,7 +22,7 @@ package io.github.ericmedvet.jgea.core.solver;
 import io.github.ericmedvet.jgea.core.Factory;
 import io.github.ericmedvet.jgea.core.operator.GeneticOperator;
 import io.github.ericmedvet.jgea.core.order.PartiallyOrderedCollection;
-import io.github.ericmedvet.jgea.core.problem.MultiHomogeneousObjectiveProblem;
+import io.github.ericmedvet.jgea.core.problem.MultiObjectiveProblem;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -34,7 +34,7 @@ import java.util.stream.IntStream;
 
 // source -> https://doi.org/10.1109/4235.996017
 
-public class NsgaII<G, O, S> extends AbstractPopulationBasedIterativeSolver<POCPopulationState<Individual<G, S, MultiHomogeneousObjectiveProblem.Outcome<O, Double>>, G, S, MultiHomogeneousObjectiveProblem.Outcome<O, Double>, MultiHomogeneousObjectiveProblem<S, O, Double>>, MultiHomogeneousObjectiveProblem<S, O, Double>, Individual<G, S, MultiHomogeneousObjectiveProblem.Outcome<O, Double>>, G, S, MultiHomogeneousObjectiveProblem.Outcome<O, Double>> {
+public class NsgaII<G, S, Q> extends AbstractPopulationBasedIterativeSolver<POCPopulationState<Individual<G, S, Q>, G, S, Q, MultiObjectiveProblem<S, Q, Double>>, MultiObjectiveProblem<S, Q, Double>, Individual<G, S, Q>, G, S, Q> {
 
   protected final Map<GeneticOperator<G>, Double> operators;
   private final int populationSize;
@@ -44,7 +44,7 @@ public class NsgaII<G, O, S> extends AbstractPopulationBasedIterativeSolver<POCP
       Function<? super G, ? extends S> solutionMapper,
       Factory<? extends G> genotypeFactory,
       int populationSize,
-      Predicate<? super POCPopulationState<Individual<G, S, MultiHomogeneousObjectiveProblem.Outcome<O, Double>>, G, S, MultiHomogeneousObjectiveProblem.Outcome<O, Double>, MultiHomogeneousObjectiveProblem<S, O, Double>>> stopCondition,
+      Predicate<? super POCPopulationState<Individual<G, S, Q>, G, S, Q, MultiObjectiveProblem<S, Q, Double>>> stopCondition,
       Map<GeneticOperator<G>, Double> operators,
       int maxUniquenessAttempts,
       boolean remap
@@ -55,19 +55,19 @@ public class NsgaII<G, O, S> extends AbstractPopulationBasedIterativeSolver<POCP
     this.maxUniquenessAttempts = maxUniquenessAttempts;
   }
 
-  private record RankedIndividual<G, O, S>(
+  private record RankedIndividual<G, S, Q>(
       long id,
       G genotype,
       S solution,
-      MultiHomogeneousObjectiveProblem.Outcome<O, Double> quality,
+      Q quality,
       long qualityMappingIteration,
       long genotypeBirthIteration,
       int rank,
       double crowdingDistance,
       Collection<Long> parentIds
-  ) implements Individual<G, S, MultiHomogeneousObjectiveProblem.Outcome<O, Double>> {
-    static <G, O, S> RankedIndividual<G, O, S> from(
-        Individual<G, S, MultiHomogeneousObjectiveProblem.Outcome<O, Double>> individual
+  ) implements Individual<G, S, Q> {
+    static <G, S, Q> RankedIndividual<G, S, Q> from(
+        Individual<G, S, Q> individual
     ) {
       return new RankedIndividual<>(
           individual.id(),
@@ -83,37 +83,32 @@ public class NsgaII<G, O, S> extends AbstractPopulationBasedIterativeSolver<POCP
     }
   }
 
-  private static <G, O, S> Comparator<RankedIndividual<G, O, S>> rankedComparator() {
-    return Comparator.comparingInt((RankedIndividual<G, O, S> i) -> i.rank)
+  private static <G, S, Q> Comparator<RankedIndividual<G, S, Q>> rankedComparator() {
+    return Comparator.comparingInt((RankedIndividual<G, S, Q> i) -> i.rank)
         .thenComparing((i1, i2) -> Double.compare(i2.crowdingDistance, i1.crowdingDistance));
   }
 
-  private static <G, O, S> List<Double> distances(
-      List<? extends Individual<G, S, MultiHomogeneousObjectiveProblem.Outcome<O, Double>>> individuals,
-      SequencedMap<String, MultiHomogeneousObjectiveProblem.Objective<O, Double>> objectives
+  private static <G, S, Q> List<Double> distances(
+      List<? extends Individual<G, S, Q>> individuals,
+      SequencedMap<String, MultiObjectiveProblem.Objective<Q, Double>> objectives
   ) {
     double[] dists = new double[individuals.size()];
-    for (String oName : objectives.keySet()) {
+    for (MultiObjectiveProblem.Objective<Q, Double> objective : objectives.values()) {
       List<Integer> indexes = IntStream.range(0, individuals.size())
           .boxed()
           .sorted(
-              (ii1, ii2) -> objectives
-                  .get(oName)
-                  .comparator()
-                  .compare(
-                      individuals.get(ii1).quality().objectives().get(oName),
-                      individuals.get(ii2).quality().objectives().get(oName)
-                  )
+              Comparator.comparing(
+                  ii -> objective.function().apply(individuals.get(ii).quality()),
+                  objective.comparator()
+              )
           )
           .toList();
       for (int ii = 1; ii < indexes.size() - 1; ii = ii + 1) {
         int previousIndex = indexes.get(ii - 1);
         int nextIndex = indexes.get(ii + 1);
         double dist = Math.abs(
-            individuals.get(previousIndex).quality().objectives().get(oName) - individuals.get(nextIndex)
-                .quality()
-                .objectives()
-                .get(oName)
+            objective.function().apply(individuals.get(previousIndex).quality()) - objective.function()
+                .apply(individuals.get(nextIndex).quality())
         );
         dists[indexes.get(ii)] = dists[indexes.get(ii)] + dist;
       }
@@ -123,26 +118,26 @@ public class NsgaII<G, O, S> extends AbstractPopulationBasedIterativeSolver<POCP
     return Arrays.stream(dists).boxed().toList();
   }
 
-  private static <G, O, S> Collection<RankedIndividual<G, O, S>> decorate(
-      Collection<? extends Individual<G, S, MultiHomogeneousObjectiveProblem.Outcome<O, Double>>> individuals,
-      MultiHomogeneousObjectiveProblem<S, O, Double> problem
+  private static <G, S, Q> Collection<RankedIndividual<G, S, Q>> decorate(
+      Collection<? extends Individual<G, S, Q>> individuals,
+      MultiObjectiveProblem<S, Q, Double> problem
   ) {
-    List<? extends Collection<? extends Individual<G, S, MultiHomogeneousObjectiveProblem.Outcome<O, Double>>>> fronts = PartiallyOrderedCollection
+    List<? extends Collection<? extends Individual<G, S, Q>>> fronts = PartiallyOrderedCollection
         .from(
             individuals,
             partialComparator(problem)
         )
         .fronts();
-    SequencedMap<String, MultiHomogeneousObjectiveProblem.Objective<O, Double>> objectives = problem.objectives();
+    SequencedMap<String, MultiObjectiveProblem.Objective<Q, Double>> objectives = problem.objectives();
     return IntStream.range(0, fronts.size())
         .mapToObj(fi -> {
-          List<? extends Individual<G, S, MultiHomogeneousObjectiveProblem.Outcome<O, Double>>> is = fronts.get(fi)
+          List<? extends Individual<G, S, Q>> is = fronts.get(fi)
               .stream()
               .toList();
           List<Double> distances = distances(is, objectives);
           return IntStream.range(0, is.size())
               .mapToObj(ii -> {
-                Individual<G, S, MultiHomogeneousObjectiveProblem.Outcome<O, Double>> individual = is.get(ii);
+                Individual<G, S, Q> individual = is.get(ii);
                 return new RankedIndividual<>(
                     individual.id(),
                     individual.genotype(),
@@ -162,16 +157,16 @@ public class NsgaII<G, O, S> extends AbstractPopulationBasedIterativeSolver<POCP
   }
 
   @Override
-  public POCPopulationState<Individual<G, S, MultiHomogeneousObjectiveProblem.Outcome<O, Double>>, G, S, MultiHomogeneousObjectiveProblem.Outcome<O, Double>, MultiHomogeneousObjectiveProblem<S, O, Double>> init(
-      MultiHomogeneousObjectiveProblem<S, O, Double> problem,
+  public POCPopulationState<Individual<G, S, Q>, G, S, Q, MultiObjectiveProblem<S, Q, Double>> init(
+      MultiObjectiveProblem<S, Q, Double> problem,
       RandomGenerator random,
       ExecutorService executor
   ) throws SolverException {
-    POCPopulationState<Individual<G, S, MultiHomogeneousObjectiveProblem.Outcome<O, Double>>, G, S, MultiHomogeneousObjectiveProblem.Outcome<O, Double>, MultiHomogeneousObjectiveProblem<S, O, Double>> newState = POCPopulationState
+    POCPopulationState<Individual<G, S, Q>, G, S, Q, MultiObjectiveProblem<S, Q, Double>> newState = POCPopulationState
         .empty(problem, stopCondition());
     AtomicLong counter = new AtomicLong(0);
     List<? extends G> genotypes = genotypeFactory.build(populationSize, random);
-    Collection<Individual<G, S, MultiHomogeneousObjectiveProblem.Outcome<O, Double>>> individuals = getAll(
+    Collection<Individual<G, S, Q>> individuals = getAll(
         map(
             genotypes.stream()
                 .map(g -> new ChildGenotype<G>(counter.getAndIncrement(), g, List.of()))
@@ -192,10 +187,10 @@ public class NsgaII<G, O, S> extends AbstractPopulationBasedIterativeSolver<POCP
   }
 
   @Override
-  public POCPopulationState<Individual<G, S, MultiHomogeneousObjectiveProblem.Outcome<O, Double>>, G, S, MultiHomogeneousObjectiveProblem.Outcome<O, Double>, MultiHomogeneousObjectiveProblem<S, O, Double>> update(
+  public POCPopulationState<Individual<G, S, Q>, G, S, Q, MultiObjectiveProblem<S, Q, Double>> update(
       RandomGenerator random,
       ExecutorService executor,
-      POCPopulationState<Individual<G, S, MultiHomogeneousObjectiveProblem.Outcome<O, Double>>, G, S, MultiHomogeneousObjectiveProblem.Outcome<O, Double>, MultiHomogeneousObjectiveProblem<S, O, Double>> state
+      POCPopulationState<Individual<G, S, Q>, G, S, Q, MultiObjectiveProblem<S, Q, Double>> state
   ) throws SolverException {
     // build offspring
     Collection<ChildGenotype<G>> offspringChildGenotypes = new ArrayList<>();
@@ -210,7 +205,7 @@ public class NsgaII<G, O, S> extends AbstractPopulationBasedIterativeSolver<POCP
       );
     }
     int attempts = 0;
-    List<Individual<G, S, MultiHomogeneousObjectiveProblem.Outcome<O, Double>>> individuals = state.pocPopulation()
+    List<Individual<G, S, Q>> individuals = state.pocPopulation()
         .all()
         .stream()
         .toList();
@@ -218,7 +213,7 @@ public class NsgaII<G, O, S> extends AbstractPopulationBasedIterativeSolver<POCP
     AtomicLong counter = new AtomicLong(state.nOfBirths());
     while (offspringChildGenotypes.size() < populationSize) {
       GeneticOperator<G> operator = Misc.pickRandomly(operators, random);
-      List<Individual<G, S, MultiHomogeneousObjectiveProblem.Outcome<O, Double>>> parents = IntStream.range(
+      List<Individual<G, S, Q>> parents = IntStream.range(
           0,
           operator.arity()
       )
@@ -237,7 +232,7 @@ public class NsgaII<G, O, S> extends AbstractPopulationBasedIterativeSolver<POCP
       }
     }
     // map and decorate and trim
-    Collection<Individual<G, S, MultiHomogeneousObjectiveProblem.Outcome<O, Double>>> newPopulation = mapAll(
+    Collection<Individual<G, S, Q>> newPopulation = mapAll(
         offspringChildGenotypes,
         (cg, s, r) -> RankedIndividual.from(
             Individual.from(cg, solutionMapper, s.problem().qualityFunction(), s.nOfIterations())
@@ -248,11 +243,11 @@ public class NsgaII<G, O, S> extends AbstractPopulationBasedIterativeSolver<POCP
         random,
         executor
     );
-    List<RankedIndividual<G, O, S>> rankedIndividuals = decorate(newPopulation, state.problem()).stream()
+    List<RankedIndividual<G, S, Q>> rankedIndividuals = decorate(newPopulation, state.problem()).stream()
         .sorted(rankedComparator())
         .limit(populationSize)
         .toList();
-    @SuppressWarnings({"unchecked", "rawtypes"}) List<Individual<G, S, MultiHomogeneousObjectiveProblem.Outcome<O, Double>>> newIndividuals = (List) rankedIndividuals;
+    @SuppressWarnings({"unchecked", "rawtypes"}) List<Individual<G, S, Q>> newIndividuals = (List) rankedIndividuals;
     return state.updatedWithIteration(
         offspringChildGenotypes.size(),
         offspringChildGenotypes.size() + (remap ? populationSize : 0),

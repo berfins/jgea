@@ -195,8 +195,8 @@ public class SinglePlots {
           """
               xyes(
                 title = ea.f.runString(name = title; s = "Fronts with {run.solver.name} on {run.problem.name} (seed={run.randomGenerator.seed})");
-                x = f.nThKeyedValue(of = ea.f.quality(); n = 0);
-                y = f.nThKeyedValue(of = ea.f.quality(); n = 1);
+                x = f.nThMapValue(of = ea.f.quality(); n = 0);
+                y = f.nThMapValue(of = ea.f.quality(); n = 1);
                 points = [
                   ea.f.firsts();
                   ea.f.mids();

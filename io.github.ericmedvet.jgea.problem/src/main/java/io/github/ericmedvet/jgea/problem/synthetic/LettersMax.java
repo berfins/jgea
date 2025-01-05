@@ -27,10 +27,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public record LettersMax(
-    Function<String, SequencedMap<String, Integer>> qualityFunction,
-    SequencedMap<String, Comparator<Integer>> comparators,
+    Function<String, SequencedMap<String, Double>> qualityFunction,
+    SequencedMap<String, Comparator<Double>> comparators,
     String example
-) implements SimpleMOProblem<String, Integer>, ProblemWithExampleSolution<String> {
+) implements SimpleMOProblem<String, Double>, ProblemWithExampleSolution<String> {
 
   public LettersMax(
       SequencedSet<String> letters,
@@ -41,14 +41,14 @@ public record LettersMax(
         letters.stream()
             .collect(
                 Misc.toSequencedMap(
-                    letter -> ((Comparator<Integer>) Integer::compareTo).reversed()
+                    letter -> ((Comparator<Double>) Double::compareTo).reversed()
                 )
             ),
         String.join("", Collections.nCopies(l, "."))
     );
   }
 
-  private static SequencedMap<String, Integer> countCharOccurrences(String s, SequencedSet<String> letters) {
+  private static SequencedMap<String, Double> countCharOccurrences(String s, SequencedSet<String> letters) {
     SequencedMap<String, Integer> rawCount = new LinkedHashMap<>(
         s.codePoints()
             .mapToObj(c -> String.valueOf((char) c))
@@ -60,7 +60,7 @@ public record LettersMax(
             )
     );
     letters.forEach(l -> rawCount.computeIfAbsent(l, ll -> 0));
-    return rawCount;
+    return Misc.sequencedTransformValues(rawCount, c -> (double) c / (double) s.length());
   }
 
 }
