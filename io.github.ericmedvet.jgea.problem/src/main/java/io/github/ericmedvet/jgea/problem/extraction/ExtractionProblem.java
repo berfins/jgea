@@ -1,100 +1,111 @@
-/*-
- * ========================LICENSE_START=================================
- * jgea-problem
- * %%
- * Copyright (C) 2018 - 2024 Eric Medvet
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =========================LICENSE_END==================================
- */
-
 package io.github.ericmedvet.jgea.problem.extraction;
 
-import io.github.ericmedvet.jgea.core.problem.SimpleMultiHomogeneousObjectiveProblem;
+import io.github.ericmedvet.jgea.core.problem.SimpleEBMOProblem;
 import io.github.ericmedvet.jgea.core.representation.graph.finiteautomata.Extractor;
 import io.github.ericmedvet.jgea.core.util.IntRange;
 import io.github.ericmedvet.jgea.core.util.Misc;
-import io.github.ericmedvet.jnb.datastructure.Pair;
+import io.github.ericmedvet.jnb.datastructure.TriFunction;
+
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
-public class ExtractionProblem<S> implements SimpleMultiHomogeneousObjectiveProblem<Extractor<S>, Double> {
+public interface ExtractionProblem<A> extends SimpleEBMOProblem<Extractor<A>, List<A>, Set<IntRange>,
+    ExtractionProblem.Outcome, Double> {
+  record Outcome(int length, Set<IntRange> desired, Set<IntRange> extracted) {}
 
-  private final ExtractionFitness<S> fitnessFunction;
-  private final ExtractionFitness<S> validationFunction;
-  private final SequencedMap<String, Comparator<Double>> comparators;
+  enum Metric {
+    ONE_MINUS_PREC, ONE_MINUS_REC, ONE_MINUS_FM, SYMBOL_FNR, SYMBOL_FPR, SYMBOL_ERROR, SYMBOL_WEIGHTED_ERROR;
 
-  public ExtractionProblem(
-      Set<Extractor<S>> extractors,
-      List<S> sequence,
-      int folds,
-      int i,
-      ExtractionFitness.Metric... metrics
-  ) {
-    Pair<List<S>, Set<IntRange>> validationDataset = buildDataset(extractors, sequence, folds, i, false);
-    fitnessFunction = new ExtractionFitness<>(
-        buildDataset(extractors, sequence, folds, i, true).first(),
-        buildDataset(extractors, sequence, folds, i, true).second(),
-        metrics
-    );
-    validationFunction = new ExtractionFitness<>(validationDataset.first(), validationDataset.second(), metrics);
-    comparators = Arrays.stream(metrics)
+    @Override
+    public String toString() {
+      return name().toLowerCase().replace('_', '.');
+    }
+  }
+
+  List<Metric> metrics();
+
+  @Override
+  default SequencedMap<String, Objective<List<Outcome>, Double>> aggregateObjectives() {
+    return metrics().stream().collect(Misc.toSequencedMap(
+        Enum::toString,
+        m -> new Objective<>(
+            outcomes -> aggregateFunction().apply(outcomes).get(m.toString()), // should never be called
+            Double::compareTo
+        )
+    ));
+  }
+
+  @Override
+  default TriFunction<List<A>, Set<IntRange>, Set<IntRange>, Outcome> errorFunction() {
+    return (as, desiredExtractions, extractions) -> new Outcome(as.size(), desiredExtractions, extractions);
+  }
+
+  @Override
+  default Function<List<Outcome>, SequencedMap<String, Double>> aggregateFunction() {
+    return results -> {
+      SequencedMap<String, List<Double>> raw = new LinkedHashMap<>();
+      Set<Metric> metrics = new LinkedHashSet<>(metrics());
+      metrics.forEach(m -> raw.put(m.toString(), new ArrayList<>()));
+      results.forEach(outcome -> computeForResult(outcome, metrics).forEach((k, v) -> raw.get(k).add(v)));
+      return Misc.sequencedTransformValues(raw, vs -> vs.stream().mapToDouble(v -> v).average().orElseThrow());
+    };
+  }
+
+  @Override
+  default BiFunction<Extractor<A>, List<A>, Set<IntRange>> predictFunction() {
+    return Extractor::extractNonOverlapping;
+  }
+
+  private static SequencedMap<String, Double> computeForResult(Outcome outcome, Set<Metric> metrics) {
+    Map<Metric, Double> values = new EnumMap<>(Metric.class);
+    if (metrics.contains(Metric.ONE_MINUS_FM) || metrics.contains(Metric.ONE_MINUS_PREC) || metrics.contains(Metric.ONE_MINUS_REC
+    )) {
+      // precision and recall
+      Set<IntRange> correctExtractions = new LinkedHashSet<>(outcome.extracted);
+      correctExtractions.retainAll(outcome.desired);
+      double recall = (double) correctExtractions.size() / (double) outcome.desired.size();
+      double precision = (double) correctExtractions.size() / (double) outcome.extracted.size();
+      double fMeasure = 2d * precision * recall / (precision + recall);
+      values.put(Metric.ONE_MINUS_PREC, 1 - precision);
+      values.put(Metric.ONE_MINUS_REC, 1 - recall);
+      values.put(Metric.ONE_MINUS_FM, 1 - fMeasure);
+    }
+    if (metrics.contains(Metric.SYMBOL_ERROR) || metrics.contains(Metric.SYMBOL_FNR) || metrics.contains(Metric.SYMBOL_FPR
+    ) || metrics.contains(Metric.SYMBOL_WEIGHTED_ERROR)) {
+      BitSet extractionMask = buildMask(outcome.extracted, outcome.length);
+      BitSet desiredExtractionMask = buildMask(outcome.desired, outcome.length);
+      int extractedSymbols = extractionMask.cardinality();
+      extractionMask.and(desiredExtractionMask);
+      double truePositiveSymbols = extractionMask.cardinality();
+      double falseNegativeSymbols = desiredExtractionMask.cardinality() - truePositiveSymbols;
+      double falsePositiveSymbols = extractedSymbols - truePositiveSymbols;
+      double trueNegativeChars = desiredExtractionMask
+          .length() - falsePositiveSymbols - truePositiveSymbols - falseNegativeSymbols;
+      values.put(Metric.SYMBOL_FPR, falsePositiveSymbols / (trueNegativeChars + falsePositiveSymbols));
+      values.put(Metric.SYMBOL_FNR, falseNegativeSymbols / (truePositiveSymbols + falseNegativeSymbols));
+      values.put(
+          Metric.SYMBOL_ERROR,
+          (falsePositiveSymbols + falseNegativeSymbols) / (double) outcome.length
+      );
+      values.put(
+          Metric.SYMBOL_WEIGHTED_ERROR,
+          (falsePositiveSymbols / (trueNegativeChars + falsePositiveSymbols) + falseNegativeSymbols / (truePositiveSymbols + falseNegativeSymbols)) / 2d
+      );
+    }
+    return metrics.stream()
         .collect(
             Misc.toSequencedMap(
                 Enum::toString,
-                m -> Double::compareTo
+                values::get
             )
         );
   }
 
-  private static <S> Pair<List<S>, Set<IntRange>> buildDataset(
-      Set<Extractor<S>> extractors,
-      List<S> sequence,
-      int folds,
-      int i,
-      boolean takeAllButIth
-  ) {
-    List<S> builtSequence = new ArrayList<>();
-    double foldLength = (double) sequence.size() / (double) folds;
-    for (int n = 0; n < folds; n++) {
-      List<S> piece = sequence.subList(
-          (int) Math.round(foldLength * (double) n),
-          (n == folds - 1) ? sequence.size() : ((int) Math.round(foldLength * (double) (n + 1)))
-      );
-      if (takeAllButIth && (n != i)) {
-        builtSequence.addAll(piece);
-      } else if (!takeAllButIth && (n == i)) {
-        builtSequence.addAll(piece);
-      }
-    }
-    Set<IntRange> desiredExtractions = extractors.stream()
-        .map(e -> e.extractNonOverlapping(builtSequence))
-        .reduce(Misc::union)
-        .orElse(Set.of());
-    return new Pair<>(builtSequence, desiredExtractions);
+  private static BitSet buildMask(Set<IntRange> extractions, int size) {
+    BitSet bitSet = new BitSet(size);
+    extractions.forEach(r -> bitSet.set(r.min(), r.max()));
+    return bitSet;
   }
 
-  public ExtractionFitness<S> validationQualityFunction() {
-    return validationFunction;
-  }
-
-  @Override
-  public SequencedMap<String, Comparator<Double>> comparators() {
-    return comparators;
-  }
-
-  @Override
-  public Function<Extractor<S>, Map<String, Double>> outcomeFunction() {
-    return fitnessFunction::apply;
-  }
 }

@@ -20,7 +20,6 @@
 
 package io.github.ericmedvet.jgea.problem.regression.multivariate;
 
-import io.github.ericmedvet.jgea.core.fitness.ExampleBasedFitness;
 import io.github.ericmedvet.jgea.core.problem.*;
 import io.github.ericmedvet.jgea.core.representation.NamedMultivariateRealFunction;
 import io.github.ericmedvet.jgea.core.util.IndexedProvider;
@@ -29,7 +28,7 @@ import io.github.ericmedvet.jsdynsym.core.numerical.MultivariateRealFunction;
 import java.util.Comparator;
 import java.util.Map;
 
-public interface MultivariateRegressionProblem extends ExampleBasedProblem<NamedMultivariateRealFunction, Map<String, Double>, Map<String, Double>, MultivariateRegressionFitness.Outcome, Double>, TotalOrderQualityBasedProblem<NamedMultivariateRealFunction, Double>, ProblemWithExampleSolution<NamedMultivariateRealFunction> {
+public interface MultivariateRegressionProblem extends OLDExampleBasedProblem<NamedMultivariateRealFunction, Map<String, Double>, Map<String, Double>, MultivariateRegressionFitness.Outcome, Double>, TotalOrderQualityBasedProblem<NamedMultivariateRealFunction, Double>, ProblemWithExampleSolution<NamedMultivariateRealFunction> {
 
   @Override
   MultivariateRegressionFitness qualityFunction();

@@ -192,8 +192,8 @@ public class Problems {
   }
 
   @SuppressWarnings("unused")
-  public static <S> SimpleMultiHomogeneousObjectiveProblem<S, Double> mtpToMho(
-      @Param(value = "name", iS = "mt2mo({mtProblem.name})") String name,
+  public static <S> SimpleMOProblem<S, Double> mtToMo(
+      @Param(value = "name", iS = "mt2mo[{mtProblem.name}]") String name,
       @Param("mtProblem") MultiTargetProblem<S> mtProblem
   ) {
     return mtProblem.toMHOProblem();

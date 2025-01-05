@@ -19,8 +19,6 @@
  */
 package io.github.ericmedvet.jgea.problem.programsynthesis;
 
-import io.github.ericmedvet.jgea.core.fitness.ExampleBasedFitness;
-import io.github.ericmedvet.jgea.core.problem.ExampleBasedProblem;
 import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
 import io.github.ericmedvet.jgea.core.problem.TotalOrderQualityBasedProblem;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.Program;
@@ -30,7 +28,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.random.RandomGenerator;
 
-public interface ProgramSynthesisProblem extends ExampleBasedProblem<Program, List<Object>, List<Object>, ProgramSynthesisFitness.Outcome, Double>, TotalOrderQualityBasedProblem<Program, Double>, ProblemWithExampleSolution<Program> {
+public interface ProgramSynthesisProblem extends OLDExampleBasedProblem<Program, List<Object>, List<Object>, ProgramSynthesisFitness.Outcome, Double>, TotalOrderQualityBasedProblem<Program, Double>, ProblemWithExampleSolution<Program> {
 
   @Override
   ProgramSynthesisFitness qualityFunction();

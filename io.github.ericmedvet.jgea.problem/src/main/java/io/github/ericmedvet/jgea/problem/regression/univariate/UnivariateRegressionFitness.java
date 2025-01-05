@@ -19,7 +19,6 @@
  */
 package io.github.ericmedvet.jgea.problem.regression.univariate;
 
-import io.github.ericmedvet.jgea.core.fitness.ExampleBasedFitness;
 import io.github.ericmedvet.jgea.core.representation.NamedUnivariateRealFunction;
 import io.github.ericmedvet.jgea.core.util.IndexedProvider;
 import io.github.ericmedvet.jgea.core.util.Misc;

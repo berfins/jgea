@@ -21,7 +21,7 @@
 package io.github.ericmedvet.jgea.problem.synthetic.numerical;
 
 import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
-import io.github.ericmedvet.jgea.core.problem.SimpleMultiHomogeneousObjectiveProblem;
+import io.github.ericmedvet.jgea.core.problem.SimpleMOProblem;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import java.util.*;
 import java.util.function.Function;
@@ -29,9 +29,9 @@ import java.util.stream.Stream;
 
 public record Cones(
     SequencedMap<String, Comparator<Double>> comparators,
-    Function<List<Double>, Map<String, Double>> outcomeFunction,
+    Function<List<Double>, SequencedMap<String, Double>> qualityFunction,
     List<Double> example
-) implements SimpleMultiHomogeneousObjectiveProblem<List<Double>, Double>, ProblemWithExampleSolution<List<Double>> {
+) implements SimpleMOProblem<List<Double>, Double>, ProblemWithExampleSolution<List<Double>> {
 
   private static final SequencedMap<String, Comparator<Double>> COMPARATORS = Stream.of(
       Map.entry("lateralSurface", (Comparator<Double>) Double::compareTo),
@@ -55,11 +55,11 @@ public record Cones(
           double lateralSurface = Math.PI * r * s;
           double totalSurface = Math.PI * r * (r + s);
           double volume = Math.PI * r * r * h / 3;
-          return Map.ofEntries(
+          return Stream.of(
               Map.entry("lateralSurface", lateralSurface),
               Map.entry("totalSurface", totalSurface),
-              Map.entry("volume", lateralSurface)
-          );
+              Map.entry("volume", volume)
+          ).collect(Misc.toSequencedMap(Map.Entry::getKey, Map.Entry::getValue));
         },
         List.of(0d, 0d)
     );

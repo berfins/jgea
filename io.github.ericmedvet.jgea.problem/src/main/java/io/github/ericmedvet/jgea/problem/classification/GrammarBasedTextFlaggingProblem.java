@@ -20,7 +20,6 @@
 
 package io.github.ericmedvet.jgea.problem.classification;
 
-import io.github.ericmedvet.jgea.core.fitness.ExampleBasedFitness;
 import io.github.ericmedvet.jgea.core.representation.grammar.string.GrammarBasedProblem;
 import io.github.ericmedvet.jgea.core.representation.grammar.string.StringGrammar;
 import io.github.ericmedvet.jgea.core.representation.tree.Tree;

@@ -20,7 +20,6 @@
 package io.github.ericmedvet.jgea.problem.programsynthesis;
 
 import io.github.ericmedvet.jgea.core.distance.Distance;
-import io.github.ericmedvet.jgea.core.fitness.ExampleBasedFitness;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.Program;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.core.util.IndexedProvider;

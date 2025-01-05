@@ -20,7 +20,6 @@
 
 package io.github.ericmedvet.jgea.experimenter.builders;
 
-import io.github.ericmedvet.jgea.core.fitness.ExampleBasedFitness;
 import io.github.ericmedvet.jgea.core.util.IndexedProvider;
 import io.github.ericmedvet.jgea.problem.regression.multivariate.MultivariateRegressionProblem;
 import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitness;

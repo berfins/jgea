@@ -22,7 +22,8 @@ package io.github.ericmedvet.jgea.problem.extraction.string;
 
 import io.github.ericmedvet.jgea.core.representation.grammar.string.StringGrammar;
 import io.github.ericmedvet.jgea.core.util.Misc;
-import io.github.ericmedvet.jgea.problem.extraction.ExtractionFitness;
+import io.github.ericmedvet.jgea.problem.extraction.ExtractionProblem;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -40,11 +41,15 @@ public class RegexGrammar extends StringGrammar<String> {
     );
   }
 
-  public RegexGrammar(ExtractionFitness<Character> fitness, Set<Option> options) {
+  public RegexGrammar(ExtractionProblem<Character> problem, Set<Option> options) {
     this(
-        fitness.getDesiredExtractions()
+        problem.caseProvider()
             .stream()
-            .map(r -> (Set<Character>) (new HashSet<>(fitness.getSequence().subList(r.min(), r.max()))))
+            .map(e -> e.output().stream()
+                .map(eo -> (Set<Character>)new HashSet<>(e.input().subList(eo.min(), eo.max())))
+                .reduce(Misc::union)
+                .orElse(Set.of())
+            )
             .reduce(Misc::union)
             .orElse(Set.of()),
         options
@@ -103,7 +108,8 @@ public class RegexGrammar extends StringGrammar<String> {
   }
 
   public enum Option {
-    OR, QUANTIFIERS, NON_EMPTY_QUANTIFIER, BOUNDED_QUANTIFIERS, CHAR_CLASS, NEGATED_CHAR_CLASS, NON_CAPTURING_GROUP, ANY, ENHANCED_CONCATENATION
+    OR, QUANTIFIERS, NON_EMPTY_QUANTIFIER, BOUNDED_QUANTIFIERS, CHAR_CLASS, NEGATED_CHAR_CLASS, NON_CAPTURING_GROUP,
+    ANY, ENHANCED_CONCATENATION
   }
 
   private String escape(String c) {

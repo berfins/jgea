@@ -19,14 +19,12 @@
  */
 package io.github.ericmedvet.jgea.problem.booleanfunction;
 
-import io.github.ericmedvet.jgea.core.fitness.ExampleBasedFitness;
-import io.github.ericmedvet.jgea.core.problem.ExampleBasedProblem;
 import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
 import io.github.ericmedvet.jgea.core.problem.TotalOrderQualityBasedProblem;
 import io.github.ericmedvet.jgea.core.util.IndexedProvider;
 import java.util.Comparator;
 
-public interface BooleanRegressionProblem extends ExampleBasedProblem<BooleanFunction, boolean[], boolean[], Integer, Double>, TotalOrderQualityBasedProblem<BooleanFunction, Double>, ProblemWithExampleSolution<BooleanFunction> {
+public interface BooleanRegressionProblem extends OLDExampleBasedProblem<BooleanFunction, boolean[], boolean[], Integer, Double>, TotalOrderQualityBasedProblem<BooleanFunction, Double>, ProblemWithExampleSolution<BooleanFunction> {
   @Override
   BooleanRegressionFitness qualityFunction();
 

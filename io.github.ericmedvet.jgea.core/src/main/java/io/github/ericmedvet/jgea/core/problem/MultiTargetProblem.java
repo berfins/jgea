@@ -21,9 +21,10 @@
 package io.github.ericmedvet.jgea.core.problem;
 
 import io.github.ericmedvet.jgea.core.distance.Distance;
+import io.github.ericmedvet.jgea.core.util.Misc;
+
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public interface MultiTargetProblem<S> extends TotalOrderQualityBasedProblem<S, Double> {
@@ -44,44 +45,40 @@ public interface MultiTargetProblem<S> extends TotalOrderQualityBasedProblem<S, 
     return Double::compareTo;
   }
 
-  default SimpleMultiHomogeneousObjectiveProblem<S, Double> toMHOProblem() {
+  default SimpleMOProblem<S, Double> toMHOProblem() {
     List<S> targets = targets().stream().toList();
     SequencedMap<String, Comparator<Double>> comparators = IntStream.range(
-        0,
-        targets.size()
-    )
+            0,
+            targets.size()
+        )
         .boxed()
         .collect(
-            Collectors.toMap(
+            Misc.toSequencedMap(
                 "target%d"::formatted,
-                i -> Double::compareTo,
-                (c1, c2) -> c1,
-                TreeMap::new
+                i -> Double::compareTo
             )
         );
-    Function<S, Map<String, Double>> outcomeF = s -> IntStream.range(0, targets().size())
+    Function<S, SequencedMap<String, Double>> outcomeF = s -> IntStream.range(0, targets().size())
         .boxed()
         .collect(
-            Collectors.toMap(
+            Misc.toSequencedMap(
                 "target%d"::formatted,
-                i -> distance().apply(s, targets.get(i)),
-                (c1, c2) -> c1,
-                TreeMap::new
+                i -> distance().apply(s, targets.get(i))
             )
         );
-    record MHOProblem<S>(
+    record HardMOProblem<S>(
         SequencedMap<String, Comparator<Double>> comparators,
-        Function<S, Map<String, Double>> outcomeFunction
-    ) implements SimpleMultiHomogeneousObjectiveProblem<S, Double> {}
-    record MHOProblemWithExample<S>(
+        Function<S, SequencedMap<String, Double>> qualityFunction
+    ) implements SimpleMOProblem<S, Double> {}
+    record HardMOProblemWithExample<S>(
         SequencedMap<String, Comparator<Double>> comparators,
-        Function<S, Map<String, Double>> outcomeFunction,
+        Function<S, SequencedMap<String, Double>> qualityFunction,
         S example
-    ) implements SimpleMultiHomogeneousObjectiveProblem<S, Double>, ProblemWithExampleSolution<S> {}
+    ) implements SimpleMOProblem<S, Double>, ProblemWithExampleSolution<S> {}
     if (this instanceof ProblemWithExampleSolution<?> pwes) {
       //noinspection unchecked
-      return new MHOProblemWithExample<>(comparators, outcomeF, (S) pwes.example());
+      return new HardMOProblemWithExample<>(comparators, outcomeF, (S) pwes.example());
     }
-    return new MHOProblem<>(comparators, outcomeF);
+    return new HardMOProblem<>(comparators, outcomeF);
   }
 }

@@ -19,8 +19,6 @@
  */
 package io.github.ericmedvet.jgea.problem.regression.univariate;
 
-import io.github.ericmedvet.jgea.core.fitness.ExampleBasedFitness;
-import io.github.ericmedvet.jgea.core.problem.ExampleBasedProblem;
 import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
 import io.github.ericmedvet.jgea.core.problem.TotalOrderQualityBasedProblem;
 import io.github.ericmedvet.jgea.core.representation.NamedUnivariateRealFunction;
@@ -29,7 +27,7 @@ import io.github.ericmedvet.jsdynsym.core.numerical.UnivariateRealFunction;
 import java.util.Comparator;
 import java.util.Map;
 
-public interface UnivariateRegressionProblem extends ExampleBasedProblem<NamedUnivariateRealFunction, Map<String, Double>, Map<String, Double>, UnivariateRegressionFitness.Outcome, Double>, TotalOrderQualityBasedProblem<NamedUnivariateRealFunction, Double>, ProblemWithExampleSolution<NamedUnivariateRealFunction> {
+public interface UnivariateRegressionProblem extends OLDExampleBasedProblem<NamedUnivariateRealFunction, Map<String, Double>, Map<String, Double>, UnivariateRegressionFitness.Outcome, Double>, TotalOrderQualityBasedProblem<NamedUnivariateRealFunction, Double>, ProblemWithExampleSolution<NamedUnivariateRealFunction> {
 
   @Override
   UnivariateRegressionFitness qualityFunction();

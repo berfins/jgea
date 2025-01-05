@@ -20,12 +20,13 @@
 
 package io.github.ericmedvet.jgea.experimenter.builders;
 
-import io.github.ericmedvet.jgea.core.fitness.ExampleBasedFitness;
 import io.github.ericmedvet.jgea.core.util.IndexedProvider;
 import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitness;
 import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionProblem;
 import io.github.ericmedvet.jgea.problem.regression.univariate.synthetic.*;
 import io.github.ericmedvet.jnb.core.*;
+
+import java.util.List;
 import java.util.Map;
 
 @Discoverable(prefixTemplate = "ea.problem|p.univariateRegression|ur")
@@ -67,7 +68,7 @@ public class UnivariateRegressionProblems {
       @Param(value = "seed", dI = 1) int seed
   ) {
     return switch (name) {
-      case "keijzer6" -> new Keijzer6(metric);
+      case "keijzer6" -> new Keijzer6(List.of(metric));
       case "nguyen7" -> new Nguyen7(metric, seed);
       case "pagie1" -> new Pagie1(metric);
       case "polynomial4" -> new Polynomial4(metric);
