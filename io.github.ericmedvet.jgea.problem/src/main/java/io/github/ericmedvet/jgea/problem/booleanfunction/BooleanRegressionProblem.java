@@ -20,20 +20,75 @@
 package io.github.ericmedvet.jgea.problem.booleanfunction;
 
 import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
-import io.github.ericmedvet.jgea.core.problem.TotalOrderQualityBasedProblem;
-import io.github.ericmedvet.jgea.core.util.IndexedProvider;
-import java.util.Comparator;
+import io.github.ericmedvet.jgea.core.problem.SimpleEBMOProblem;
+import io.github.ericmedvet.jgea.core.util.Misc;
+import io.github.ericmedvet.jnb.datastructure.TriFunction;
 
-public interface BooleanRegressionProblem extends OLDExampleBasedProblem<BooleanFunction, boolean[], boolean[], Integer, Double>, TotalOrderQualityBasedProblem<BooleanFunction, Double>, ProblemWithExampleSolution<BooleanFunction> {
-  @Override
-  BooleanRegressionFitness qualityFunction();
+import java.util.Arrays;
+import java.util.List;
+import java.util.SequencedMap;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.IntStream;
+
+public interface BooleanRegressionProblem extends SimpleEBMOProblem<BooleanFunction, boolean[], boolean[], BooleanRegressionProblem.Outcome, Double>, ProblemWithExampleSolution<BooleanFunction> {
+  record Outcome(boolean[] actual, boolean[] predicted) {}
+  
+  enum Metric implements Function<List<Outcome>, Double> {
+    ERROR_RATE(
+        outcomes -> (double) outcomes.stream()
+            .filter(o -> Arrays.equals(o.actual, o.predicted))
+            .count() / (double) outcomes.size()
+    ), AVG_DISSIMILARITY(
+        outcomes -> outcomes.stream()
+            .mapToDouble(outcome -> IntStream.range(0, outcome.actual.length)
+                .mapToDouble(i -> outcome.actual[i]==outcome.predicted[i]?0d:1d)
+                .average()
+                .orElseThrow()
+            )
+            .average().orElseThrow()
+    );
+    
+    private final Function<List<Outcome>, Double> function;
+
+    Metric(Function<List<Outcome>, Double> function) {
+      this.function = function;
+    }
+
+    @Override
+    public Double apply(List<Outcome> ys) {
+      return function.apply(ys);
+    }
+
+    @Override
+    public String toString() {
+      return name().toLowerCase().replace('_', '.');
+    }
+  }
+
+  List<Metric> metrics();
 
   @Override
-  BooleanRegressionFitness validationQualityFunction();
+  default SequencedMap<String, Objective<List<Outcome>, Double>> aggregateObjectives() {
+    return metrics().stream().collect(Misc.toSequencedMap(
+        Enum::toString,
+        m -> new Objective<>(m, Double::compareTo)
+    ));
+  }
+
+  @Override
+  default TriFunction<boolean[], boolean[], boolean[], Outcome> errorFunction() {
+    return (input, actual, predicted) -> new Outcome(actual, predicted);
+  }
+
+  @Override
+  default BiFunction<BooleanFunction, boolean[], boolean[]> predictFunction() {
+    return Function::apply;
+  }
 
   @Override
   default BooleanFunction example() {
-    ExampleBasedFitness.Example<boolean[], boolean[]> example = qualityFunction().caseProvider().first();
+    Example<boolean[], boolean[]> example = caseProvider().first();
     return BooleanFunction.from(
         inputs -> new boolean[example.output().length],
         example.input().length,
@@ -41,58 +96,4 @@ public interface BooleanRegressionProblem extends OLDExampleBasedProblem<Boolean
     );
   }
 
-  @Override
-  default Comparator<Double> totalOrderComparator() {
-    return Double::compareTo;
-  }
-
-  static BooleanRegressionProblem from(
-      BooleanRegressionFitness qualityFunction,
-      BooleanRegressionFitness validationQualityFunction
-  ) {
-    record HardBooleanRegressionProblem(
-        BooleanRegressionFitness qualityFunction,
-        BooleanRegressionFitness validationQualityFunction
-    ) implements BooleanRegressionProblem {}
-    return new HardBooleanRegressionProblem(qualityFunction, validationQualityFunction);
-  }
-
-  static BooleanRegressionProblem from(
-      BooleanRegressionFitness.Metric metric,
-      IndexedProvider<ExampleBasedFitness.Example<boolean[], boolean[]>> caseProvider,
-      IndexedProvider<ExampleBasedFitness.Example<boolean[], boolean[]>> validationCaseProvider
-  ) {
-    return from(
-        BooleanRegressionFitness.from(metric, caseProvider),
-        BooleanRegressionFitness.from(metric, validationCaseProvider)
-    );
-  }
-
-  static BooleanRegressionProblem from(
-      BooleanRegressionFitness.Metric metric,
-      BooleanFunction target,
-      IndexedProvider<boolean[]> inputProvider,
-      IndexedProvider<boolean[]> validationInputProvider
-  ) {
-    return from(
-        BooleanRegressionFitness.from(
-            metric,
-            inputProvider.then(
-                i -> new ExampleBasedFitness.Example<>(
-                    i,
-                    target.apply(i)
-                )
-            )
-        ),
-        BooleanRegressionFitness.from(
-            metric,
-            validationInputProvider.then(
-                i -> new ExampleBasedFitness.Example<>(
-                    i,
-                    target.apply(i)
-                )
-            )
-        )
-    );
-  }
 }

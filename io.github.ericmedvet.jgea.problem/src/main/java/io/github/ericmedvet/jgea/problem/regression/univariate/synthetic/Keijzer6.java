@@ -20,24 +20,14 @@
 
 package io.github.ericmedvet.jgea.problem.regression.univariate.synthetic;
 
-import io.github.ericmedvet.jgea.core.util.IndexedProvider;
 import io.github.ericmedvet.jgea.problem.regression.MathUtils;
-import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitness;
-import io.github.ericmedvet.jsdynsym.core.numerical.UnivariateRealFunction;
 
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 
-public record Keijzer6(
-    Function<? super Map<String, Double>, ? extends Double> target,
-    IndexedProvider<Map<String, Double>> inputProvider,
-    IndexedProvider<Map<String, Double>> validationInputProvider,
-    List<Metric> metrics
-) implements SyntheticURProblem {
+public class Keijzer6 extends PrecomputedSyntheticURProblem {
 
   public Keijzer6(List<Metric> metrics) {
-    this(
+    super(
         SyntheticURProblem.function(
             v -> {
               double s = 0d;

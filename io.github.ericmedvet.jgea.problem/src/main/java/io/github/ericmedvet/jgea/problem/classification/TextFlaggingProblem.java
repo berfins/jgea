@@ -24,42 +24,10 @@ import io.github.ericmedvet.jgea.core.problem.TotalOrderQualityBasedProblem;
 import io.github.ericmedvet.jgea.core.util.IndexedProvider;
 import java.util.Comparator;
 
-public interface TextFlaggingProblem extends ClassificationProblem<String, TextFlaggingProblem.Label>, TotalOrderQualityBasedProblem<Classifier<String, TextFlaggingProblem.Label>, Double> {
+public interface TextFlaggingProblem extends ClassificationProblem<String, TextFlaggingProblem.Label> {
 
   enum Label {
     FOUND, NOT_FOUND
-  }
-
-  static TextFlaggingProblem from(
-      ClassificationFitness<String, Label> qualityFunction,
-      ClassificationFitness<String, Label> validationQualityFunction
-  ) {
-    record HardTextFlaggingProblem(
-        ClassificationFitness<String, Label> qualityFunction,
-        ClassificationFitness<String, Label> validationQualityFunction
-    ) implements TextFlaggingProblem {}
-    return new HardTextFlaggingProblem(qualityFunction, validationQualityFunction);
-  }
-
-  static TextFlaggingProblem from(
-      ClassificationFitness.Metric metric,
-      IndexedProvider<ClassificationFitness.Example<String, Label>> caseProvider,
-      IndexedProvider<ClassificationFitness.Example<String, Label>> validationCaseProvider
-  ) {
-    return from(
-        ClassificationFitness.from(metric, caseProvider),
-        ClassificationFitness.from(metric, validationCaseProvider)
-    );
-  }
-
-  @Override
-  default Classifier<String, Label> example() {
-    return s -> Label.NOT_FOUND;
-  }
-
-  @Override
-  default Comparator<Double> totalOrderComparator() {
-    return Double::compareTo;
   }
 
 }

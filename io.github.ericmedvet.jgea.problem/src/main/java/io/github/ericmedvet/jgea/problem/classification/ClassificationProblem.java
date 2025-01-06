@@ -19,10 +19,69 @@
  */
 package io.github.ericmedvet.jgea.problem.classification;
 
-public interface ClassificationProblem<X, Y extends Enum<Y>> extends OLDExampleBasedProblem<Classifier<X, Y>, X, Y, ClassificationFitness.Outcome<Y>, Double> {
-  @Override
-  ClassificationFitness<X, Y> qualityFunction();
+import io.github.ericmedvet.jgea.core.problem.SimpleEBMOProblem;
+import io.github.ericmedvet.jgea.core.util.Misc;
+import io.github.ericmedvet.jnb.datastructure.TriFunction;
+
+import java.util.List;
+import java.util.SequencedMap;
+import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+public interface ClassificationProblem<X, Y extends Enum<Y>> extends SimpleEBMOProblem<Classifier<X, Y>, X, Y,
+    ClassificationProblem.Outcome<Y>, Double> {
+  record Outcome<Y>(Y actual, Y predicted) {}
+
+  enum Metric implements Function<List<? extends Outcome<?>>, Double> {
+    ERROR_RATE(
+        outcomes -> (double) outcomes.stream()
+            .filter(o -> !o.actual().equals(o.predicted()))
+            .count() / (double) outcomes.size()
+    ), WEIGHTED_ERROR_RATE(
+        outcomes -> {
+          Set<?> ys = outcomes.stream().map(Outcome::actual).collect(Collectors.toSet());
+          return ys.stream().mapToDouble(y -> ERROR_RATE.function.apply(outcomes.stream()
+              .filter(o -> o.actual().equals(y))
+              .toList())).average().orElseThrow();
+        }
+    );
+    private final Function<List<? extends Outcome<?>>, Double> function;
+
+
+    Metric(Function<List<? extends Outcome<?>>, Double> function) {
+      this.function = function;
+    }
+
+    @Override
+    public Double apply(List<? extends Outcome<?>> outcomes) {
+      return function.apply(outcomes);
+    }
+
+    @Override
+    public String toString() {
+      return name().toLowerCase().replace('_', '.');
+    }
+  }
+
+  List<Metric> metrics();
 
   @Override
-  ClassificationFitness<X, Y> validationQualityFunction();
+  default SequencedMap<String, Objective<List<Outcome<Y>>, Double>> aggregateObjectives() {
+    return metrics().stream().collect(Misc.toSequencedMap(
+        Metric::toString,
+        m -> new Objective<>(m, Double::compareTo)
+    ));
+  }
+
+  @Override
+  default TriFunction<X, Y, Y, Outcome<Y>> errorFunction() {
+    return (x, actual, predicted) -> new Outcome<>(actual, predicted);
+  }
+
+  @Override
+  default BiFunction<Classifier<X, Y>, X, Y> predictFunction() {
+    return Classifier::classify;
+  }
 }

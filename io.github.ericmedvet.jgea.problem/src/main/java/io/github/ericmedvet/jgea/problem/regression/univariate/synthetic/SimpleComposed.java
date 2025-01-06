@@ -21,14 +21,15 @@
 package io.github.ericmedvet.jgea.problem.regression.univariate.synthetic;
 
 import io.github.ericmedvet.jgea.problem.regression.MathUtils;
-import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitness;
 import io.github.ericmedvet.jsdynsym.core.numerical.UnivariateRealFunction;
 
-public class SimpleComposed extends SyntheticURP {
+import java.util.List;
 
-  public SimpleComposed(UnivariateRegressionFitness.Metric metric) {
+public class SimpleComposed extends PrecomputedSyntheticURProblem {
+
+  public SimpleComposed(List<Metric> metrics) {
     super(
-        UnivariateRealFunction.from(
+        SyntheticURProblem.function(
             v -> {
               double x = v[0];
               double fx = 1d / (x * x + 1d);
@@ -36,9 +37,9 @@ public class SimpleComposed extends SyntheticURP {
             },
             1
         ),
-        MathUtils.pairwise(MathUtils.equispacedValues(-3, 3, .1)),
-        MathUtils.pairwise(MathUtils.equispacedValues(-5, 5, .05)),
-        metric
+        SyntheticURProblem.tupleProvider(MathUtils.pairwise(MathUtils.equispacedValues(-3, 3, .1))),
+        SyntheticURProblem.tupleProvider(MathUtils.pairwise(MathUtils.equispacedValues(-5, 5, .05))),
+        metrics
     );
   }
 }

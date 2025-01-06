@@ -3,9 +3,8 @@ package io.github.ericmedvet.jgea.problem.regression.univariate.synthetic;
 import io.github.ericmedvet.jgea.core.problem.TargetEBProblem;
 import io.github.ericmedvet.jgea.core.representation.NamedUnivariateRealFunction;
 import io.github.ericmedvet.jgea.core.util.IndexedProvider;
-import io.github.ericmedvet.jgea.problem.regression.univariate.URegressionProblem;
+import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionProblem;
 import io.github.ericmedvet.jsdynsym.core.numerical.MultivariateRealFunction;
-import io.github.ericmedvet.jsdynsym.core.numerical.UnivariateRealFunction;
 
 import java.util.List;
 import java.util.Map;
@@ -15,7 +14,7 @@ import java.util.function.ToDoubleFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public interface SyntheticURProblem extends URegressionProblem, TargetEBProblem<NamedUnivariateRealFunction, Map<String, Double>, Double, URegressionProblem.Outcome, SequencedMap<String, Double>> {
+public interface SyntheticURProblem extends UnivariateRegressionProblem, TargetEBProblem<NamedUnivariateRealFunction, Map<String, Double>, Double, UnivariateRegressionProblem.Outcome, SequencedMap<String, Double>> {
   @Override
   default String yVarName() {
     return "y";
