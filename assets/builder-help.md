@@ -947,19 +947,6 @@ Produces <code><abbr title="io.github.ericmedvet.jnb.datastructure.NamedFunction
 
 Produces <code><abbr title="io.github.ericmedvet.jnb.datastructure.NamedFunction">NamedFunction</abbr>&lt;X, <abbr title="io.github.ericmedvet.jgea.core.util.Progress">Progress</abbr>&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.Functions.progress()` by jgea-experimenter:2.7.1-SNAPSHOT
 
-### Builder `ea.function.psMetric()`
-
-`ea.f.psMetric(of; individual; metric; format)`
-
-| Param | Type | Default | Java type |
-| --- | --- | --- | --- |
-| `of` | npm | `f.identity()` | <code><abbr title="java.util.function.Function">Function</abbr>&lt;X, <abbr title="io.github.ericmedvet.jgea.core.solver.POCPopulationState">POCPopulationState</abbr>&lt;?, ?, <abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.Program">Program</abbr>, ?, ? extends <abbr title="io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisProblem">ProgramSynthesisProblem</abbr>&gt;&gt;</code> |
-| `individual` | npm | `ea.f.best()` | <code><abbr title="java.util.function.Function">Function</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.core.solver.POCPopulationState">POCPopulationState</abbr>&lt;?, ?, <abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.Program">Program</abbr>, ?, ?&gt;, <abbr title="io.github.ericmedvet.jgea.core.solver.Individual">Individual</abbr>&lt;?, <abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.Program">Program</abbr>, ?&gt;&gt;</code> |
-| `metric` | e | `FAIL_RATE` | <code><abbr title="io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisFitness$Metric">ProgramSynthesisFitness$Metric</abbr></code> |
-| `format` | s | `%5.3f` | <code><abbr title="java.lang.String">String</abbr></code> |
-
-Produces <code><abbr title="io.github.ericmedvet.jnb.datastructure.FormattedNamedFunction">FormattedNamedFunction</abbr>&lt;X, <abbr title="java.lang.Double">Double</abbr>&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.Functions.psMetric()` by jgea-experimenter:2.7.1-SNAPSHOT
-
 ### Builder `ea.function.quality()`
 
 `ea.f.quality(of; format)`
@@ -2351,16 +2338,16 @@ Produces <code><abbr title="io.github.ericmedvet.jgea.experimenter.listener.plot
 
 Aliases: `ea.p`, `ea.problem`
 
-### Builder `ea.problem.mtpToMho()`
+### Builder `ea.problem.mtToMo()`
 
-`ea.p.mtpToMho(name; mtProblem)`
+`ea.p.mtToMo(name; mtProblem)`
 
 | Param | Type | Default | Java type |
 | --- | --- | --- | --- |
-| `name` | s | interpolate `mt2mo({mtProblem.name})` | <code><abbr title="java.lang.String">String</abbr></code> |
+| `name` | s | interpolate `mt2mo[{mtProblem.name}]` | <code><abbr title="java.lang.String">String</abbr></code> |
 | `mtProblem` | npm |  | <code><abbr title="io.github.ericmedvet.jgea.core.problem.MultiTargetProblem">MultiTargetProblem</abbr>&lt;S&gt;</code> |
 
-Produces <code><abbr title="io.github.ericmedvet.jgea.core.problem.SimpleMultiHomogeneousObjectiveProblem">SimpleMultiHomogeneousObjectiveProblem</abbr>&lt;S, <abbr title="java.lang.Double">Double</abbr>&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.Problems.mtpToMho()` by jgea-experimenter:2.7.1-SNAPSHOT
+Produces <code><abbr title="io.github.ericmedvet.jgea.core.problem.SimpleMOProblem">SimpleMOProblem</abbr>&lt;S, <abbr title="java.lang.Double">Double</abbr>&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.Problems.mtToMo()` by jgea-experimenter:2.7.1-SNAPSHOT
 
 ### Builder `ea.problem.numEnvTo()`
 
@@ -2411,12 +2398,12 @@ Aliases: `ea.p.mr`, `ea.p.multivariateRegression`, `ea.problem.mr`, `ea.problem.
 
 ### Builder `ea.problem.multivariateRegression.fromData()`
 
-`ea.p.mr.fromData(provider; metric; nFolds; testFold)`
+`ea.p.mr.fromData(provider; metrics; nFolds; testFold)`
 
 | Param | Type | Default | Java type |
 | --- | --- | --- | --- |
-| `provider` | npm |  | <code><abbr title="io.github.ericmedvet.jgea.core.util.IndexedProvider">IndexedProvider</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.core.fitness.ExampleBasedFitness$Example">ExampleBasedFitness$Example</abbr>&lt;<abbr title="java.util.Map">Map</abbr>&lt;<abbr title="java.lang.String">String</abbr>, <abbr title="java.lang.Double">Double</abbr>&gt;, <abbr title="java.util.Map">Map</abbr>&lt;<abbr title="java.lang.String">String</abbr>, <abbr title="java.lang.Double">Double</abbr>&gt;&gt;&gt;</code> |
-| `metric` | e | `MSE` | <code><abbr title="io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitness$Metric">UnivariateRegressionFitness$Metric</abbr></code> |
+| `provider` | npm |  | <code><abbr title="io.github.ericmedvet.jgea.core.util.IndexedProvider">IndexedProvider</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.core.problem.ExampleBasedProblem$Example">ExampleBasedProblem$Example</abbr>&lt;<abbr title="java.util.Map">Map</abbr>&lt;<abbr title="java.lang.String">String</abbr>, <abbr title="java.lang.Double">Double</abbr>&gt;, <abbr title="java.util.Map">Map</abbr>&lt;<abbr title="java.lang.String">String</abbr>, <abbr title="java.lang.Double">Double</abbr>&gt;&gt;&gt;</code> |
+| `metrics` | e[] | `[mse]` | <code><abbr title="java.util.List">List</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionProblem$Metric">UnivariateRegressionProblem$Metric</abbr>&gt;</code> |
 | `nFolds` | i | `10` | <code>int</code> |
 | `testFold` | i | `0` | <code>int</code> |
 
@@ -2428,13 +2415,12 @@ Aliases: `ea.p.programSynthesis`, `ea.p.ps`, `ea.problem.programSynthesis`, `ea.
 
 ### Builder `ea.problem.programSynthesis.synthetic()`
 
-`ea.p.ps.synthetic(name; metric; dissimilarity; maxDissimilarity; randomGenerator; nOfCases; nOfValidationCases; maxExceptionRate; ints; reals; strings; intRange; realRange; stringLengthRange; sequenceSizeRange)`
+`ea.p.ps.synthetic(name; metrics; maxDissimilarity; randomGenerator; nOfCases; nOfValidationCases; maxExceptionRate; ints; reals; strings; intRange; realRange; stringLengthRange; sequenceSizeRange)`
 
 | Param | Type | Default | Java type |
 | --- | --- | --- | --- |
 | `name` | s |  | <code><abbr title="java.lang.String">String</abbr></code> |
-| `metric` | e | `AVG_DISSIMILARITY` | <code><abbr title="io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisFitness$Metric">ProgramSynthesisFitness$Metric</abbr></code> |
-| `dissimilarity` | e | `NORMALIZED` | <code><abbr title="io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisFitness$Dissimilarity">ProgramSynthesisFitness$Dissimilarity</abbr></code> |
+| `metrics` | e[] | `[fail.rate]` | <code><abbr title="java.util.List">List</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisProblem$Metric">ProgramSynthesisProblem$Metric</abbr>&gt;</code> |
 | `maxDissimilarity` | d | `100.0` | <code>double</code> |
 | `randomGenerator` | npm | `m.defaultRG()` | <code><abbr title="java.util.random.RandomGenerator">RandomGenerator</abbr></code> |
 | `nOfCases` | i | `10` | <code>int</code> |
@@ -2738,12 +2724,12 @@ Aliases: `ea.p.univariateRegression`, `ea.p.ur`, `ea.problem.univariateRegressio
 
 ### Builder `ea.problem.univariateRegression.bundled()`
 
-`ea.p.ur.bundled(provider; metric; nFolds; testFold; name; xScaling; yScaling)`
+`ea.p.ur.bundled(provider; metrics; nFolds; testFold; name; xScaling; yScaling)`
 
 | Param | Type | Default | Java type |
 | --- | --- | --- | --- |
-| `provider` | npm | `ea.provider.num.fromBundled(yScaling = none; xScaling = none; name = null)` | <code><abbr title="io.github.ericmedvet.jgea.core.util.IndexedProvider">IndexedProvider</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.core.fitness.ExampleBasedFitness$Example">ExampleBasedFitness$Example</abbr>&lt;<abbr title="java.util.Map">Map</abbr>&lt;<abbr title="java.lang.String">String</abbr>, <abbr title="java.lang.Double">Double</abbr>&gt;, <abbr title="java.util.Map">Map</abbr>&lt;<abbr title="java.lang.String">String</abbr>, <abbr title="java.lang.Double">Double</abbr>&gt;&gt;&gt;</code> |
-| `metric` | e | `MSE` | <code><abbr title="io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitness$Metric">UnivariateRegressionFitness$Metric</abbr></code> |
+| `provider` | npm | `ea.provider.num.fromBundled(yScaling = none; xScaling = none; name = null)` | <code><abbr title="io.github.ericmedvet.jgea.core.util.IndexedProvider">IndexedProvider</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.core.problem.ExampleBasedProblem$Example">ExampleBasedProblem$Example</abbr>&lt;<abbr title="java.util.Map">Map</abbr>&lt;<abbr title="java.lang.String">String</abbr>, <abbr title="java.lang.Double">Double</abbr>&gt;, <abbr title="java.util.Map">Map</abbr>&lt;<abbr title="java.lang.String">String</abbr>, <abbr title="java.lang.Double">Double</abbr>&gt;&gt;&gt;</code> |
+| `metrics` | e[] | `[mse]` | <code><abbr title="java.util.List">List</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionProblem$Metric">UnivariateRegressionProblem$Metric</abbr>&gt;</code> |
 | `nFolds` | i | `10` | <code>int</code> |
 | `testFold` | i | `0` | <code>int</code> |
 | `name` | s | `` | <code><abbr title="java.lang.String">String</abbr></code> |
@@ -2754,12 +2740,12 @@ Produces <code><abbr title="io.github.ericmedvet.jgea.problem.regression.univari
 
 ### Builder `ea.problem.univariateRegression.fromData()`
 
-`ea.p.ur.fromData(provider; metric; nFolds; testFold)`
+`ea.p.ur.fromData(provider; metrics; nFolds; testFold)`
 
 | Param | Type | Default | Java type |
 | --- | --- | --- | --- |
-| `provider` | npm |  | <code><abbr title="io.github.ericmedvet.jgea.core.util.IndexedProvider">IndexedProvider</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.core.fitness.ExampleBasedFitness$Example">ExampleBasedFitness$Example</abbr>&lt;<abbr title="java.util.Map">Map</abbr>&lt;<abbr title="java.lang.String">String</abbr>, <abbr title="java.lang.Double">Double</abbr>&gt;, <abbr title="java.util.Map">Map</abbr>&lt;<abbr title="java.lang.String">String</abbr>, <abbr title="java.lang.Double">Double</abbr>&gt;&gt;&gt;</code> |
-| `metric` | e | `MSE` | <code><abbr title="io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitness$Metric">UnivariateRegressionFitness$Metric</abbr></code> |
+| `provider` | npm |  | <code><abbr title="io.github.ericmedvet.jgea.core.util.IndexedProvider">IndexedProvider</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.core.problem.ExampleBasedProblem$Example">ExampleBasedProblem$Example</abbr>&lt;<abbr title="java.util.Map">Map</abbr>&lt;<abbr title="java.lang.String">String</abbr>, <abbr title="java.lang.Double">Double</abbr>&gt;, <abbr title="java.util.Map">Map</abbr>&lt;<abbr title="java.lang.String">String</abbr>, <abbr title="java.lang.Double">Double</abbr>&gt;&gt;&gt;</code> |
+| `metrics` | e[] | `[mse]` | <code><abbr title="java.util.List">List</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionProblem$Metric">UnivariateRegressionProblem$Metric</abbr>&gt;</code> |
 | `nFolds` | i | `10` | <code>int</code> |
 | `testFold` | i | `0` | <code>int</code> |
 
@@ -2767,15 +2753,15 @@ Produces <code><abbr title="io.github.ericmedvet.jgea.problem.regression.univari
 
 ### Builder `ea.problem.univariateRegression.synthetic()`
 
-`ea.p.ur.synthetic(name; metric; seed)`
+`ea.p.ur.synthetic(name; metrics; seed)`
 
 | Param | Type | Default | Java type |
 | --- | --- | --- | --- |
 | `name` | s |  | <code><abbr title="java.lang.String">String</abbr></code> |
-| `metric` | e | `MSE` | <code><abbr title="io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionFitness$Metric">UnivariateRegressionFitness$Metric</abbr></code> |
+| `metrics` | e[] | `[mse]` | <code><abbr title="java.util.List">List</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionProblem$Metric">UnivariateRegressionProblem$Metric</abbr>&gt;</code> |
 | `seed` | i | `1` | <code>int</code> |
 
-Produces <code><abbr title="io.github.ericmedvet.jgea.problem.regression.univariate.synthetic.SyntheticURP">SyntheticURP</abbr></code>; built from `io.github.ericmedvet.jgea.experimenter.builders.UnivariateRegressionProblems.synthetic()` by jgea-experimenter:2.7.1-SNAPSHOT
+Produces <code><abbr title="io.github.ericmedvet.jgea.problem.regression.univariate.synthetic.SyntheticURProblem">SyntheticURProblem</abbr></code>; built from `io.github.ericmedvet.jgea.experimenter.builders.UnivariateRegressionProblems.synthetic()` by jgea-experimenter:2.7.1-SNAPSHOT
 
 ## Package `ea.provider.numerical`
 

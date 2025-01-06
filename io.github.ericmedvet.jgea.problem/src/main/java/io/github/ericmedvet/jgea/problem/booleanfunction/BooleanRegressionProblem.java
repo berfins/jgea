@@ -23,7 +23,6 @@ import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
 import io.github.ericmedvet.jgea.core.problem.SimpleEBMOProblem;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import io.github.ericmedvet.jnb.datastructure.TriFunction;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.SequencedMap;
@@ -33,7 +32,7 @@ import java.util.stream.IntStream;
 
 public interface BooleanRegressionProblem extends SimpleEBMOProblem<BooleanFunction, boolean[], boolean[], BooleanRegressionProblem.Outcome, Double>, ProblemWithExampleSolution<BooleanFunction> {
   record Outcome(boolean[] actual, boolean[] predicted) {}
-  
+
   enum Metric implements Function<List<Outcome>, Double> {
     ERROR_RATE(
         outcomes -> (double) outcomes.stream()
@@ -41,14 +40,16 @@ public interface BooleanRegressionProblem extends SimpleEBMOProblem<BooleanFunct
             .count() / (double) outcomes.size()
     ), AVG_DISSIMILARITY(
         outcomes -> outcomes.stream()
-            .mapToDouble(outcome -> IntStream.range(0, outcome.actual.length)
-                .mapToDouble(i -> outcome.actual[i]==outcome.predicted[i]?0d:1d)
-                .average()
-                .orElseThrow()
+            .mapToDouble(
+                outcome -> IntStream.range(0, outcome.actual.length)
+                    .mapToDouble(i -> outcome.actual[i] == outcome.predicted[i] ? 0d : 1d)
+                    .average()
+                    .orElseThrow()
             )
-            .average().orElseThrow()
+            .average()
+            .orElseThrow()
     );
-    
+
     private final Function<List<Outcome>, Double> function;
 
     Metric(Function<List<Outcome>, Double> function) {
@@ -70,10 +71,13 @@ public interface BooleanRegressionProblem extends SimpleEBMOProblem<BooleanFunct
 
   @Override
   default SequencedMap<String, Objective<List<Outcome>, Double>> aggregateObjectives() {
-    return metrics().stream().collect(Misc.toSequencedMap(
-        Enum::toString,
-        m -> new Objective<>(m, Double::compareTo)
-    ));
+    return metrics().stream()
+        .collect(
+            Misc.toSequencedMap(
+                Enum::toString,
+                m -> new Objective<>(m, Double::compareTo)
+            )
+        );
   }
 
   @Override

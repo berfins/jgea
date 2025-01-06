@@ -21,7 +21,6 @@
 package io.github.ericmedvet.jgea.problem.regression.univariate.synthetic;
 
 import io.github.ericmedvet.jgea.problem.regression.MathUtils;
-
 import java.util.List;
 
 public class Keijzer6 extends PrecomputedSyntheticURProblem {

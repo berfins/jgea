@@ -19,119 +19,109 @@
  */
 package io.github.ericmedvet.jgea.problem.programsynthesis;
 
+import io.github.ericmedvet.jgea.core.distance.Distance;
 import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
-import io.github.ericmedvet.jgea.core.problem.TotalOrderQualityBasedProblem;
+import io.github.ericmedvet.jgea.core.problem.SimpleEBMOProblem;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.InstrumentedProgram;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.Program;
-import io.github.ericmedvet.jgea.core.util.IndexedProvider;
-import java.util.ArrayList;
-import java.util.Comparator;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.ProgramExecutionException;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.RunProfile;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
+import io.github.ericmedvet.jgea.core.util.Misc;
+import io.github.ericmedvet.jnb.datastructure.TriFunction;
 import java.util.List;
-import java.util.random.RandomGenerator;
+import java.util.Objects;
+import java.util.SequencedMap;
+import java.util.function.BiFunction;
 
-public interface ProgramSynthesisProblem extends OLDExampleBasedProblem<Program, List<Object>, List<Object>, ProgramSynthesisFitness.Outcome, Double>, TotalOrderQualityBasedProblem<Program, Double>, ProblemWithExampleSolution<Program> {
+public interface ProgramSynthesisProblem extends SimpleEBMOProblem<Program, List<Object>, InstrumentedProgram.Outcome, ProgramSynthesisProblem.Outcome, Double>, ProblemWithExampleSolution<Program> {
+
+  record Outcome(List<Object> actual, InstrumentedProgram.Outcome executionOutcome) {}
+
+  enum Metric implements BiFunction<List<Outcome>, Distance<List<Object>>, Double> {
+    // TODO add those related to RunProfile
+    FAIL_RATE(
+        (outcomes, d) -> (double) outcomes.stream()
+            .filter(outcome -> !Objects.equals(outcome.actual, outcome.executionOutcome.outputs()))
+            .count() / (double) outcomes.size()
+    ), AVG_RAW_DISSIMILARITY(
+        (outcomes, d) -> outcomes.stream()
+            .mapToDouble(outcome -> d.apply(outcome.actual, outcome.executionOutcome.outputs()))
+            .average()
+            .orElseThrow()
+    ), EXCEPTION_ERROR(
+        (outcomes, d) -> (double) outcomes.stream()
+            .filter(outcome -> !Objects.equals(outcome.actual == null, outcome.executionOutcome.outputs() == null))
+            .count() / (double) outcomes.size()
+    );
+
+    private final BiFunction<List<Outcome>, Distance<List<Object>>, Double> function;
+
+    Metric(BiFunction<List<Outcome>, Distance<List<Object>>, Double> function) {
+      this.function = function;
+    }
+
+    @Override
+    public Double apply(List<Outcome> ys, Distance<List<Object>> d) {
+      return function.apply(ys, d);
+    }
+
+    @Override
+    public String toString() {
+      return name().toLowerCase().replace('_', '.');
+    }
+  }
+
+  List<Metric> metrics();
+
+  List<Type> inputTypes();
+
+  List<Type> outputTypes();
+
+  Distance<List<Object>> outputDistance();
 
   @Override
-  ProgramSynthesisFitness qualityFunction();
+  default SequencedMap<String, Objective<List<Outcome>, Double>> aggregateObjectives() {
+    Distance<List<Object>> outputDistance = outputDistance();
+    return metrics().stream()
+        .collect(
+            Misc.toSequencedMap(
+                Enum::toString,
+                m -> new Objective<>(outcomes -> m.apply(outcomes, outputDistance), Double::compareTo)
+            )
+        );
+  }
 
   @Override
-  ProgramSynthesisFitness validationQualityFunction();
+  default TriFunction<List<Object>, InstrumentedProgram.Outcome, InstrumentedProgram.Outcome, Outcome> errorFunction() {
+    return (inputs, actualExecutionOutcome, executionOutcome) -> new Outcome(
+        actualExecutionOutcome.outputs(),
+        executionOutcome
+    );
+  }
 
-  private static List<List<Object>> buildInputs(
-      int n,
-      double maxExceptionRate,
-      Program program,
-      DataFactory dataFactory,
-      RandomGenerator rnd
-  ) {
-    List<List<Object>> cases = new ArrayList<>();
-    while (cases.size() < (n * (1d - maxExceptionRate))) {
-      List<Object> inputs = program.inputTypes().stream().map(t -> dataFactory.apply(t, rnd)).toList();
-      if (program.safelyRun(inputs) != null) {
-        cases.add(inputs);
+  @Override
+  default BiFunction<Program, List<Object>, InstrumentedProgram.Outcome> predictFunction() {
+    return (ProgramSynthesisProblem::safelyExecute);
+  }
+
+  @Override
+  default Program example() {
+    return Program.from(inputs -> List.of(), inputTypes(), outputTypes());
+  }
+
+  static InstrumentedProgram.Outcome safelyExecute(Program program, List<Object> inputs) {
+    if (program instanceof InstrumentedProgram instrumentedProgram) {
+      try {
+        return instrumentedProgram.runInstrumented(inputs);
+      } catch (ProgramExecutionException e) {
+        return new InstrumentedProgram.Outcome(null, new RunProfile(List.of()));
       }
     }
-    while (cases.size() < n) {
-      cases.add(program.inputTypes().stream().map(t -> dataFactory.apply(t, rnd)).toList());
+    try {
+      return new InstrumentedProgram.Outcome(program.run(inputs), new RunProfile(List.of()));
+    } catch (ProgramExecutionException e) {
+      return new InstrumentedProgram.Outcome(null, new RunProfile(List.of()));
     }
-    return cases;
   }
-
-  static ProgramSynthesisProblem from(
-      ProgramSynthesisFitness.Metric metric,
-      ProgramSynthesisFitness.Dissimilarity dissimilarity,
-      double maxDissimilarity,
-      Program example,
-      IndexedProvider<ExampleBasedFitness.Example<List<Object>, List<Object>>> caseProvider,
-      IndexedProvider<ExampleBasedFitness.Example<List<Object>, List<Object>>> validationCaseProvider
-  ) {
-    return from(
-        example,
-        ProgramSynthesisFitness.from(metric, dissimilarity, maxDissimilarity, example.outputTypes(), caseProvider),
-        ProgramSynthesisFitness.from(
-            metric,
-            dissimilarity,
-            maxDissimilarity,
-            example.outputTypes(),
-            validationCaseProvider
-        )
-    );
-  }
-
-  static ProgramSynthesisProblem from(
-      Program target,
-      ProgramSynthesisFitness.Metric metric,
-      ProgramSynthesisFitness.Dissimilarity dissimilarity,
-      double maxDissimilarity,
-      IndexedProvider<List<Object>> caseProvider,
-      IndexedProvider<List<Object>> validationCaseProvider
-  ) {
-    return from(
-        metric,
-        dissimilarity,
-        maxDissimilarity,
-        target,
-        caseProvider.then(inputs -> new ExampleBasedFitness.Example<>(inputs, target.safelyRun(inputs))),
-        validationCaseProvider.then(inputs -> new ExampleBasedFitness.Example<>(inputs, target.safelyRun(inputs)))
-    );
-  }
-
-  static ProgramSynthesisProblem from(
-      Program target,
-      ProgramSynthesisFitness.Metric metric,
-      ProgramSynthesisFitness.Dissimilarity dissimilarity,
-      double maxDissimilarity,
-      DataFactory dataFactory,
-      RandomGenerator rnd,
-      int nOfCases,
-      int nOfValidationCases,
-      double maxExceptionRate
-  ) {
-    return from(
-        target,
-        metric,
-        dissimilarity,
-        maxDissimilarity,
-        IndexedProvider.from(buildInputs(nOfCases, maxExceptionRate, target, dataFactory, rnd)),
-        IndexedProvider.from(buildInputs(nOfValidationCases, maxExceptionRate, target, dataFactory, rnd))
-    );
-  }
-
-  static ProgramSynthesisProblem from(
-      Program example,
-      ProgramSynthesisFitness qualityFunction,
-      ProgramSynthesisFitness validationQualityFunction
-  ) {
-    record HardProgramSynthesisProblem(
-        Program example,
-        ProgramSynthesisFitness qualityFunction,
-        ProgramSynthesisFitness validationQualityFunction
-    ) implements ProgramSynthesisProblem {}
-    return new HardProgramSynthesisProblem(example, qualityFunction, validationQualityFunction);
-  }
-
-  @Override
-  default Comparator<Double> totalOrderComparator() {
-    return Double::compareTo;
-  }
-
 }

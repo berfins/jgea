@@ -22,30 +22,30 @@ package io.github.ericmedvet.jgea.problem.regression.multivariate;
 
 import io.github.ericmedvet.jgea.core.problem.*;
 import io.github.ericmedvet.jgea.core.representation.NamedMultivariateRealFunction;
-import io.github.ericmedvet.jgea.core.representation.NamedUnivariateRealFunction;
 import io.github.ericmedvet.jgea.core.util.IndexedProvider;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionProblem;
 import io.github.ericmedvet.jnb.datastructure.TriFunction;
 import io.github.ericmedvet.jsdynsym.core.numerical.MultivariateRealFunction;
-
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.SequencedMap;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
-public interface MultivariateRegressionProblem extends SimpleEBMOProblem<NamedMultivariateRealFunction, Map<String,
-    Double>,
-    Map<String, Double>, MultivariateRegressionProblem.Outcome, Double>,
-    ProblemWithExampleSolution<NamedMultivariateRealFunction> {
+public interface MultivariateRegressionProblem extends SimpleEBMOProblem<NamedMultivariateRealFunction, Map<String, Double>, Map<String, Double>, MultivariateRegressionProblem.Outcome, Double>, ProblemWithExampleSolution<NamedMultivariateRealFunction> {
   record Outcome(Map<String, Double> actual, Map<String, Double> predicted) {
     public Map<String, UnivariateRegressionProblem.Outcome> toUROutcomes() {
-      return actual.keySet().stream().collect(Misc.toSequencedMap(yVarName -> new UnivariateRegressionProblem.Outcome(
-          actual.get(yVarName),
-          predicted.get(yVarName)
-      )));
+      return actual.keySet()
+          .stream()
+          .collect(
+              Misc.toSequencedMap(
+                  yVarName -> new UnivariateRegressionProblem.Outcome(
+                      actual.get(yVarName),
+                      predicted.get(yVarName)
+                  )
+              )
+          );
     }
   }
 
@@ -63,26 +63,34 @@ public interface MultivariateRegressionProblem extends SimpleEBMOProblem<NamedMu
 
   @Override
   default SequencedMap<String, Objective<List<Outcome>, Double>> aggregateObjectives() {
-    return metrics().stream().collect(Misc.toSequencedMap(
-        Enum::toString,
-        m -> new Objective<>(
-            outcomes -> {
-              Map<String, List<UnivariateRegressionProblem.Outcome>> urOutcomes = outcomes.getFirst().actual.keySet()
-                  .stream()
-                  .collect(Collectors.toMap(
-                      k -> k,
-                      k -> outcomes.stream()
-                          .map(outcome -> new UnivariateRegressionProblem.Outcome(
-                              outcome.actual.get(k),
-                              outcome.predicted.get(k)
-                          ))
-                          .toList()
-                  ));
-              return urOutcomes.values().stream().mapToDouble(m::apply).average().orElseThrow();
-            },
-            Double::compareTo
-        )
-    ));
+    return metrics().stream()
+        .collect(
+            Misc.toSequencedMap(
+                Enum::toString,
+                m -> new Objective<>(
+                    outcomes -> {
+                      Map<String, List<UnivariateRegressionProblem.Outcome>> urOutcomes = outcomes.getFirst().actual
+                          .keySet()
+                          .stream()
+                          .collect(
+                              Collectors.toMap(
+                                  k -> k,
+                                  k -> outcomes.stream()
+                                      .map(
+                                          outcome -> new UnivariateRegressionProblem.Outcome(
+                                              outcome.actual.get(k),
+                                              outcome.predicted.get(k)
+                                          )
+                                      )
+                                      .toList()
+                              )
+                          );
+                      return urOutcomes.values().stream().mapToDouble(m::apply).average().orElseThrow();
+                    },
+                    Double::compareTo
+                )
+            )
+        );
   }
 
   @Override
@@ -97,5 +105,19 @@ public interface MultivariateRegressionProblem extends SimpleEBMOProblem<NamedMu
         example.input().keySet().stream().sorted().toList(),
         example.output().keySet().stream().sorted().toList()
     );
+  }
+
+  static MultivariateRegressionProblem from(
+      List<UnivariateRegressionProblem.Metric> metrics,
+      IndexedProvider<Example<Map<String, Double>, Map<String, Double>>> caseProvider,
+      IndexedProvider<Example<Map<String, Double>, Map<String, Double>>> validationCaseProvider
+  ) {
+    record HardMultivariateRegressionProblem(
+        List<UnivariateRegressionProblem.Metric> metrics,
+        IndexedProvider<Example<Map<String, Double>, Map<String, Double>>> caseProvider,
+        IndexedProvider<Example<Map<String, Double>, Map<String, Double>>> validationCaseProvider
+    ) implements MultivariateRegressionProblem {
+    }
+    return new HardMultivariateRegressionProblem(metrics, caseProvider, validationCaseProvider);
   }
 }

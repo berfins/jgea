@@ -1,3 +1,22 @@
+/*-
+ * ========================LICENSE_START=================================
+ * jgea-problem
+ * %%
+ * Copyright (C) 2018 - 2025 Eric Medvet
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =========================LICENSE_END==================================
+ */
 package io.github.ericmedvet.jgea.problem.extraction;
 
 import io.github.ericmedvet.jgea.core.problem.SimpleEBMOProblem;
@@ -5,13 +24,11 @@ import io.github.ericmedvet.jgea.core.representation.graph.finiteautomata.Extrac
 import io.github.ericmedvet.jgea.core.util.IntRange;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import io.github.ericmedvet.jnb.datastructure.TriFunction;
-
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-public interface ExtractionProblem<A> extends SimpleEBMOProblem<Extractor<A>, List<A>, Set<IntRange>,
-    ExtractionProblem.Outcome, Double> {
+public interface ExtractionProblem<A> extends SimpleEBMOProblem<Extractor<A>, List<A>, Set<IntRange>, ExtractionProblem.Outcome, Double> {
   record Outcome(int length, Set<IntRange> desired, Set<IntRange> extracted) {}
 
   enum Metric {
@@ -27,13 +44,16 @@ public interface ExtractionProblem<A> extends SimpleEBMOProblem<Extractor<A>, Li
 
   @Override
   default SequencedMap<String, Objective<List<Outcome>, Double>> aggregateObjectives() {
-    return metrics().stream().collect(Misc.toSequencedMap(
-        Enum::toString,
-        m -> new Objective<>(
-            outcomes -> aggregateFunction().apply(outcomes).get(m.toString()), // should never be called
-            Double::compareTo
-        )
-    ));
+    return metrics().stream()
+        .collect(
+            Misc.toSequencedMap(
+                Enum::toString,
+                m -> new Objective<>(
+                    outcomes -> aggregateFunction().apply(outcomes).get(m.toString()), // should never be called
+                    Double::compareTo
+                )
+            )
+        );
   }
 
   @Override
@@ -59,7 +79,8 @@ public interface ExtractionProblem<A> extends SimpleEBMOProblem<Extractor<A>, Li
 
   private static SequencedMap<String, Double> computeForResult(Outcome outcome, Set<Metric> metrics) {
     Map<Metric, Double> values = new EnumMap<>(Metric.class);
-    if (metrics.contains(Metric.ONE_MINUS_FM) || metrics.contains(Metric.ONE_MINUS_PREC) || metrics.contains(Metric.ONE_MINUS_REC
+    if (metrics.contains(Metric.ONE_MINUS_FM) || metrics.contains(Metric.ONE_MINUS_PREC) || metrics.contains(
+        Metric.ONE_MINUS_REC
     )) {
       // precision and recall
       Set<IntRange> correctExtractions = new LinkedHashSet<>(outcome.extracted);
@@ -71,7 +92,8 @@ public interface ExtractionProblem<A> extends SimpleEBMOProblem<Extractor<A>, Li
       values.put(Metric.ONE_MINUS_REC, 1 - recall);
       values.put(Metric.ONE_MINUS_FM, 1 - fMeasure);
     }
-    if (metrics.contains(Metric.SYMBOL_ERROR) || metrics.contains(Metric.SYMBOL_FNR) || metrics.contains(Metric.SYMBOL_FPR
+    if (metrics.contains(Metric.SYMBOL_ERROR) || metrics.contains(Metric.SYMBOL_FNR) || metrics.contains(
+        Metric.SYMBOL_FPR
     ) || metrics.contains(Metric.SYMBOL_WEIGHTED_ERROR)) {
       BitSet extractionMask = buildMask(outcome.extracted, outcome.length);
       BitSet desiredExtractionMask = buildMask(outcome.desired, outcome.length);

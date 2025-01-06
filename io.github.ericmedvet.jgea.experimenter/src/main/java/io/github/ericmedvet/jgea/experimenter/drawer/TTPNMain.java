@@ -30,8 +30,9 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeE
 import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
 import io.github.ericmedvet.jgea.core.util.IntRange;
 import io.github.ericmedvet.jgea.problem.programsynthesis.DataFactory;
-import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisFitness;
+import io.github.ericmedvet.jgea.problem.programsynthesis.Problems;
 import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisProblem;
+import io.github.ericmedvet.jgea.problem.programsynthesis.synthetic.PrecomputedSyntheticPSProblem;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -82,7 +83,27 @@ public class TTPNMain {
     );
   }
 
-  private static void doComputationStuff(Network n) throws NoSuchMethodException, ProgramExecutionException {
+  private static void doComputationStuff() throws NoSuchMethodException, ProgramExecutionException, NetworkStructureException, TypeException {
+    Network n = new Network(
+        List.of(
+            Gate.input(Composed.sequence(Base.REAL)),
+            Gate.input(Composed.sequence(Base.REAL)),
+            Gates.splitter(),
+            Gates.splitter(),
+            Gates.rPMathOperator(Element.Operator.MULTIPLICATION),
+            Gates.rSPSum(),
+            Gate.output(Base.REAL)
+        ),
+        Set.of(
+            Wire.of(0, 0, 2, 0),
+            Wire.of(1, 0, 3, 0),
+            Wire.of(2, 0, 4, 0),
+            Wire.of(3, 0, 4, 1),
+            Wire.of(4, 0, 5, 0),
+            Wire.of(5, 0, 5, 1),
+            Wire.of(5, 0, 6, 0)
+        )
+    );
     DataFactory df = new DataFactory(
         List.of(1, 2, 3),
         List.of(1d, 2d, 3d, 1.5, 2.5, 3.14),
@@ -95,7 +116,7 @@ public class TTPNMain {
     RandomGenerator rnd = new Random(1);
     System.out.println(df.apply(StringParser.parse("[<S,[I],R>]"), rnd));
 
-    Program tProgram = Program.from(TTPNMain.class.getMethod("vProduct", List.class, List.class));
+    Program tProgram = Program.from(Problems.class.getMethod("vProduct", List.class, List.class));
     System.out.println(tProgram);
     InstrumentedProgram ttpnProgram = new Runner(1000, 1000).asInstrumentedProgram(n);
     List<Object> inputs = List.of(List.of(1d, 2d), List.of(3d, 4d));
@@ -103,10 +124,9 @@ public class TTPNMain {
     InstrumentedProgram.Outcome o = ttpnProgram.runInstrumented(inputs);
     System.out.println(o);
 
-    ProgramSynthesisProblem psp = ProgramSynthesisProblem.from(
+    ProgramSynthesisProblem psp = new PrecomputedSyntheticPSProblem(
         tProgram,
-        ProgramSynthesisFitness.Metric.FAIL_RATE,
-        ProgramSynthesisFitness.Dissimilarity.NORMALIZED,
+        List.of(ProgramSynthesisProblem.Metric.FAIL_RATE, ProgramSynthesisProblem.Metric.AVG_RAW_DISSIMILARITY),
         100d,
         df,
         rnd,
@@ -119,21 +139,13 @@ public class TTPNMain {
     System.out.println(psp.qualityFunction().apply(ttpnProgram));
     System.out.println(psp.validationQualityFunction().apply(ttpnProgram));
 
-    psp.qualityFunction()
-        .caseProvider()
+    psp.caseProvider()
         .stream()
         .forEach(
             example -> System.out.printf(
-                "%5.3f <- a=%s vs p=%s%n",
-                psp.qualityFunction()
-                    .errorFunction()
-                    .apply(
-                        example.output(),
-                        psp.qualityFunction().predictFunction().apply(ttpnProgram, example.input())
-                    )
-                    .distance(),
-                example.output(),
-                psp.qualityFunction().predictFunction().apply(ttpnProgram, example.input())
+                "\tactual=%s vs. predicted=%s%n",
+                example.output().outputs(),
+                psp.predictFunction().apply(ttpnProgram, example.input()).outputs()
             )
         );
   }
@@ -286,7 +298,8 @@ public class TTPNMain {
       String[] args
   ) throws NetworkStructureException, ProgramExecutionException, NoSuchMethodException, TypeException {
     //weirdOne();
-    factory();
+    //factory();
+    doComputationStuff();
   }
 
 }

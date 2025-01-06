@@ -1,6 +1,6 @@
 /*-
  * ========================LICENSE_START=================================
- * jgea-core
+ * jgea-problem
  * %%
  * Copyright (C) 2018 - 2025 Eric Medvet
  * %%
@@ -17,7 +17,14 @@
  * limitations under the License.
  * =========================LICENSE_END==================================
  */
-package io.github.ericmedvet.jgea.core.problem;
+package io.github.ericmedvet.jgea.problem.programsynthesis.synthetic;
 
-public interface EBMOProblem<S, EI, EO, EQ, Q, O> extends ExampleBasedProblem<S, EI, EO, EQ, Q>, MultiObjectiveProblem<S, Q, O> {
+import io.github.ericmedvet.jgea.core.problem.TargetEBProblem;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.InstrumentedProgram;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.Program;
+import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisProblem;
+import java.util.List;
+import java.util.SequencedMap;
+
+public interface SyntheticPSProblem extends ProgramSynthesisProblem, TargetEBProblem<Program, List<Object>, InstrumentedProgram.Outcome, ProgramSynthesisProblem.Outcome, SequencedMap<String, Double>> {
 }

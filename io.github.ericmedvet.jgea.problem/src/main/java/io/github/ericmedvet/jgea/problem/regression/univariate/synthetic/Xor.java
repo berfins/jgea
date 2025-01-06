@@ -20,8 +20,6 @@
 
 package io.github.ericmedvet.jgea.problem.regression.univariate.synthetic;
 
-import io.github.ericmedvet.jsdynsym.core.numerical.UnivariateRealFunction;
-
 import java.util.List;
 
 public class Xor extends PrecomputedSyntheticURProblem {
@@ -36,18 +34,22 @@ public class Xor extends PrecomputedSyntheticURProblem {
             },
             2
         ),
-        SyntheticURProblem.tupleProvider(List.of(
-            new double[]{0d, 0d},
-            new double[]{0d, 1d},
-            new double[]{1d, 0d},
-            new double[]{1d, 1d}
-        )),
-        SyntheticURProblem.tupleProvider(List.of(
-            new double[]{0d, 0d},
-            new double[]{0d, 1d},
-            new double[]{1d, 0d},
-            new double[]{1d, 1d}
-        )),
+        SyntheticURProblem.tupleProvider(
+            List.of(
+                new double[]{0d, 0d},
+                new double[]{0d, 1d},
+                new double[]{1d, 0d},
+                new double[]{1d, 1d}
+            )
+        ),
+        SyntheticURProblem.tupleProvider(
+            List.of(
+                new double[]{0d, 0d},
+                new double[]{0d, 1d},
+                new double[]{1d, 0d},
+                new double[]{1d, 1d}
+            )
+        ),
         metrics
     );
   }

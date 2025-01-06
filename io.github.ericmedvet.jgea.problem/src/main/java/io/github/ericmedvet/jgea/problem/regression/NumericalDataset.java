@@ -19,6 +19,7 @@
  */
 package io.github.ericmedvet.jgea.problem.regression;
 
+import io.github.ericmedvet.jgea.core.problem.ExampleBasedProblem;
 import io.github.ericmedvet.jgea.core.util.IndexedProvider;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
@@ -39,7 +40,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 
-public interface NumericalDataset extends IndexedProvider<ExampleBasedFitness.Example<Map<String, Double>, Map<String, Double>>> {
+public interface NumericalDataset extends IndexedProvider<ExampleBasedProblem.Example<Map<String, Double>, Map<String, Double>>> {
 
   enum Scaling {
     NONE, MIN_MAX, SYMMETRIC_MIN_MAX, STANDARDIZATION
@@ -155,8 +156,8 @@ public interface NumericalDataset extends IndexedProvider<ExampleBasedFitness.Ex
   }
 
   @Override
-  default ExampleBasedFitness.Example<Map<String, Double>, Map<String, Double>> get(int i) {
-    return new ExampleBasedFitness.Example<>(
+  default ExampleBasedProblem.Example<Map<String, Double>, Map<String, Double>> get(int i) {
+    return new ExampleBasedProblem.Example<>(
         IntStream.range(0, xVarNames().size())
             .boxed()
             .collect(
@@ -187,7 +188,7 @@ public interface NumericalDataset extends IndexedProvider<ExampleBasedFitness.Ex
   }
 
   @Override
-  default IndexedProvider<ExampleBasedFitness.Example<Map<String, Double>, Map<String, Double>>> negatedFold(
+  default IndexedProvider<ExampleBasedProblem.Example<Map<String, Double>, Map<String, Double>>> negatedFold(
       int j,
       int n
   ) {
@@ -236,10 +237,10 @@ public interface NumericalDataset extends IndexedProvider<ExampleBasedFitness.Ex
   }
 
   default NumericalDataset then(
-      UnaryOperator<ExampleBasedFitness.Example<Map<String, Double>, Map<String, Double>>> operator
+      UnaryOperator<ExampleBasedProblem.Example<Map<String, Double>, Map<String, Double>>> operator
   ) {
     NumericalDataset thisNumericalDataset = this;
-    IndexedProvider<ExampleBasedFitness.Example<Map<String, Double>, Map<String, Double>>> cached = thisNumericalDataset
+    IndexedProvider<ExampleBasedProblem.Example<Map<String, Double>, Map<String, Double>>> cached = thisNumericalDataset
         .then(
             Function.identity()
         );
@@ -260,7 +261,7 @@ public interface NumericalDataset extends IndexedProvider<ExampleBasedFitness.Ex
       }
 
       @Override
-      public ExampleBasedFitness.Example<Map<String, Double>, Map<String, Double>> get(int i) {
+      public ExampleBasedProblem.Example<Map<String, Double>, Map<String, Double>> get(int i) {
         return cached.get(i);
       }
     };

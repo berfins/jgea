@@ -23,8 +23,8 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.Program;
 import io.github.ericmedvet.jgea.core.util.IntRange;
 import io.github.ericmedvet.jgea.problem.programsynthesis.DataFactory;
 import io.github.ericmedvet.jgea.problem.programsynthesis.Problems;
-import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisFitness;
 import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisProblem;
+import io.github.ericmedvet.jgea.problem.programsynthesis.synthetic.PrecomputedSyntheticPSProblem;
 import io.github.ericmedvet.jnb.core.Cacheable;
 import io.github.ericmedvet.jnb.core.Discoverable;
 import io.github.ericmedvet.jnb.core.Param;
@@ -44,8 +44,7 @@ public class ProgramSynthesisProblems {
   @Cacheable
   public static ProgramSynthesisProblem synthetic(
       @Param("name") String name,
-      @Param(value = "metric", dS = "avg_dissimilarity") ProgramSynthesisFitness.Metric metric,
-      @Param(value = "dissimilarity", dS = "normalized") ProgramSynthesisFitness.Dissimilarity dissimilarity,
+      @Param(value = "metrics", dSs = {"fail_rate"}) List<ProgramSynthesisProblem.Metric> metrics,
       @Param(value = "maxDissimilarity", dD = 100d) double maxDissimilarity,
       @Param(value = "randomGenerator", dNPM = "m.defaultRG()") RandomGenerator randomGenerator,
       @Param(value = "nOfCases", dI = 10) int nOfCases,
@@ -73,10 +72,9 @@ public class ProgramSynthesisProblems {
         new IntRange((int) stringLengthRange.min(), (int) stringLengthRange.max()),
         new IntRange((int) sequenceSizeRange.min(), (int) sequenceSizeRange.max())
     );
-    return ProgramSynthesisProblem.from(
+    return new PrecomputedSyntheticPSProblem(
         tProgram,
-        metric,
-        dissimilarity,
+        metrics,
         maxDissimilarity,
         dataFactory,
         randomGenerator,

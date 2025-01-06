@@ -22,7 +22,6 @@ package io.github.ericmedvet.jgea.problem.classification;
 import io.github.ericmedvet.jgea.core.problem.SimpleEBMOProblem;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import io.github.ericmedvet.jnb.datastructure.TriFunction;
-
 import java.util.List;
 import java.util.SequencedMap;
 import java.util.Set;
@@ -30,8 +29,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public interface ClassificationProblem<X, Y extends Enum<Y>> extends SimpleEBMOProblem<Classifier<X, Y>, X, Y,
-    ClassificationProblem.Outcome<Y>, Double> {
+public interface ClassificationProblem<X, Y extends Enum<Y>> extends SimpleEBMOProblem<Classifier<X, Y>, X, Y, ClassificationProblem.Outcome<Y>, Double> {
   record Outcome<Y>(Y actual, Y predicted) {}
 
   enum Metric implements Function<List<? extends Outcome<?>>, Double> {
@@ -42,11 +40,19 @@ public interface ClassificationProblem<X, Y extends Enum<Y>> extends SimpleEBMOP
     ), WEIGHTED_ERROR_RATE(
         outcomes -> {
           Set<?> ys = outcomes.stream().map(Outcome::actual).collect(Collectors.toSet());
-          return ys.stream().mapToDouble(y -> ERROR_RATE.function.apply(outcomes.stream()
-              .filter(o -> o.actual().equals(y))
-              .toList())).average().orElseThrow();
+          return ys.stream()
+              .mapToDouble(
+                  y -> ERROR_RATE.function.apply(
+                      outcomes.stream()
+                          .filter(o -> o.actual().equals(y))
+                          .toList()
+                  )
+              )
+              .average()
+              .orElseThrow();
         }
     );
+
     private final Function<List<? extends Outcome<?>>, Double> function;
 
 
@@ -69,10 +75,13 @@ public interface ClassificationProblem<X, Y extends Enum<Y>> extends SimpleEBMOP
 
   @Override
   default SequencedMap<String, Objective<List<Outcome<Y>>, Double>> aggregateObjectives() {
-    return metrics().stream().collect(Misc.toSequencedMap(
-        Metric::toString,
-        m -> new Objective<>(m, Double::compareTo)
-    ));
+    return metrics().stream()
+        .collect(
+            Misc.toSequencedMap(
+                Metric::toString,
+                m -> new Objective<>(m, Double::compareTo)
+            )
+        );
   }
 
   @Override

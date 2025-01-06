@@ -23,7 +23,6 @@ package io.github.ericmedvet.jgea.problem.extraction.string;
 import io.github.ericmedvet.jgea.core.representation.grammar.string.StringGrammar;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import io.github.ericmedvet.jgea.problem.extraction.ExtractionProblem;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -45,10 +44,12 @@ public class RegexGrammar extends StringGrammar<String> {
     this(
         problem.caseProvider()
             .stream()
-            .map(e -> e.output().stream()
-                .map(eo -> (Set<Character>)new HashSet<>(e.input().subList(eo.min(), eo.max())))
-                .reduce(Misc::union)
-                .orElse(Set.of())
+            .map(
+                e -> e.output()
+                    .stream()
+                    .map(eo -> (Set<Character>) new HashSet<>(e.input().subList(eo.min(), eo.max())))
+                    .reduce(Misc::union)
+                    .orElse(Set.of())
             )
             .reduce(Misc::union)
             .orElse(Set.of()),
@@ -108,8 +109,7 @@ public class RegexGrammar extends StringGrammar<String> {
   }
 
   public enum Option {
-    OR, QUANTIFIERS, NON_EMPTY_QUANTIFIER, BOUNDED_QUANTIFIERS, CHAR_CLASS, NEGATED_CHAR_CLASS, NON_CAPTURING_GROUP,
-    ANY, ENHANCED_CONCATENATION
+    OR, QUANTIFIERS, NON_EMPTY_QUANTIFIER, BOUNDED_QUANTIFIERS, CHAR_CLASS, NEGATED_CHAR_CLASS, NON_CAPTURING_GROUP, ANY, ENHANCED_CONCATENATION
   }
 
   private String escape(String c) {

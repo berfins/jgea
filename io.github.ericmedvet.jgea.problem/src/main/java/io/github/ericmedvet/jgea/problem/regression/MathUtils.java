@@ -20,8 +20,10 @@
 
 package io.github.ericmedvet.jgea.problem.regression;
 
+import io.github.ericmedvet.jgea.core.problem.ExampleBasedProblem;
 import io.github.ericmedvet.jgea.core.representation.NamedUnivariateRealFunction;
 import io.github.ericmedvet.jgea.core.util.Sized;
+import io.github.ericmedvet.jgea.problem.regression.univariate.UnivariateRegressionProblem;
 import io.github.ericmedvet.jsdynsym.core.composed.AbstractComposed;
 import java.util.*;
 import java.util.function.UnaryOperator;
@@ -35,15 +37,15 @@ public class MathUtils {
 
     public ScaledUnivariateRealFunction(
         NamedUnivariateRealFunction inner,
-        UnivariateRegressionFitness univariateRegressionFitness
+        UnivariateRegressionProblem urProblem
     ) {
       super(inner);
-      double[] targetYs = univariateRegressionFitness.caseProvider()
+      double[] targetYs = urProblem.caseProvider()
           .all()
           .stream()
-          .mapToDouble(e -> e.output().get(univariateRegressionFitness.yVarName()))
+          .mapToDouble(ExampleBasedProblem.Example::output)
           .toArray();
-      double[] ys = univariateRegressionFitness.caseProvider()
+      double[] ys = urProblem.caseProvider()
           .all()
           .stream()
           .mapToDouble(e -> inner.computeAsDouble(e.input()))
@@ -101,9 +103,9 @@ public class MathUtils {
 
     public SizedUnivariateScaledRealFunction(
         NamedUnivariateRealFunction innerF,
-        UnivariateRegressionFitness univariateRegressionFitness
+        UnivariateRegressionProblem urProblem
     ) {
-      super(innerF, univariateRegressionFitness);
+      super(innerF, urProblem);
       if (innerF instanceof Sized) {
         size = ((Sized) innerF).size();
       } else {
@@ -143,12 +145,12 @@ public class MathUtils {
   }
 
   public static UnaryOperator<NamedUnivariateRealFunction> linearScaler(
-      UnivariateRegressionFitness univariateRegressionFitness
+      UnivariateRegressionProblem urProblem
   ) {
     return f -> (f instanceof Sized) ? new SizedUnivariateScaledRealFunction(
         f,
-        univariateRegressionFitness
-    ) : new ScaledUnivariateRealFunction(f, univariateRegressionFitness);
+        urProblem
+    ) : new ScaledUnivariateRealFunction(f, urProblem);
   }
 
   public static List<double[]> pairwise(double[]... xs) {

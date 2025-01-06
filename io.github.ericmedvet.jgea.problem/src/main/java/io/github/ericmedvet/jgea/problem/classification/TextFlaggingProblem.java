@@ -20,9 +20,6 @@
 
 package io.github.ericmedvet.jgea.problem.classification;
 
-import io.github.ericmedvet.jgea.core.problem.TotalOrderQualityBasedProblem;
-import io.github.ericmedvet.jgea.core.util.IndexedProvider;
-import java.util.Comparator;
 
 public interface TextFlaggingProblem extends ClassificationProblem<String, TextFlaggingProblem.Label> {
 

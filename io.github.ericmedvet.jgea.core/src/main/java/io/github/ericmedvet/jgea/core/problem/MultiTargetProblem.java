@@ -22,7 +22,6 @@ package io.github.ericmedvet.jgea.core.problem;
 
 import io.github.ericmedvet.jgea.core.distance.Distance;
 import io.github.ericmedvet.jgea.core.util.Misc;
-
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.IntStream;
@@ -48,9 +47,9 @@ public interface MultiTargetProblem<S> extends TotalOrderQualityBasedProblem<S, 
   default SimpleMOProblem<S, Double> toMHOProblem() {
     List<S> targets = targets().stream().toList();
     SequencedMap<String, Comparator<Double>> comparators = IntStream.range(
-            0,
-            targets.size()
-        )
+        0,
+        targets.size()
+    )
         .boxed()
         .collect(
             Misc.toSequencedMap(
