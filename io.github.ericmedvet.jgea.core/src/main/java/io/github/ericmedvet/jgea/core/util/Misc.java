@@ -85,10 +85,6 @@ public class Misc {
     }
   }
 
-  public static String enumString(Enum<?> e) {
-    return e.name().toLowerCase().replace('_', '.');
-  }
-
   public static <T> T first(Collection<T> ts) {
     if (ts.isEmpty()) {
       return null;

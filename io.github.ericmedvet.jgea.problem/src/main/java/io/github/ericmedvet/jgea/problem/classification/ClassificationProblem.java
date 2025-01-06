@@ -67,7 +67,7 @@ public interface ClassificationProblem<X, Y extends Enum<Y>> extends SimpleEBMOP
 
     @Override
     public String toString() {
-      return name().toLowerCase().replace('_', '.');
+      return name().toLowerCase();
     }
   }
 

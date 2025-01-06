@@ -63,7 +63,7 @@ public interface BooleanRegressionProblem extends SimpleEBMOProblem<BooleanFunct
 
     @Override
     public String toString() {
-      return name().toLowerCase().replace('_', '.');
+      return name().toLowerCase();
     }
   }
 

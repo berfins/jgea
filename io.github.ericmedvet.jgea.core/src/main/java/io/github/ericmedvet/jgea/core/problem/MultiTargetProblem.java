@@ -65,19 +65,10 @@ public interface MultiTargetProblem<S> extends TotalOrderQualityBasedProblem<S, 
                 i -> distance().apply(s, targets.get(i))
             )
         );
-    record HardMOProblem<S>(
-        SequencedMap<String, Comparator<Double>> comparators,
-        Function<S, SequencedMap<String, Double>> qualityFunction
-    ) implements SimpleMOProblem<S, Double> {}
-    record HardMOProblemWithExample<S>(
-        SequencedMap<String, Comparator<Double>> comparators,
-        Function<S, SequencedMap<String, Double>> qualityFunction,
-        S example
-    ) implements SimpleMOProblem<S, Double>, ProblemWithExampleSolution<S> {}
     if (this instanceof ProblemWithExampleSolution<?> pwes) {
       //noinspection unchecked
-      return new HardMOProblemWithExample<>(comparators, outcomeF, (S) pwes.example());
+      return SimpleMOProblem.from(comparators, outcomeF, null, (S) pwes.example());
     }
-    return new HardMOProblem<>(comparators, outcomeF);
+    return SimpleMOProblem.from(comparators, outcomeF, null, null);
   }
 }

@@ -2338,6 +2338,18 @@ Produces <code><abbr title="io.github.ericmedvet.jgea.experimenter.listener.plot
 
 Aliases: `ea.p`, `ea.problem`
 
+### Builder `ea.problem.moToSo()`
+
+`ea.p.moToSo(name; objective; moProblem)`
+
+| Param | Type | Default | Java type |
+| --- | --- | --- | --- |
+| `name` | s | interpolate `{moProblem.name}[{objective}]` | <code><abbr title="java.lang.String">String</abbr></code> |
+| `objective` | s |  | <code><abbr title="java.lang.String">String</abbr></code> |
+| `moProblem` | npm |  | <code><abbr title="io.github.ericmedvet.jgea.core.problem.MultiObjectiveProblem">MultiObjectiveProblem</abbr>&lt;S, Q, O&gt;</code> |
+
+Produces <code><abbr title="io.github.ericmedvet.jgea.core.problem.TotalOrderQualityBasedProblem">TotalOrderQualityBasedProblem</abbr>&lt;S, Q&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.Problems.moToSo()` by jgea-experimenter:2.7.1-SNAPSHOT
+
 ### Builder `ea.problem.mtToMo()`
 
 `ea.p.mtToMo(name; mtProblem)`
@@ -2420,7 +2432,7 @@ Aliases: `ea.p.programSynthesis`, `ea.p.ps`, `ea.problem.programSynthesis`, `ea.
 | Param | Type | Default | Java type |
 | --- | --- | --- | --- |
 | `name` | s |  | <code><abbr title="java.lang.String">String</abbr></code> |
-| `metrics` | e[] | `[fail.rate]` | <code><abbr title="java.util.List">List</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisProblem$Metric">ProgramSynthesisProblem$Metric</abbr>&gt;</code> |
+| `metrics` | e[] | `[fail_rate]` | <code><abbr title="java.util.List">List</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisProblem$Metric">ProgramSynthesisProblem$Metric</abbr>&gt;</code> |
 | `maxDissimilarity` | d | `100.0` | <code>double</code> |
 | `randomGenerator` | npm | `m.defaultRG()` | <code><abbr title="java.util.random.RandomGenerator">RandomGenerator</abbr></code> |
 | `nOfCases` | i | `10` | <code>int</code> |

@@ -1,12 +1,12 @@
-$nEvals = [10000]
+$nEvals = [1000]
 
 ea.experiment(
   runs = (randomGenerator = (seed = [1:1:1]) * [m.defaultRG()]) *
     (problem = [
-      ea.p.ps.synthetic(name = "dIntSum"; nOfCases = 10; maxExceptionRate = 10);
-      ea.p.ps.synthetic(name = "sLengther"; nOfCases = 10; maxExceptionRate = 10);
-      ea.p.ps.synthetic(name = "biLongestString"; nOfCases = 10; maxExceptionRate = 10);
-      ea.p.ps.synthetic(name = "triLongestString"; nOfCases = 10; maxExceptionRate = 10)
+      ea.p.ps.synthetic(name = "dIntSum"; nOfCases = 10; maxExceptionRate = 10; metrics = [fail_rate; avg_raw_dissimilarity; exception_error_rate]);
+      ea.p.ps.synthetic(name = "sLengther"; nOfCases = 10; maxExceptionRate = 10; metrics = [fail_rate; avg_raw_dissimilarity; exception_error_rate]);
+      ea.p.ps.synthetic(name = "biLongestString"; nOfCases = 10; maxExceptionRate = 10; metrics = [fail_rate; avg_raw_dissimilarity; exception_error_rate]);
+      ea.p.ps.synthetic(name = "triLongestString"; nOfCases = 10; maxExceptionRate = 10; metrics = [fail_rate; avg_raw_dissimilarity; exception_error_rate])
     ]) *
     (solver = (nEval = $nEvals) * [
       ea.s.ttpnGp()
@@ -18,22 +18,17 @@ ea.experiment(
       functions = [
         ea.f.size(of = ea.f.genotype(of = ea.f.best()); format = "%3d");
         ea.f.hist(of = f.each(of = ea.f.all(); mapF = ea.f.size(of = ea.f.genotype())));
-        ea.f.quality(of = ea.f.best(); format = "%6.2f");
-        ea.f.hist(of = f.each(of = ea.f.all(); mapF = ea.f.quality()));
-        ea.f.validationQuality(format = "%6.2f");
-        ea.f.psMetric(metric = avg_dissimilarity);
-        ea.f.psMetric(metric = fail_rate);
-        ea.f.psMetric(metric = exception_error)
+        f.mapValue(key = fail_rate; of = ea.f.quality(of = ea.f.best()); format = "%6.2f");
+        f.mapValue(key = avg_raw_dissimilarity; of = ea.f.quality(of = ea.f.best()); format = "%6.2f");
+        f.mapValue(key = exception_error_rate; of = ea.f.quality(of = ea.f.best()); format = "%6.2f");
+        ea.f.hist(of = f.each(of = ea.f.all(); mapF = f.mapValue(key = fail_rate; of = ea.f.quality())));
+        f.mapValue(key = fail_rate; of = ea.f.validationQuality(); format = "%6.2f")
       ];
       onlyLast = false
     );
     ea.l.savePlotForExp(
-      path = "../../Documenti/experiments/{name}/{startTime}/best-fitness";
-      plot = ea.plot.multi.quality()
-    );
-    ea.l.savePlotForExp(
       path = "../../Documenti/experiments/{name}/{startTime}/best-fail_rate";
-      plot = ea.plot.multi.xyExp(y = ea.f.psMetric())
+      plot = ea.plot.multi.quality(q = f.mapValue(key = fail_rate))
     )
   ]
 )

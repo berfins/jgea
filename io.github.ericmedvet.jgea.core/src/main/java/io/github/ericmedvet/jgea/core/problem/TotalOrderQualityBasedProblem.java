@@ -20,7 +20,6 @@
 package io.github.ericmedvet.jgea.core.problem;
 
 import io.github.ericmedvet.jgea.core.order.PartialComparator;
-
 import java.util.Comparator;
 import java.util.function.Function;
 
@@ -42,44 +41,21 @@ public interface TotalOrderQualityBasedProblem<S, Q> extends QualityBasedProblem
   }
 
   static <S, Q> TotalOrderQualityBasedProblem<S, Q> from(
-      Function<S, Q> qualityFunction,
-      Comparator<Q> totalOrderComparator
-  ) {
-    return from(qualityFunction, null, totalOrderComparator, null);
-  }
-
-  static <S, Q> TotalOrderQualityBasedProblem<S, Q> from(
-      Function<S, Q> qualityFunction,
-      Comparator<Q> totalOrderComparator,
-      S example
-  ) {
-    return from(qualityFunction, null, totalOrderComparator, example);
-  }
-
-  static <S, Q> TotalOrderQualityBasedProblem<S, Q> from(
-      Function<S, Q> qualityFunction,
-      Function<S, Q> validationqualityFunction,
-      Comparator<Q> totalOrderComparator
-  ) {
-    return from(qualityFunction, validationqualityFunction, totalOrderComparator, null);
-  }
-
-  static <S, Q> TotalOrderQualityBasedProblem<S, Q> from(
-      QualityBasedProblem<S,Q> qbProblem,
+      QualityBasedProblem<S, Q> qbProblem,
       Comparator<Q> comparator
   ) {
-    if (qbProblem instanceof ProblemWithValidation<S,Q> pwv) {
+    if (qbProblem instanceof ProblemWithValidation<S, Q> pwv) {
       if (qbProblem instanceof ProblemWithExampleSolution<?> pse) {
         //noinspection unchecked
-        return from(qbProblem.qualityFunction(), pwv.validationQualityFunction(), comparator, (S)pse.example());
+        return from(qbProblem.qualityFunction(), pwv.validationQualityFunction(), comparator, (S) pse.example());
       }
-      return from(qbProblem.qualityFunction(), pwv.validationQualityFunction(), comparator);
+      return from(qbProblem.qualityFunction(), pwv.validationQualityFunction(), comparator, null);
     }
     if (qbProblem instanceof ProblemWithExampleSolution<?> pse) {
       //noinspection unchecked
-      return from(qbProblem.qualityFunction(), comparator, (S)pse.example());
+      return from(qbProblem.qualityFunction(), null, comparator, (S) pse.example());
     }
-    return from(qbProblem.qualityFunction(), comparator);
+    return from(qbProblem.qualityFunction(), null, comparator, null);
   }
 
   static <S, Q> TotalOrderQualityBasedProblem<S, Q> from(

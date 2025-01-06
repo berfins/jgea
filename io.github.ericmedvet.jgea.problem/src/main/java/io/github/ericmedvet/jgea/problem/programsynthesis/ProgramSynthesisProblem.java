@@ -49,7 +49,7 @@ public interface ProgramSynthesisProblem extends SimpleEBMOProblem<Program, List
             .mapToDouble(outcome -> d.apply(outcome.actual, outcome.executionOutcome.outputs()))
             .average()
             .orElseThrow()
-    ), EXCEPTION_ERROR(
+    ), EXCEPTION_ERROR_RATE(
         (outcomes, d) -> (double) outcomes.stream()
             .filter(outcome -> !Objects.equals(outcome.actual == null, outcome.executionOutcome.outputs() == null))
             .count() / (double) outcomes.size()
@@ -68,7 +68,7 @@ public interface ProgramSynthesisProblem extends SimpleEBMOProblem<Program, List
 
     @Override
     public String toString() {
-      return name().toLowerCase().replace('_', '.');
+      return name().toLowerCase();
     }
   }
 

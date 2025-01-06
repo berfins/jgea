@@ -34,7 +34,10 @@ public interface MultiObjectiveProblem<S, Q, O> extends QualityBasedProblem<S, Q
   SequencedMap<String, Objective<Q, O>> objectives();
 
   default TotalOrderQualityBasedProblem<S, Q> toTotalOrderQualityBasedProblem(String objective) {
-    Comparator<Q> qComparator = Comparator.comparing(objectives().get(objective).function(), objectives().get(objective).comparator());
+    Comparator<Q> qComparator = Comparator.comparing(
+        objectives().get(objective).function(),
+        objectives().get(objective).comparator()
+    );
     return TotalOrderQualityBasedProblem.from(this, qComparator);
   }
 
