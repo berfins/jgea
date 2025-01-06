@@ -20,6 +20,7 @@
 package io.github.ericmedvet.jgea.core.problem;
 
 import io.github.ericmedvet.jgea.core.order.PartialComparator;
+
 import java.util.Comparator;
 import java.util.function.Function;
 
@@ -44,10 +45,78 @@ public interface TotalOrderQualityBasedProblem<S, Q> extends QualityBasedProblem
       Function<S, Q> qualityFunction,
       Comparator<Q> totalOrderComparator
   ) {
-    record HardTotalOrderQualityBasedProblem<S, Q>(
+    return from(qualityFunction, null, totalOrderComparator, null);
+  }
+
+  static <S, Q> TotalOrderQualityBasedProblem<S, Q> from(
+      Function<S, Q> qualityFunction,
+      Comparator<Q> totalOrderComparator,
+      S example
+  ) {
+    return from(qualityFunction, null, totalOrderComparator, example);
+  }
+
+  static <S, Q> TotalOrderQualityBasedProblem<S, Q> from(
+      Function<S, Q> qualityFunction,
+      Function<S, Q> validationqualityFunction,
+      Comparator<Q> totalOrderComparator
+  ) {
+    return from(qualityFunction, validationqualityFunction, totalOrderComparator, null);
+  }
+
+  static <S, Q> TotalOrderQualityBasedProblem<S, Q> from(
+      QualityBasedProblem<S,Q> qbProblem,
+      Comparator<Q> comparator
+  ) {
+    if (qbProblem instanceof ProblemWithValidation<S,Q> pwv) {
+      if (qbProblem instanceof ProblemWithExampleSolution<?> pse) {
+        //noinspection unchecked
+        return from(qbProblem.qualityFunction(), pwv.validationQualityFunction(), comparator, (S)pse.example());
+      }
+      return from(qbProblem.qualityFunction(), pwv.validationQualityFunction(), comparator);
+    }
+    if (qbProblem instanceof ProblemWithExampleSolution<?> pse) {
+      //noinspection unchecked
+      return from(qbProblem.qualityFunction(), comparator, (S)pse.example());
+    }
+    return from(qbProblem.qualityFunction(), comparator);
+  }
+
+  static <S, Q> TotalOrderQualityBasedProblem<S, Q> from(
+      Function<S, Q> qualityFunction,
+      Function<S, Q> validationQualityFunction,
+      Comparator<Q> totalOrderComparator,
+      S example
+  ) {
+    record HardTOQVEProblem<S, Q>(
+        Function<S, Q> qualityFunction,
+        Function<S, Q> validationQualityFunction,
+        Comparator<Q> totalOrderComparator,
+        S example
+    ) implements TotalOrderQualityBasedProblem<S, Q>, ProblemWithExampleSolution<S>, ProblemWithValidation<S, Q> {}
+    record HardTOQEProblem<S, Q>(
+        Function<S, Q> qualityFunction,
+        Comparator<Q> totalOrderComparator,
+        S example
+    ) implements TotalOrderQualityBasedProblem<S, Q>, ProblemWithExampleSolution<S> {}
+    record HardTOQVProblem<S, Q>(
+        Function<S, Q> qualityFunction,
+        Function<S, Q> validationQualityFunction,
+        Comparator<Q> totalOrderComparator
+    ) implements TotalOrderQualityBasedProblem<S, Q>, ProblemWithValidation<S, Q> {}
+    record HardTOQProblem<S, Q>(
         Function<S, Q> qualityFunction,
         Comparator<Q> totalOrderComparator
     ) implements TotalOrderQualityBasedProblem<S, Q> {}
-    return new HardTotalOrderQualityBasedProblem<>(qualityFunction, totalOrderComparator);
+    if (example != null && validationQualityFunction != null) {
+      return new HardTOQVEProblem<>(qualityFunction, validationQualityFunction, totalOrderComparator, example);
+    }
+    if (example != null) {
+      return new HardTOQEProblem<>(qualityFunction, totalOrderComparator, example);
+    }
+    if (validationQualityFunction != null) {
+      return new HardTOQVProblem<>(qualityFunction, validationQualityFunction, totalOrderComparator);
+    }
+    return new HardTOQProblem<>(qualityFunction, totalOrderComparator);
   }
 }
