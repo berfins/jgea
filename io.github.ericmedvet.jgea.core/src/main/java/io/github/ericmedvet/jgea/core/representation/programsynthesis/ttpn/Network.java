@@ -25,6 +25,7 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import io.github.ericmedvet.jgea.core.util.Sized;
+
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
@@ -32,6 +33,8 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+// TODO: add method for getting unlinked (to input) output gates
+// TODO: add method for getting badly looped gates (those with input ports waiting for never arriving tokens)
 public final class Network implements Sized {
   private final List<Gate> gates;
   private final Set<Wire> wires;
@@ -78,6 +81,41 @@ public final class Network implements Sized {
   }
 
   private record TypedEndPoint(Wire.EndPoint endPoint, Type type) {}
+
+  private static boolean replaceType(Type type, Wire.EndPoint endPoint, Map<Wire.EndPoint, Type> map) {
+    Type existingType = map.get(endPoint);
+    if (!type.canTakeValuesOf(existingType)) {
+      map.put(endPoint, type);
+      return true;
+    }
+    return false;
+  }
+
+  private void checkGenericAssignments(Set<Type> types) throws TypeException {
+    List<Type> concreteTypes = types.stream().filter(t -> !t.isGeneric()).toList();
+    List<Type> genericTypes = types.stream().filter(Type::isGeneric).toList();
+    if (concreteTypes.size() > 1) {
+      throw new TypeException("Multiple concrete values: %s".formatted(concreteTypes));
+    }
+    if (!concreteTypes.isEmpty()) {
+      Type concreteType = concreteTypes.getFirst();
+      for (Type genericType : genericTypes) {
+        if (!genericType.canTakeValuesOf(concreteType)) {
+          throw new TypeException("Inconsistent generic value: %s cannot take %s".formatted(genericType, concreteType));
+        }
+      }
+    } else {
+      for (int i = 0; i < genericTypes.size(); i++) {
+        for (int j = i + 1; j < genericTypes.size(); i++) {
+          Type genericType1 = genericTypes.get(i);
+          Type genericType2 = genericTypes.get(j);
+          if (genericType1.canTakeValuesOf(genericType2) && genericType2.canTakeValuesOf(genericType1)) {
+            throw new TypeException("Inconsistent generic values: %s and %s".formatted(genericType1, genericType2));
+          }
+        }
+      }
+    }
+  }
 
   private void computeConcreteTypes() throws TypeException {
     // fill with non-generic types
@@ -140,15 +178,6 @@ public final class Network implements Sized {
     }
   }
 
-  private static boolean replaceType(Type type, Wire.EndPoint endPoint, Map<Wire.EndPoint, Type> map) {
-    Type existingType = map.get(endPoint);
-    if (!type.canTakeValuesOf(existingType)) {
-      map.put(endPoint, type);
-      return true;
-    }
-    return false;
-  }
-
   public Type concreteInputType(Wire.EndPoint endPoint) {
     return inputConcreteTypes.getOrDefault(
         endPoint,
@@ -165,18 +194,6 @@ public final class Network implements Sized {
         endPoint,
         gates.get(endPoint.gateIndex()).outputTypes().get(endPoint.portIndex())
     );
-  }
-
-  public List<List<Integer>> disjointSubnetworksGateIndexes() {
-    List<List<Integer>> subnetworkGis = new ArrayList<>();
-    SequencedSet<Integer> allGis = new LinkedHashSet<>(IntStream.range(0, gates.size()).boxed().toList());
-    while (!allGis.isEmpty()) {
-      SequencedSet<Integer> subnetGis = new LinkedHashSet<>();
-      findWiredGates(allGis.getFirst(), subnetGis);
-      subnetworkGis.add(subnetGis.stream().toList());
-      allGis.removeAll(subnetGis);
-    }
-    return subnetworkGis;
   }
 
   public List<Network> disjointSubnetworks() throws NetworkStructureException, TypeException {
@@ -200,6 +217,18 @@ public final class Network implements Sized {
       list.add(network);
     }
     return list;
+  }
+
+  public List<List<Integer>> disjointSubnetworksGateIndexes() {
+    List<List<Integer>> subnetworkGis = new ArrayList<>();
+    SequencedSet<Integer> allGis = new LinkedHashSet<>(IntStream.range(0, gates.size()).boxed().toList());
+    while (!allGis.isEmpty()) {
+      SequencedSet<Integer> subnetGis = new LinkedHashSet<>();
+      findWiredGates(allGis.getFirst(), subnetGis);
+      subnetworkGis.add(subnetGis.stream().toList());
+      allGis.removeAll(subnetGis);
+    }
+    return subnetworkGis;
   }
 
   private void findWiredGates(int gi, SequencedSet<Integer> gis) {
@@ -453,32 +482,6 @@ public final class Network implements Sized {
       }
     }
     return initialMapSize != gateConcreteTypes.size();
-  }
-
-  private void checkGenericAssignments(Set<Type> types) throws TypeException {
-    List<Type> concreteTypes = types.stream().filter(t -> !t.isGeneric()).toList();
-    List<Type> genericTypes = types.stream().filter(Type::isGeneric).toList();
-    if (concreteTypes.size() > 1) {
-      throw new TypeException("Multiple concrete values: %s".formatted(concreteTypes));
-    }
-    if (!concreteTypes.isEmpty()) {
-      Type concreteType = concreteTypes.getFirst();
-      for (Type genericType : genericTypes) {
-        if (!genericType.canTakeValuesOf(concreteType)) {
-          throw new TypeException("Inconsistent generic value: %s cannot take %s".formatted(genericType, concreteType));
-        }
-      }
-    } else {
-      for (int i = 0; i < genericTypes.size(); i++) {
-        for (int j = i + 1; j < genericTypes.size(); i++) {
-          Type genericType1 = genericTypes.get(i);
-          Type genericType2 = genericTypes.get(j);
-          if (genericType1.canTakeValuesOf(genericType2) && genericType2.canTakeValuesOf(genericType1)) {
-            throw new TypeException("Inconsistent generic values: %s and %s".formatted(genericType1, genericType2));
-          }
-        }
-      }
-    }
   }
 
   private void validateGateIndexes(Wire wire) throws NetworkStructureException {
