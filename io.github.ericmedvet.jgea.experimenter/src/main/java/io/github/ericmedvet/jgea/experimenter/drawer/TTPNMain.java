@@ -34,6 +34,7 @@ import io.github.ericmedvet.jgea.problem.programsynthesis.Problems;
 import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisProblem;
 import io.github.ericmedvet.jgea.problem.programsynthesis.synthetic.PrecomputedSyntheticPSProblem;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
+import io.github.ericmedvet.jnb.datastructure.FormattedNamedFunction;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Random;
@@ -179,6 +180,36 @@ public class TTPNMain {
     IntStream.range(0, 1000).forEach(i -> factory.build(rnd, n -> System.out.printf("======%n%s%n===%n", n)));
   }
 
+
+  private static void factoryStats() {
+    RandomGenerator rnd = new Random(1);
+    NetworkFactory factory = new NetworkFactory(
+        List.of(Composed.sequence(Base.REAL), Composed.sequence(Base.REAL)),
+        List.of(Base.REAL),
+        new LinkedHashSet<>(allGates()),
+        32,
+        0
+    );
+    List<FormattedNamedFunction<Network, Double>> fs = List.of(
+        FormattedNamedFunction.from(n -> (double) n.size(), "%4.1f", "size"),
+        FormattedNamedFunction.from(n -> {
+          try {
+            return (double) (n.disjointSubnetworks().size());
+          } catch (NetworkStructureException | TypeException e) {
+            return Double.NaN;
+          }
+        }, "%4.1f", "n.subnetworks")
+    );
+    List<Network> ns = factory.build(100, rnd);
+    fs.forEach(
+        f -> System.out.printf(
+            "%s = %s%n",
+            f.name(),
+            f.format().formatted(ns.stream().mapToDouble(f::apply).average().orElse(Double.NaN))
+        )
+    );
+  }
+
   private static void loopedNet() throws NetworkStructureException, TypeException {
     Network n = new Network(
         List.of(
@@ -299,7 +330,8 @@ public class TTPNMain {
   ) throws NetworkStructureException, ProgramExecutionException, NoSuchMethodException, TypeException {
     //weirdOne();
     //factory();
-    doComputationStuff();
+    //doComputationStuff();
+    factoryStats();
   }
 
 }

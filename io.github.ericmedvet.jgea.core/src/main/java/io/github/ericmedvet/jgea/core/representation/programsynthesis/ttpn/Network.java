@@ -25,7 +25,6 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import io.github.ericmedvet.jgea.core.util.Sized;
-
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
@@ -656,6 +655,37 @@ public final class Network implements Sized {
         .filter(Optional::isPresent)
         .map(Optional::get)
         .collect(Collectors.toCollection(LinkedHashSet::new));
+  }
+
+  private void outputGateIndexes(int gi, int pi, Set<Integer> gateIndexes) {
+    if (gateIndexes.contains(gi)) {
+      return;
+    }
+    gateIndexes.add(gi);
+    wiresFrom(gi, pi)
+        .forEach(
+            w -> IntStream.range(0, gates.get(w.dst().gateIndex()).outputTypes().size())
+                .forEach(dpi -> outputGateIndexes(w.dst().gateIndex(), dpi, gateIndexes))
+        );
+  }
+
+  private void outputGateIndexes(int gi, Set<Integer> gateIndexes) {
+    IntStream.range(0, gates.get(gi).outputTypes().size()).forEach(pi -> outputGateIndexes(gi, pi, gateIndexes));
+  }
+
+  private void inputGateIndexes(int gi, int pi, Set<Integer> gateIndexes) {
+    if (gateIndexes.contains(gi)) {
+      return;
+    }
+    gateIndexes.add(gi);
+    wireTo(gi, pi).ifPresent(
+        w -> IntStream.range(0, gates.get(w.src().gateIndex()).inputPorts().size())
+            .forEach(ipi -> inputGateIndexes(w.src().gateIndex(), ipi, gateIndexes))
+    );
+  }
+
+  private void inputGateIndexes(int gi, Set<Integer> gateIndexes) {
+    IntStream.range(0, gates.get(gi).inputPorts().size()).forEach(pi -> inputGateIndexes(gi, pi, gateIndexes));
   }
 
 }
