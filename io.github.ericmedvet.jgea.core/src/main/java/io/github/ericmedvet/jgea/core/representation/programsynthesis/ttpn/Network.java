@@ -25,7 +25,6 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import io.github.ericmedvet.jgea.core.util.Sized;
-
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
@@ -33,8 +32,6 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-// TODO: add method for getting unlinked (to input) output gates
-// TODO: add method for getting badly looped gates (those with input ports waiting for never arriving tokens)
 public final class Network implements Sized {
   private final List<Gate> gates;
   private final Set<Wire> wires;
@@ -359,30 +356,18 @@ public final class Network implements Sized {
     return (d == Integer.MAX_VALUE) ? Integer.MAX_VALUE : (d + 1);
   }
 
-  private void inputGateIndexes(int gi, int pi, Set<Integer> gateIndexes) {
-    System.out.printf("->(%d;%d) %s%n", gi, pi, gateIndexes); // TODO remove
-    if (gateIndexes.contains(gi)) {
-      return;
-    }
-    wireTo(gi, pi).ifPresent(
-        w -> IntStream.range(0, gates.get(w.src().gateIndex()).inputPorts().size())
-            .forEach(ipi -> inputGateIndexes(w.src().gateIndex(), ipi, gateIndexes))
-    );
-    gateIndexes.add(gi);
-  }
-
-  private void inputGateIndexes(int gi, Set<Integer> gateIndexes) {
-    IntStream.range(0, gates.get(gi).inputPorts().size()).forEach(pi -> inputGateIndexes(gi, pi, gateIndexes));
-  }
-
   public SortedMap<Integer, Type> inputGates() {
-    return new TreeMap<>(IntStream.range(0, gates.size())
-        .filter(gi -> gates.get(gi) instanceof Gate.InputGate)
-        .boxed()
-        .collect(Collectors.toMap(
-            gi -> gi,
-            gi -> ((Gate.InputGate) gates.get(gi)).type()
-        )));
+    return new TreeMap<>(
+        IntStream.range(0, gates.size())
+            .filter(gi -> gates.get(gi) instanceof Gate.InputGate)
+            .boxed()
+            .collect(
+                Collectors.toMap(
+                    gi -> gi,
+                    gi -> ((Gate.InputGate) gates.get(gi)).type()
+                )
+            )
+    );
   }
 
   public Type inputType(Wire.EndPoint endPoint) {
@@ -394,16 +379,17 @@ public final class Network implements Sized {
   }
 
   public boolean isWiredToInput(int gi) {
-    System.out.println(this); // TODO remove
-    Set<Integer> indexes = new HashSet<>();
-    inputGateIndexes(gi, indexes);
-    return indexes.stream().anyMatch(lgi -> gates.get(lgi) instanceof Gate.InputGate);
+    Set<Wire.EndPoint> endPoints = new HashSet<>();
+    Set<Integer> gateIndexes = new HashSet<>();
+    wiredInputEndPoints(gi, gateIndexes, endPoints);
+    return gateIndexes.stream().anyMatch(localGi -> gates.get(localGi) instanceof Gate.InputGate);
   }
 
   public boolean isWiredToOutput(int gi) {
-    Set<Integer> indexes = new HashSet<>();
-    outputGateIndexes(gi, indexes);
-    return indexes.stream().anyMatch(lgi -> gates.get(lgi) instanceof Gate.OutputGate);
+    Set<Wire.EndPoint> endPoints = new HashSet<>();
+    Set<Integer> gateIndexes = new HashSet<>();
+    wiredOutputEndPoints(gi, gateIndexes, endPoints);
+    return gateIndexes.stream().anyMatch(localGi -> gates.get(localGi) instanceof Gate.OutputGate);
   }
 
   public Network mergedWith(Network other) throws NetworkStructureException, TypeException {
@@ -439,30 +425,18 @@ public final class Network implements Sized {
     return (d == Integer.MAX_VALUE) ? Integer.MAX_VALUE : (d + 1);
   }
 
-  private void outputGateIndexes(int gi, int pi, Set<Integer> gateIndexes) {
-    if (gateIndexes.contains(gi)) {
-      return;
-    }
-    gateIndexes.add(gi);
-    wiresFrom(gi, pi)
-        .forEach(
-            w -> IntStream.range(0, gates.get(w.dst().gateIndex()).outputTypes().size())
-                .forEach(dpi -> outputGateIndexes(w.dst().gateIndex(), dpi, gateIndexes))
-        );
-  }
-
-  private void outputGateIndexes(int gi, Set<Integer> gateIndexes) {
-    IntStream.range(0, gates.get(gi).outputTypes().size()).forEach(pi -> outputGateIndexes(gi, pi, gateIndexes));
-  }
-
   public SortedMap<Integer, Type> outputGates() {
-    return new TreeMap<>(IntStream.range(0, gates.size())
-        .filter(gi -> gates.get(gi) instanceof Gate.OutputGate)
-        .boxed()
-        .collect(Collectors.toMap(
-            gi -> gi,
-            gi -> ((Gate.OutputGate) gates.get(gi)).type()
-        )));
+    return new TreeMap<>(
+        IntStream.range(0, gates.size())
+            .filter(gi -> gates.get(gi) instanceof Gate.OutputGate)
+            .boxed()
+            .collect(
+                Collectors.toMap(
+                    gi -> gi,
+                    gi -> ((Gate.OutputGate) gates.get(gi)).type()
+                )
+            )
+    );
   }
 
   public Set<Wire.EndPoint> outputPorts() {
@@ -688,8 +662,48 @@ public final class Network implements Sized {
     return wires.stream().filter(w -> w.dst().equals(dst)).findFirst();
   }
 
-  public Optional<Wire> wireTo(int gateIndex, int portIntex) {
-    return wireTo(new Wire.EndPoint(gateIndex, portIntex));
+  public Optional<Wire> wireTo(int gateIndex, int portIndex) {
+    return wireTo(new Wire.EndPoint(gateIndex, portIndex));
+  }
+
+  private void wiredInputEndPoints(Wire.EndPoint endPoint, Set<Integer> gateIndexes, Set<Wire.EndPoint> endPoints) {
+    if (endPoints.contains(endPoint)) {
+      return;
+    }
+    endPoints.add(endPoint);
+    wireTo(endPoint).ifPresent(w -> wiredInputEndPoints(w.src().gateIndex(), gateIndexes, endPoints));
+  }
+
+  private void wiredInputEndPoints(int gi, Set<Integer> gateIndexes, Set<Wire.EndPoint> endPoints) {
+    gateIndexes.add(gi);
+    IntStream.range(0, gates.get(gi).inputPorts().size())
+        .forEach(
+            pi -> wiredInputEndPoints(
+                new Wire.EndPoint(gi, pi),
+                gateIndexes,
+                endPoints
+            )
+        );
+  }
+
+  private void wiredOutputEndPoints(Wire.EndPoint endPoint, Set<Integer> gateIndexes, Set<Wire.EndPoint> endPoints) {
+    if (endPoints.contains(endPoint)) {
+      return;
+    }
+    endPoints.add(endPoint);
+    wiresFrom(endPoint).forEach(w -> wiredOutputEndPoints(w.dst().gateIndex(), gateIndexes, endPoints));
+  }
+
+  private void wiredOutputEndPoints(int gi, Set<Integer> gateIndexes, Set<Wire.EndPoint> endPoints) {
+    gateIndexes.add(gi);
+    IntStream.range(0, gates.get(gi).outputTypes().size())
+        .forEach(
+            pi -> wiredOutputEndPoints(
+                new Wire.EndPoint(gi, pi),
+                gateIndexes,
+                endPoints
+            )
+        );
   }
 
   public Set<Wire> wires() {
@@ -717,6 +731,27 @@ public final class Network implements Sized {
         .filter(Optional::isPresent)
         .map(Optional::get)
         .collect(Collectors.toCollection(LinkedHashSet::new));
+  }
+
+  public boolean isGateAutoBlocked(int gi) {
+    Gate gate = gates.get(gi);
+    for (int pi = 0; pi < gate.inputPorts().size(); pi = pi + 1) {
+      if (gate.inputPorts().get(pi).n() > 0) {
+        if (wireTo(gi, pi).isEmpty()) {
+          return true;
+        }
+        Set<Wire.EndPoint> endPoints = new HashSet<>();
+        Set<Integer> gateIndexes = new HashSet<>();
+        wiredInputEndPoints(new Wire.EndPoint(gi, pi), gateIndexes, endPoints);
+        if (gateIndexes.contains(gi)) {
+          return true;
+        }
+        if (gateIndexes.stream().anyMatch(this::isGateAutoBlocked)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
 }

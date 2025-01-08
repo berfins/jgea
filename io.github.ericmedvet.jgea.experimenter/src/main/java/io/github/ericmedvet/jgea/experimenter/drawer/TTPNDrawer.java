@@ -48,7 +48,8 @@ public class TTPNDrawer implements Drawer<Network> {
       Color bgColor, Color fgColor, Map<Base, Color> baseTypeColors, Color otherTypeColor, double gateW, double wireW,
       double gateWHRatio, double portRadiusHRate, double gapWRate, double gapHRate, double marginWRate,
       double marginHRate, double gateOutputWRate, double gateOutputHRate, double ioGateOutputWRate,
-      double ioGateOutputHRate, double textHMarginRate
+      double ioGateOutputHRate, double textHMarginRate,
+      boolean showGateIndex
   ) {
     public static Configuration DEFAULT = new Configuration(
         Color.LIGHT_GRAY,
@@ -72,7 +73,8 @@ public class TTPNDrawer implements Drawer<Network> {
         0.75d,
         0.5d,
         0.5d,
-        0.05
+        0.05,
+        true
     );
   }
 
@@ -346,10 +348,13 @@ public class TTPNDrawer implements Drawer<Network> {
       case Gate.OutputGate outputGate -> "O-%d".formatted(indexOf(Gate.OutputGate.class, gi, network));
       default -> gate.operator().toString();
     };
+    if (configuration.showGateIndex) {
+      str = str + "[%d]".formatted(gi);
+    }
     Rectangle2D strR = ImageUtils.bounds(str, g.getFont(), g);
     float labelY = switch (gate) {
-      case Gate.InputGate inputGate -> (float) (yR.center() / 2d + strR.getHeight() / 2d);
-      case Gate.OutputGate outputGate -> (float) (yR.center() / 2d + strR.getHeight() / 2d);
+      case Gate.InputGate inputGate -> (float) (yR.center() + strR.getHeight() / 2d);
+      case Gate.OutputGate outputGate -> (float) (yR.center() + strR.getHeight() / 2d);
       default -> (float) (yR.min() + strR.getHeight() + yR.extent() * configuration.textHMarginRate);
     };
     g.drawString(str, (float) (xR.center() - strR.getWidth() / 2d), labelY);

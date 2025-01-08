@@ -35,12 +35,9 @@ import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisProble
 import io.github.ericmedvet.jgea.problem.programsynthesis.synthetic.PrecomputedSyntheticPSProblem;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
 import io.github.ericmedvet.jnb.datastructure.FormattedNamedFunction;
-
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.random.RandomGenerator;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class TTPNMain {
@@ -266,35 +263,111 @@ public class TTPNMain {
   }
 
 
-  private static void factoryStats() {
+  private static void factoryStats() throws ProgramExecutionException {
     RandomGenerator rnd = new Random(1);
     NetworkFactory factory = new NetworkFactory(
         List.of(Composed.sequence(Base.REAL), Composed.sequence(Base.REAL)),
         List.of(Base.REAL),
         new LinkedHashSet<>(allGates()),
-        10,
+        64,
         0
     );
-    List<FormattedNamedFunction<Network, Double>> fs = List.of(
-        FormattedNamedFunction.from(n -> (double) n.size(), "%4.1f", "size"),
-        FormattedNamedFunction.from(n -> (double) n.gates().size(), "%4.1f", "n.gates"),
-        FormattedNamedFunction.from(n -> {
-          try {
-            return (double) (n.disjointSubnetworks().size());
-          } catch (NetworkStructureException | TypeException e) {
-            return Double.NaN;
-          }
-        }, "%4.1f", "n.subnetworks"),
-        FormattedNamedFunction.from(n -> (double)n.inputGates().keySet().stream().filter(n::isWiredToOutput).count(), "%3.1f", "n.outputWiredInputs"),
-        FormattedNamedFunction.from(n -> (double)n.outputGates().keySet().stream().filter(n::isWiredToInput).count(), "%3.1f", "n.inputWiredOutputs")
+    Runner runner = new Runner(100, 1000);
+    List<List<Object>> cases = List.of(
+        List.of(List.of(1d, 2d), List.of(3d, 4d)),
+        List.of(List.of(1d), List.of(3d, 4d)),
+        List.of(List.of(1d, 2d), List.of(3d)),
+        List.of(List.of(1d), List.of(3d))
     );
-    List<Network> ns = factory.build(1, rnd);
-    fs.forEach(
-        f -> System.out.printf(
-            "%s = %s%n",
-            f.name(),
-            f.format().formatted(ns.stream().mapToDouble(f::apply).average().orElse(Double.NaN))
+    List<FormattedNamedFunction<Network, Double>> fs = List.of(
+        FormattedNamedFunction.from(n -> (double) n.size(), "%5.1f", "size"),
+        FormattedNamedFunction.from(n -> (double) n.gates().size(), "%4.1f", "n.gates"),
+        FormattedNamedFunction.from(
+            n -> {
+              try {
+                return (double) (n.disjointSubnetworks().size());
+              } catch (NetworkStructureException | TypeException e) {
+                return Double.NaN;
+              }
+            },
+            "%4.1f",
+            "n.subnetworks"
+        ),
+        FormattedNamedFunction.from(
+            n -> (double) n.inputGates().keySet().stream().filter(n::isWiredToOutput).count(),
+            "%3.1f",
+            "n.outputWiredInputs"
+        ),
+        FormattedNamedFunction.from(
+            n -> (double) n.outputGates().keySet().stream().filter(n::isWiredToInput).count(),
+            "%3.1f",
+            "n.inputWiredOutputs"
+        ),
+        FormattedNamedFunction.from(
+            n -> (double) n.outputGates()
+                .keySet()
+                .stream()
+                .filter(n::isGateAutoBlocked)
+                .count(),
+            "%3.1f",
+            "n.blockedOutputs"
+        ),
+        FormattedNamedFunction.from(
+            n -> (double) n.outputGates()
+                .keySet()
+                .stream()
+                .filter(gi -> !n.isGateAutoBlocked(gi) && n.isWiredToInput(gi))
+                .count(),
+            "%3.1f",
+            "n.unblockedAndIWiredOutputs"
+        ),
+        FormattedNamedFunction.from(
+            n -> (double) n.outputGates()
+                .keySet()
+                .stream()
+                .filter(gi -> !n.isGateAutoBlocked(gi) && n.isWiredToInput(gi))
+                .count() / (double) n.outputTypes().size(),
+            "%6.4f",
+            "rate.unblockedOutputs"
+        ),
+        FormattedNamedFunction.from(
+            n -> cases.stream()
+                .mapToDouble(c -> runner.asInstrumentedProgram(n).safelyRun(c) == null ? 1d : 0d)
+                .average()
+                .orElseThrow(),
+            "%6.4f",
+            "rate.cases.null"
         )
+    );
+    List<Network> ns = factory.build(10, rnd);
+    new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT).show(ns.get(2));
+    new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT).show(ns.get(8));
+    new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT).show(ns.get(9));
+
+    List<Map<String, Double>> maps = ns.stream()
+        .map(
+            n -> fs.stream()
+                .collect(Collectors.toMap(f -> f.name(), f -> f.apply(n)))
+        )
+        .toList();
+    System.out.println(fs.stream().map(f -> f.name()).collect(Collectors.joining("\t")));
+    IntStream.range(0, maps.size())
+        .forEach(
+            i -> System.out.printf(
+                "%3d : %s%n",
+                i,
+                fs.stream()
+                    .map(f -> f.format().formatted(maps.get(i).get(f.name())))
+                    .collect(Collectors.joining(" "))
+            )
+        );
+    System.out.printf(
+        "SUMMARY:%n    : %s%n",
+        fs.stream()
+            .map(f -> f.format().formatted(maps.stream().mapToDouble(m -> m.get(f.name())).average().orElseThrow()))
+            .collect(
+                Collectors.joining(" ")
+            )
     );
   }
 

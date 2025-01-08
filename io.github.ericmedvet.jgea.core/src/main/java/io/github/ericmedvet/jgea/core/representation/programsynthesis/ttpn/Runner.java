@@ -24,7 +24,6 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.ProgramExe
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.RunProfile;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jnb.datastructure.NamedFunction;
-
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
