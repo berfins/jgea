@@ -24,6 +24,7 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.ProgramExe
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.RunProfile;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jnb.datastructure.NamedFunction;
+
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -72,28 +73,15 @@ public class Runner {
             },
             "ttpn[g=%d,w=%d]".formatted(network.gates().size(), network.wires().size())
         ),
-        network.gates()
-            .stream()
-            .filter(g -> g instanceof Gate.InputGate)
-            .map(g -> ((Gate.InputGate) g).type())
-            .toList(),
-        network.gates()
-            .stream()
-            .filter(g -> g instanceof Gate.OutputGate)
-            .map(g -> ((Gate.OutputGate) g).type())
-            .toList()
+        network.inputGates().values().stream().toList(),
+        network.outputGates().values().stream().toList()
     );
   }
 
   public InstrumentedProgram.Outcome run(Network network, List<Object> inputs) throws ProgramExecutionException {
     // check validity
     List<Type> inputTypes = network.inputTypes();
-    SortedMap<Integer, Type> outputTypes = new TreeMap<>(
-        IntStream.range(0, network.gates().size())
-            .filter(gi -> network.gates().get(gi) instanceof Gate.OutputGate)
-            .boxed()
-            .collect(Collectors.toMap(gi -> gi, gi -> ((Gate.OutputGate) network.gates().get(gi)).type()))
-    );
+    SortedMap<Integer, Type> outputTypes = network.outputGates();
     if (inputs.size() != inputTypes.size()) {
       throw new ProgramExecutionException(
           "Wrong number of inputs: %d expected, %d found".formatted(

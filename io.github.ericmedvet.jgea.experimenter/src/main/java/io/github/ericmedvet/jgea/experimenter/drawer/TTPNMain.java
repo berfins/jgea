@@ -35,6 +35,7 @@ import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisProble
 import io.github.ericmedvet.jgea.problem.programsynthesis.synthetic.PrecomputedSyntheticPSProblem;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
 import io.github.ericmedvet.jnb.datastructure.FormattedNamedFunction;
+
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Random;
@@ -151,81 +152,6 @@ public class TTPNMain {
         );
   }
 
-  private static void weirdOne() throws NetworkStructureException, TypeException {
-    Network n = new Network(
-        List.of(
-            Gate.input(Composed.sequence(Base.REAL)),
-            Gates.select(),
-            Gates.length()
-        ),
-        Set.of(
-            Wire.of(0, 0, 1, 1),
-            Wire.of(1, 0, 2, 0)
-        )
-    );
-    new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT).show(n);
-  }
-
-  private static void factory() {
-    RandomGenerator rnd = new Random();
-    NetworkFactory factory = new NetworkFactory(
-        List.of(Composed.sequence(Base.REAL), Composed.sequence(Base.REAL)),
-        List.of(Base.REAL),
-        new LinkedHashSet<>(allGates()),
-        32,
-        0
-    );
-    TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
-    factory.build(rnd, drawer::show);
-    IntStream.range(0, 1000).forEach(i -> factory.build(rnd, n -> System.out.printf("======%n%s%n===%n", n)));
-  }
-
-
-  private static void factoryStats() {
-    RandomGenerator rnd = new Random(1);
-    NetworkFactory factory = new NetworkFactory(
-        List.of(Composed.sequence(Base.REAL), Composed.sequence(Base.REAL)),
-        List.of(Base.REAL),
-        new LinkedHashSet<>(allGates()),
-        32,
-        0
-    );
-    List<FormattedNamedFunction<Network, Double>> fs = List.of(
-        FormattedNamedFunction.from(n -> (double) n.size(), "%4.1f", "size"),
-        FormattedNamedFunction.from(n -> {
-          try {
-            return (double) (n.disjointSubnetworks().size());
-          } catch (NetworkStructureException | TypeException e) {
-            return Double.NaN;
-          }
-        }, "%4.1f", "n.subnetworks")
-    );
-    List<Network> ns = factory.build(100, rnd);
-    fs.forEach(
-        f -> System.out.printf(
-            "%s = %s%n",
-            f.name(),
-            f.format().formatted(ns.stream().mapToDouble(f::apply).average().orElse(Double.NaN))
-        )
-    );
-  }
-
-  private static void loopedNet() throws NetworkStructureException, TypeException {
-    Network n = new Network(
-        List.of(
-            Gate.input(Base.INT),
-            Gates.pairer()
-        ),
-        Set.of(
-          //Wire.of(0,0,1,0),
-          //Wire.of(1,0,1,1)
-        )
-    );
-    TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
-    drawer.show(n);
-    drawer.show(n.wireFreeInputEndPoints(ts -> 0));
-  }
-
   private static void doFactoryStuff() throws NetworkStructureException, TypeException {
     Network sn = new Network(
         List.of(
@@ -325,6 +251,69 @@ public class TTPNMain {
 
   }
 
+  private static void factory() {
+    RandomGenerator rnd = new Random();
+    NetworkFactory factory = new NetworkFactory(
+        List.of(Composed.sequence(Base.REAL), Composed.sequence(Base.REAL)),
+        List.of(Base.REAL),
+        new LinkedHashSet<>(allGates()),
+        32,
+        0
+    );
+    TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
+    factory.build(rnd, drawer::show);
+    IntStream.range(0, 1000).forEach(i -> factory.build(rnd, n -> System.out.printf("======%n%s%n===%n", n)));
+  }
+
+
+  private static void factoryStats() {
+    RandomGenerator rnd = new Random(1);
+    NetworkFactory factory = new NetworkFactory(
+        List.of(Composed.sequence(Base.REAL), Composed.sequence(Base.REAL)),
+        List.of(Base.REAL),
+        new LinkedHashSet<>(allGates()),
+        10,
+        0
+    );
+    List<FormattedNamedFunction<Network, Double>> fs = List.of(
+        FormattedNamedFunction.from(n -> (double) n.size(), "%4.1f", "size"),
+        FormattedNamedFunction.from(n -> (double) n.gates().size(), "%4.1f", "n.gates"),
+        FormattedNamedFunction.from(n -> {
+          try {
+            return (double) (n.disjointSubnetworks().size());
+          } catch (NetworkStructureException | TypeException e) {
+            return Double.NaN;
+          }
+        }, "%4.1f", "n.subnetworks"),
+        FormattedNamedFunction.from(n -> (double)n.inputGates().keySet().stream().filter(n::isWiredToOutput).count(), "%3.1f", "n.outputWiredInputs"),
+        FormattedNamedFunction.from(n -> (double)n.outputGates().keySet().stream().filter(n::isWiredToInput).count(), "%3.1f", "n.inputWiredOutputs")
+    );
+    List<Network> ns = factory.build(1, rnd);
+    fs.forEach(
+        f -> System.out.printf(
+            "%s = %s%n",
+            f.name(),
+            f.format().formatted(ns.stream().mapToDouble(f::apply).average().orElse(Double.NaN))
+        )
+    );
+  }
+
+  private static void loopedNet() throws NetworkStructureException, TypeException {
+    Network n = new Network(
+        List.of(
+            Gate.input(Base.INT),
+            Gates.pairer()
+        ),
+        Set.of(
+          //Wire.of(0,0,1,0),
+          //Wire.of(1,0,1,1)
+        )
+    );
+    TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
+    drawer.show(n);
+    drawer.show(n.wireFreeInputEndPoints(ts -> 0));
+  }
+
   public static void main(
       String[] args
   ) throws NetworkStructureException, ProgramExecutionException, NoSuchMethodException, TypeException {
@@ -332,6 +321,21 @@ public class TTPNMain {
     //factory();
     //doComputationStuff();
     factoryStats();
+  }
+
+  private static void weirdOne() throws NetworkStructureException, TypeException {
+    Network n = new Network(
+        List.of(
+            Gate.input(Composed.sequence(Base.REAL)),
+            Gates.select(),
+            Gates.length()
+        ),
+        Set.of(
+            Wire.of(0, 0, 1, 1),
+            Wire.of(1, 0, 2, 0)
+        )
+    );
+    new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT).show(n);
   }
 
 }
