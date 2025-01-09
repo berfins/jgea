@@ -39,6 +39,11 @@ public class Problems {
     return (int) (v1 + v2);
   }
 
+  @Typed("S")
+  public static Integer iArraySum(@Typed("[I]") List<Integer> is) {
+    return is.stream().reduce(Integer::sum).orElse(0);
+  }
+
   @Typed("[<S,I>]")
   public static List<List<Object>> sLengther(@Typed("[S]") List<String> strings) {
     return strings.stream().map(s -> List.<Object>of(s, s.length())).toList();
