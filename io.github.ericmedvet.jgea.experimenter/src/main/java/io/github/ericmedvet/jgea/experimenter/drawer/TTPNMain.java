@@ -35,6 +35,8 @@ import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisProble
 import io.github.ericmedvet.jgea.problem.programsynthesis.synthetic.PrecomputedSyntheticPSProblem;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
 import io.github.ericmedvet.jnb.datastructure.FormattedNamedFunction;
+import org.w3c.dom.ls.LSOutput;
+
 import java.util.*;
 import java.util.random.RandomGenerator;
 import java.util.stream.Collectors;
@@ -341,7 +343,9 @@ public class TTPNMain {
             "rate.cases.null"
         )
     );
-    List<Network> ns = factory.build(10, rnd);
+    List<Network> ns = factory.build(100, rnd);
+    ns.forEach(n -> System.out.println(runner.asInstrumentedProgram(n)));
+    System.out.println(io.github.ericmedvet.jsdynsym.core.composed.Composed.deepest(ns.getFirst(), Network.class));
     new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT).show(ns.get(2));
     new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT).show(ns.get(8));
     new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT).show(ns.get(9));

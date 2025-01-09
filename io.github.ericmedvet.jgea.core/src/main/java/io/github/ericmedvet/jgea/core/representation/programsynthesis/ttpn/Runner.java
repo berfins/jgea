@@ -24,7 +24,10 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.ProgramExe
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.RunProfile;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jnb.datastructure.NamedFunction;
+import io.github.ericmedvet.jsdynsym.core.composed.Composed;
+
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -61,16 +64,32 @@ public class Runner {
   }
 
   public InstrumentedProgram asInstrumentedProgram(Network network) {
+    record ComposedNamedFunction(
+        String name,
+        Network inner,
+        Function<List<Object>, InstrumentedProgram.Outcome> function
+    ) implements NamedFunction<List<Object>, InstrumentedProgram.Outcome>, Composed<Network> {
+      @Override
+      public InstrumentedProgram.Outcome apply(List<Object> objects) {
+        return function.apply(objects);
+      }
+
+      @Override
+      public String toString() {
+        return name;
+      }
+    }
     return InstrumentedProgram.from(
-        NamedFunction.from(
+        new ComposedNamedFunction(
+            "ttpn[g=%d,w=%d]".formatted(network.gates().size(), network.wires().size()),
+            network,
             inputs -> {
               try {
                 return run(network, inputs);
               } catch (ProgramExecutionException e) {
                 throw new RuntimeException(e);
               }
-            },
-            "ttpn[g=%d,w=%d]".formatted(network.gates().size(), network.wires().size())
+            }
         ),
         network.inputGates().values().stream().toList(),
         network.outputGates().values().stream().toList()

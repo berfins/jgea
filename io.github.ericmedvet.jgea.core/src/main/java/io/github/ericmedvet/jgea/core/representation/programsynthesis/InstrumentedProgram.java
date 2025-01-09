@@ -21,6 +21,9 @@ package io.github.ericmedvet.jgea.core.representation.programsynthesis;
 
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jnb.datastructure.NamedFunction;
+import io.github.ericmedvet.jnb.datastructure.Parametrized;
+import io.github.ericmedvet.jsdynsym.core.composed.Composed;
+
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -49,10 +52,15 @@ public interface InstrumentedProgram extends Program {
         Function<List<Object>, Outcome> function,
         List<Type> inputTypes,
         List<Type> outputTypes
-    ) implements InstrumentedProgram {
+    ) implements InstrumentedProgram, Composed<Function<List<Object>, Outcome>> {
       @Override
       public Outcome runInstrumented(List<Object> inputs) throws ProgramExecutionException {
         return Program.safelyRunFunction(function, inputs);
+      }
+
+      @Override
+      public Function<List<Object>, Outcome> inner() {
+        return function;
       }
 
       @Override
