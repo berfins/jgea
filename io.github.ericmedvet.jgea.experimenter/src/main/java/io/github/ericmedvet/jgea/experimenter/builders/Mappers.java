@@ -750,10 +750,11 @@ public class Mappers {
   @Cacheable
   public static <X> InvertibleMapper<X, Program> ttpnToProgram(
       @Param(value = "of", dNPM = "ea.m.identity()") InvertibleMapper<X, Network> beforeM,
-      @Param(value = "maxNOfSteps", dI = 100) int maxNOfSteps,
-      @Param(value = "maxNOfTokens", dI = 1000) int maxNOfTokens
+      @Param(value = "maxNOfSteps", dI = 128) int maxNOfSteps,
+      @Param(value = "maxNOfTokens", dI = 256) int maxNOfTokens,
+      @Param(value = "skipBlocked", dB = true) boolean skipBlocked
   ) {
-    Runner runner = new Runner(maxNOfSteps, maxNOfTokens);
+    Runner runner = new Runner(maxNOfSteps, maxNOfTokens, skipBlocked);
     return beforeM.andThen(
         InvertibleMapper.from(
             (eProgram, ttpn) -> runner.asInstrumentedProgram(ttpn),

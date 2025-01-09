@@ -26,13 +26,17 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.Instrument
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.Program;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.ProgramExecutionException;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.RunProfile;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Network;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import io.github.ericmedvet.jnb.datastructure.TriFunction;
+import io.github.ericmedvet.jsdynsym.core.composed.Composed;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.SequencedMap;
 import java.util.function.BiFunction;
+import java.util.stream.IntStream;
 
 public interface ProgramSynthesisProblem extends SimpleEBMOProblem<Program, List<Object>, InstrumentedProgram.Outcome, ProgramSynthesisProblem.Outcome, Double>, ProblemWithExampleSolution<Program> {
 
@@ -53,6 +57,30 @@ public interface ProgramSynthesisProblem extends SimpleEBMOProblem<Program, List
         (outcomes, d) -> (double) outcomes.stream()
             .filter(outcome -> !Objects.equals(outcome.actual == null, outcome.executionOutcome.outputs() == null))
             .count() / (double) outcomes.size()
+    ), TTPN_BLOCKED_OUTPUTS_RATE(
+        (outcomes, d) -> Composed.deepest(outcomes.getFirst().executionOutcome().instrumentedProgram(), Network.class)
+            .map(n -> (double) n.outputGates()
+                .keySet()
+                .stream()
+                .filter(gi -> n.isGateAutoBlocked(gi) || !n.isWiredToInput(gi))
+                .count() / (double) n.outputTypes().size())
+            .orElse(Double.NaN)
+    ), TTPN_BLOCKED_GATES_RATE(
+        (outcomes, d) -> Composed.deepest(outcomes.getFirst().executionOutcome().instrumentedProgram(), Network.class)
+            .map(n -> (double) IntStream.range(0, n.gates().size())
+                .filter(n::isGateAutoBlocked)
+                .count() / (double) n.gates().size())
+            .orElse(Double.NaN)
+    ), PROFILE_AVG_STEPS(
+        (outcomes, d) -> outcomes.stream()
+            .mapToDouble(outcome -> (double) outcome.executionOutcome.profile().states().size())
+            .average()
+            .orElse(Double.NaN)
+    ), PROFILE_AVG_TOT_SIZE(
+        (outcomes, d) -> outcomes.stream()
+            .mapToDouble(outcome -> outcome.executionOutcome.profile().totSize())
+            .average()
+            .orElse(Double.NaN)
     );
 
     private final BiFunction<List<Outcome>, Distance<List<Object>>, Double> function;
@@ -115,13 +143,13 @@ public interface ProgramSynthesisProblem extends SimpleEBMOProblem<Program, List
       try {
         return instrumentedProgram.runInstrumented(inputs);
       } catch (ProgramExecutionException e) {
-        return new InstrumentedProgram.Outcome(null, new RunProfile(List.of()));
+        return new InstrumentedProgram.Outcome(null, new RunProfile(List.of()), instrumentedProgram);
       }
     }
     try {
-      return new InstrumentedProgram.Outcome(program.run(inputs), new RunProfile(List.of()));
+      return new InstrumentedProgram.Outcome(program.run(inputs), new RunProfile(List.of()), null);
     } catch (ProgramExecutionException e) {
-      return new InstrumentedProgram.Outcome(null, new RunProfile(List.of()));
+      return new InstrumentedProgram.Outcome(null, new RunProfile(List.of()), null);
     }
   }
 }

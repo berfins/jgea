@@ -1,4 +1,4 @@
-$nEvals = [5000]
+$nEvals = [10000]
 
 ea.experiment(
   runs = (randomGenerator = (seed = [1:1:3]) * [m.defaultRG()]) *
@@ -28,7 +28,7 @@ ea.experiment(
         ea.f.hist(of = f.each(of = ea.f.all(); mapF = f.mapValue(key = mse; of = ea.f.quality())));
         f.mapValue(key = mse; of = ea.f.validationQuality(); format = "%6.2f")
       ];
-      onlyLast = true
+      onlyLast = false
     );
     ea.l.savePlotForExp(
       path = "../../Documenti/experiments/{name}/{startTime}/best-fitness";

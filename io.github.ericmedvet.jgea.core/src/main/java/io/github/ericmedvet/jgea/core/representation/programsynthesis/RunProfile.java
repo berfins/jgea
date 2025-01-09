@@ -62,6 +62,14 @@ public record RunProfile(List<State> states) {
     return states.stream().mapToDouble(State::size).average().orElse(0d);
   }
 
+  public double totCount() {
+    return states.stream().mapToDouble(State::count).sum();
+  }
+
+  public double totSize() {
+    return states.stream().mapToDouble(State::size).distinct().sum();
+  }
+
   public double maxCount() {
     return states.stream().mapToDouble(State::count).max().orElse(0d);
   }

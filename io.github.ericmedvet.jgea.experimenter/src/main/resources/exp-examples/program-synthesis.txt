@@ -1,12 +1,14 @@
-$nEvals = [1000]
+$nEvals = [10000]
 
 ea.experiment(
   runs = (randomGenerator = (seed = [1:1:1]) * [m.defaultRG()]) *
     (problem = [
-      ea.p.ps.synthetic(name = "dIntSum"; nOfCases = 10; maxExceptionRate = 10; metrics = [fail_rate; avg_raw_dissimilarity; exception_error_rate]);
-      ea.p.ps.synthetic(name = "sLengther"; nOfCases = 10; maxExceptionRate = 10; metrics = [fail_rate; avg_raw_dissimilarity; exception_error_rate]);
-      ea.p.ps.synthetic(name = "biLongestString"; nOfCases = 10; maxExceptionRate = 10; metrics = [fail_rate; avg_raw_dissimilarity; exception_error_rate]);
-      ea.p.ps.synthetic(name = "triLongestString"; nOfCases = 10; maxExceptionRate = 10; metrics = [fail_rate; avg_raw_dissimilarity; exception_error_rate])
+      ea.p.ps.synthetic(name = "dIntSum"; nOfCases = 10; maxExceptionRate = 10; metrics = [fail_rate; avg_raw_dissimilarity; exception_error_rate; ttpn_blocked_outputs_rate; ttpn_blocked_gates_rate; profile_avg_tot_size]);
+      ea.p.ps.synthetic(name = "iArraySum"; nOfCases = 10; maxExceptionRate = 10; metrics = [ttpn_blocked_gates_rate]);
+      ea.p.ps.synthetic(name = "iArraySum"; nOfCases = 10; maxExceptionRate = 10; metrics = [fail_rate; avg_raw_dissimilarity; exception_error_rate; ttpn_blocked_outputs_rate; ttpn_blocked_gates_rate; profile_avg_tot_size]);
+      ea.p.ps.synthetic(name = "sLengther"; nOfCases = 10; maxExceptionRate = 10; metrics = [fail_rate; avg_raw_dissimilarity; exception_error_rate; ttpn_blocked_outputs_rate; ttpn_blocked_gates_rate; profile_avg_tot_size]);
+      ea.p.ps.synthetic(name = "biLongestString"; nOfCases = 10; maxExceptionRate = 10; metrics = [fail_rate; avg_raw_dissimilarity; exception_error_rate; ttpn_blocked_outputs_rate; ttpn_blocked_gates_rate; profile_avg_tot_size]);
+      ea.p.ps.synthetic(name = "triLongestString"; nOfCases = 10; maxExceptionRate = 10; metrics = [fail_rate; avg_raw_dissimilarity; exception_error_rate; ttpn_blocked_outputs_rate; ttpn_blocked_gates_rate; profile_avg_tot_size])
     ]) *
     (solver = (nEval = $nEvals) * [
       ea.s.ttpnGp()
@@ -21,6 +23,9 @@ ea.experiment(
         f.mapValue(key = fail_rate; of = ea.f.quality(of = ea.f.best()); format = "%6.2f");
         f.mapValue(key = avg_raw_dissimilarity; of = ea.f.quality(of = ea.f.best()); format = "%6.2f");
         f.mapValue(key = exception_error_rate; of = ea.f.quality(of = ea.f.best()); format = "%6.2f");
+        f.mapValue(key = ttpn_blocked_outputs_rate; of = ea.f.quality(of = ea.f.best()); format = "%6.2f");
+        f.mapValue(key = ttpn_blocked_gates_rate; of = ea.f.quality(of = ea.f.best()); format = "%6.2f");
+        f.mapValue(key = profile_avg_tot_size; of = ea.f.quality(of = ea.f.best()); format = "%6.2f");
         ea.f.hist(of = f.each(of = ea.f.all(); mapF = f.mapValue(key = fail_rate; of = ea.f.quality())));
         f.mapValue(key = fail_rate; of = ea.f.validationQuality(); format = "%6.2f")
       ];

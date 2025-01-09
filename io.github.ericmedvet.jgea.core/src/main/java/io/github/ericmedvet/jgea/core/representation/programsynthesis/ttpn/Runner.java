@@ -36,10 +36,12 @@ public class Runner {
 
   private final int maxNOfSteps;
   private final int maxNOfTokens;
+  private final boolean skipExecutionOfBlockedNetworks;
 
-  public Runner(int maxNOfSteps, int maxNOfTokens) {
+  public Runner(int maxNOfSteps, int maxNOfTokens, boolean skipExecutionOfBlockedNetworks) {
     this.maxNOfSteps = maxNOfSteps;
     this.maxNOfTokens = maxNOfTokens;
+    this.skipExecutionOfBlockedNetworks = skipExecutionOfBlockedNetworks;
   }
 
   private static <T> Queue<T> emptyQueue() {
@@ -116,6 +118,19 @@ public class Runner {
                 inputTypes.get(i),
                 inputs.get(i).getClass()
             )
+        );
+      }
+    }
+    // check if blocked
+    if (skipExecutionOfBlockedNetworks) {
+      long nOfBlockedOutputs = network.outputGates()
+          .keySet()
+          .stream()
+          .filter(gi -> network.isGateAutoBlocked(gi) || !network.isWiredToInput(gi))
+          .count();
+      if (nOfBlockedOutputs > 0) {
+        throw new ProgramExecutionException(
+            "Blocked/unwired output gates: %d on %d".formatted(nOfBlockedOutputs, network.outputGates().size())
         );
       }
     }
@@ -249,6 +264,10 @@ public class Runner {
         );
       }
     }
-    return new InstrumentedProgram.Outcome(outputs.values().stream().toList(), new RunProfile(states));
+    return new InstrumentedProgram.Outcome(
+        outputs.values().stream().toList(),
+        new RunProfile(states),
+        asInstrumentedProgram(network)
+    );
   }
 }

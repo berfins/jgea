@@ -121,7 +121,7 @@ public class TTPNMain {
 
     Program tProgram = Program.from(Problems.class.getMethod("vProduct", List.class, List.class));
     System.out.println(tProgram);
-    InstrumentedProgram ttpnProgram = new Runner(1000, 1000).asInstrumentedProgram(n);
+    InstrumentedProgram ttpnProgram = new Runner(1000, 1000, false).asInstrumentedProgram(n);
     List<Object> inputs = List.of(List.of(1d, 2d), List.of(3d, 4d));
     System.out.println(tProgram.run(inputs));
     InstrumentedProgram.Outcome o = ttpnProgram.runInstrumented(inputs);
@@ -276,7 +276,7 @@ public class TTPNMain {
         64,
         0
     );
-    Runner runner = new Runner(100, 1000);
+    Runner runner = new Runner(100, 1000, false);
     List<List<Object>> cases = List.of(
         List.of(List.of(1d, 2d), List.of(3d, 4d)),
         List.of(List.of(1d), List.of(3d, 4d)),
