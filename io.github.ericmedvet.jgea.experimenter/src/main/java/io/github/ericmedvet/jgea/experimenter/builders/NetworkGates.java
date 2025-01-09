@@ -76,6 +76,12 @@ public class NetworkGates {
 
   @SuppressWarnings("unused")
   @Cacheable
+  public static Gate iRange() {
+    return Gates.iRange();
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
   public static Gate iSMult() {
     return Gates.iSMult();
   }
@@ -174,6 +180,12 @@ public class NetworkGates {
   @Cacheable
   public static Gate rToI() {
     return Gates.rToI();
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  public static Gate repeater() {
+    return Gates.repeater();
   }
 
   @SuppressWarnings("unused")

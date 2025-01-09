@@ -78,7 +78,9 @@ public class TTPNMain {
         Gates.select(),
         Gates.bOr(),
         Gates.bAnd(),
-        Gates.bXor()
+        Gates.bXor(),
+        Gates.repeater(),
+        Gates.iRange()
     );
   }
 
