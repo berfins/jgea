@@ -45,7 +45,6 @@ import io.github.ericmedvet.jnb.core.Cacheable;
 import io.github.ericmedvet.jnb.core.Discoverable;
 import io.github.ericmedvet.jnb.core.Param;
 import io.github.ericmedvet.jnb.datastructure.Pair;
-
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.SequencedSet;
@@ -222,18 +221,7 @@ public class Representations {
       @Param(value = "maxNOfGates", dI = 32) int maxNOfGates,
       @Param(value = "maxNOfAttempts", dI = 10) int maxNOfAttempts,
       @Param(value = "subnetSizeRate", dD = 0.33) double subnetSizeRate,
-      @Param(value = "gates", dNPMs = {"ea.ttpn.gate.bAnd()", "ea.ttpn.gate.bOr()", "ea.ttpn.gate.bXor()",
-          "ea.ttpn.gate.concat()", "ea.ttpn.gate.equal()", "ea.ttpn.gate.iTh()", "ea.ttpn.gate.length()", "ea" +
-          ".ttpn.gate.noop()", "ea.ttpn.gate.pairer()", "ea.ttpn.gate.queuer()", "ea.ttpn.gate.select()", "ea" +
-          ".ttpn.gate.sequencer()", "ea.ttpn.gate.sink()", "ea.ttpn.gate.splitter()", "ea.ttpn.gate.unpairer()", "ea" +
-          ".ttpn.gate.iBefore()", "ea.ttpn.gate.iPMathOperator(operator = addition)", "ea.ttpn.gate.iPMathOperator" +
-          "(operator = subtraction)", "ea.ttpn.gate.iPMathOperator(operator = multiplication)", "ea.ttpn.gate" +
-          ".iPMathOperator(operator = division)", "ea.ttpn.gate.iRange()", "ea.ttpn.gate.iSMult()", "ea.ttpn.gate.iSPMult()", "ea.ttpn.gate" +
-          ".iSPSum()", "ea.ttpn.gate.iSSum()", "ea" + ".ttpn.gate.iToR()", "ea.ttpn.gate.rBefore()", "ea.ttpn.gate.repeater()", "ea.ttpn.gate" +
-          ".rPMathOperator(operator = addition)", "ea.ttpn" + ".gate.rPMathOperator(operator = subtraction)", "ea" +
-          ".ttpn.gate.rPMathOperator(operator = multiplication)", "ea.ttpn.gate.rPMathOperator(operator = division)",
-          "ea.ttpn.gate.rSMult()", "ea.ttpn.gate.rSPMult()", "ea" + ".ttpn.gate.rSPSum()", "ea.ttpn.gate.rSSum()",
-          "ea.ttpn.gate.rToI()", "ea.ttpn.gate.sBefore()", "ea.ttpn.gate.sConcat()", "ea.ttpn.gate.sSplitter()"}) List<Gate> gates,
+      @Param(value = "gates", dNPMs = {"ea.ttpn.gate.bAnd()", "ea.ttpn.gate.bOr()", "ea.ttpn.gate.bXor()", "ea.ttpn.gate.concat()", "ea.ttpn.gate.equal()", "ea.ttpn.gate.iTh()", "ea.ttpn.gate.length()", "ea" + ".ttpn.gate.noop()", "ea.ttpn.gate.pairer()", "ea.ttpn.gate.queuer()", "ea.ttpn.gate.select()", "ea" + ".ttpn.gate.sequencer()", "ea.ttpn.gate.sink()", "ea.ttpn.gate.splitter()", "ea.ttpn.gate.unpairer()", "ea" + ".ttpn.gate.iBefore()", "ea.ttpn.gate.iPMathOperator(operator = addition)", "ea.ttpn.gate.iPMathOperator" + "(operator = subtraction)", "ea.ttpn.gate.iPMathOperator(operator = multiplication)", "ea.ttpn.gate" + ".iPMathOperator(operator = division)", "ea.ttpn.gate.iRange()", "ea.ttpn.gate.iSMult()", "ea.ttpn.gate.iSPMult()", "ea.ttpn.gate" + ".iSPSum()", "ea.ttpn.gate.iSSum()", "ea" + ".ttpn.gate.iToR()", "ea.ttpn.gate.rBefore()", "ea.ttpn.gate.repeater()", "ea.ttpn.gate" + ".rPMathOperator(operator = addition)", "ea.ttpn" + ".gate.rPMathOperator(operator = subtraction)", "ea" + ".ttpn.gate.rPMathOperator(operator = multiplication)", "ea.ttpn.gate.rPMathOperator(operator = division)", "ea.ttpn.gate.rSMult()", "ea.ttpn.gate.rSPMult()", "ea" + ".ttpn.gate.rSPSum()", "ea.ttpn.gate.rSSum()", "ea.ttpn.gate.rToI()", "ea.ttpn.gate.sBefore()", "ea.ttpn.gate.sConcat()", "ea.ttpn.gate.sSplitter()"}) List<Gate> gates,
       @Param("forbiddenGates") List<Gate> forbiddenGates
   ) {
     SequencedSet<Gate> actualGates = gates.stream()

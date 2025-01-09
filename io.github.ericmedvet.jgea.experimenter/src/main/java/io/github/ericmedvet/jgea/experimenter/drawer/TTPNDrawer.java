@@ -28,7 +28,6 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.problem.image.ImageUtils;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
 import io.github.ericmedvet.jviz.core.drawer.Drawer;
-
 import java.awt.*;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
@@ -358,7 +357,7 @@ public class TTPNDrawer implements Drawer<Network> {
     float labelX = switch (gate) {
       case Gate.InputGate inputGate -> (float) (xR.min() + xR.extent() * configuration.textHMarginRate);
       case Gate.OutputGate outputGate ->
-          (float) (xR.max() - strR.getWidth() - xR.extent() * configuration.textHMarginRate);
+        (float) (xR.max() - strR.getWidth() - xR.extent() * configuration.textHMarginRate);
       default -> (float) (xR.center() - strR.getWidth() / 2d);
     };
     g.drawString(str, labelX, labelY);

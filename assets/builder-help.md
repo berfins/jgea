@@ -1772,13 +1772,14 @@ Produces <code><abbr title="io.github.ericmedvet.jgea.core.InvertibleMapper">Inv
 
 ### Builder `ea.mapper.ttpnToProgram()`
 
-`ea.m.ttpnToProgram(of; maxNOfSteps; maxNOfTokens)`
+`ea.m.ttpnToProgram(of; maxNOfSteps; maxNOfTokens; skipBlocked)`
 
 | Param | Type | Default | Java type |
 | --- | --- | --- | --- |
 | `of` | npm | `ea.m.identity()` | <code><abbr title="io.github.ericmedvet.jgea.core.InvertibleMapper">InvertibleMapper</abbr>&lt;X, <abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Network">Network</abbr>&gt;</code> |
-| `maxNOfSteps` | i | `100` | <code>int</code> |
-| `maxNOfTokens` | i | `1000` | <code>int</code> |
+| `maxNOfSteps` | i | `128` | <code>int</code> |
+| `maxNOfTokens` | i | `256` | <code>int</code> |
+| `skipBlocked` | b | `true` | <code>boolean</code> |
 
 Produces <code><abbr title="io.github.ericmedvet.jgea.core.InvertibleMapper">InvertibleMapper</abbr>&lt;X, <abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.Program">Program</abbr>&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.Mappers.ttpnToProgram()` by jgea-experimenter:2.7.1-SNAPSHOT
 
@@ -2922,7 +2923,7 @@ Produces <code><abbr title="java.util.function.Function">Function</abbr>&lt;<abb
 | `maxNOfGates` | i | `32` | <code>int</code> |
 | `maxNOfAttempts` | i | `10` | <code>int</code> |
 | `subnetSizeRate` | d | `0.33` | <code>double</code> |
-| `gates` | npm[] | `[ea.ttpn.gate.bAnd(), ea.ttpn.gate.bOr(), ea.ttpn.gate.bXor(), ea.ttpn.gate.concat(), ea.ttpn.gate.equal(), ea.ttpn.gate.iTh(), ea.ttpn.gate.length(), ea.ttpn.gate.noop(), ea.ttpn.gate.pairer(), ea.ttpn.gate.queuer(), ea.ttpn.gate.select(), ea.ttpn.gate.sequencer(), ea.ttpn.gate.sink(), ea.ttpn.gate.splitter(), ea.ttpn.gate.unpairer(), ea.ttpn.gate.iBefore(), ea.ttpn.gate.iPMathOperator(operator = addition), ea.ttpn.gate.iPMathOperator(operator = subtraction), ea.ttpn.gate.iPMathOperator(operator = multiplication), ea.ttpn.gate.iPMathOperator(operator = division), ea.ttpn.gate.iSMult(), ea.ttpn.gate.iSPMult(), ea.ttpn.gate.iSPSum(), ea.ttpn.gate.iSSum(), ea.ttpn.gate.iToR(), ea.ttpn.gate.rBefore(), ea.ttpn.gate.rPMathOperator(operator = addition), ea.ttpn.gate.rPMathOperator(operator = subtraction), ea.ttpn.gate.rPMathOperator(operator = multiplication), ea.ttpn.gate.rPMathOperator(operator = division), ea.ttpn.gate.rSMult(), ea.ttpn.gate.rSPMult(), ea.ttpn.gate.rSPSum(), ea.ttpn.gate.rSSum(), ea.ttpn.gate.rToI(), ea.ttpn.gate.sBefore(), ea.ttpn.gate.sConcat(), ea.ttpn.gate.sSplitter()]` | <code><abbr title="java.util.List">List</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Gate">Gate</abbr>&gt;</code> |
+| `gates` | npm[] | `[ea.ttpn.gate.bAnd(), ea.ttpn.gate.bOr(), ea.ttpn.gate.bXor(), ea.ttpn.gate.concat(), ea.ttpn.gate.equal(), ea.ttpn.gate.iTh(), ea.ttpn.gate.length(), ea.ttpn.gate.noop(), ea.ttpn.gate.pairer(), ea.ttpn.gate.queuer(), ea.ttpn.gate.select(), ea.ttpn.gate.sequencer(), ea.ttpn.gate.sink(), ea.ttpn.gate.splitter(), ea.ttpn.gate.unpairer(), ea.ttpn.gate.iBefore(), ea.ttpn.gate.iPMathOperator(operator = addition), ea.ttpn.gate.iPMathOperator(operator = subtraction), ea.ttpn.gate.iPMathOperator(operator = multiplication), ea.ttpn.gate.iPMathOperator(operator = division), ea.ttpn.gate.iRange(), ea.ttpn.gate.iSMult(), ea.ttpn.gate.iSPMult(), ea.ttpn.gate.iSPSum(), ea.ttpn.gate.iSSum(), ea.ttpn.gate.iToR(), ea.ttpn.gate.rBefore(), ea.ttpn.gate.repeater(), ea.ttpn.gate.rPMathOperator(operator = addition), ea.ttpn.gate.rPMathOperator(operator = subtraction), ea.ttpn.gate.rPMathOperator(operator = multiplication), ea.ttpn.gate.rPMathOperator(operator = division), ea.ttpn.gate.rSMult(), ea.ttpn.gate.rSPMult(), ea.ttpn.gate.rSPSum(), ea.ttpn.gate.rSSum(), ea.ttpn.gate.rToI(), ea.ttpn.gate.sBefore(), ea.ttpn.gate.sConcat(), ea.ttpn.gate.sSplitter()]` | <code><abbr title="java.util.List">List</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Gate">Gate</abbr>&gt;</code> |
 | `forbiddenGates` | npm[] | `[]` | <code><abbr title="java.util.List">List</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Gate">Gate</abbr>&gt;</code> |
 
 Produces <code><abbr title="java.util.function.Function">Function</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Network">Network</abbr>, <abbr title="io.github.ericmedvet.jgea.experimenter.Representation">Representation</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Network">Network</abbr>&gt;&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.Representations.ttpn()` by jgea-experimenter:2.7.1-SNAPSHOT
@@ -3282,6 +3283,12 @@ Produces <code><abbr title="io.github.ericmedvet.jgea.core.representation.progra
 
 Produces <code><abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Gate">Gate</abbr></code>; built from `io.github.ericmedvet.jgea.experimenter.builders.NetworkGates.iPMathOperator()` by jgea-experimenter:2.7.1-SNAPSHOT
 
+### Builder `ea.ttpn.gate.iRange()`
+
+`ea.ttpn.gate.iRange()`
+
+Produces <code><abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Gate">Gate</abbr></code>; built from `io.github.ericmedvet.jgea.experimenter.builders.NetworkGates.iRange()` by jgea-experimenter:2.7.1-SNAPSHOT
+
 ### Builder `ea.ttpn.gate.iSMult()`
 
 `ea.ttpn.gate.iSMult()`
@@ -3387,6 +3394,12 @@ Produces <code><abbr title="io.github.ericmedvet.jgea.core.representation.progra
 `ea.ttpn.gate.rToI()`
 
 Produces <code><abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Gate">Gate</abbr></code>; built from `io.github.ericmedvet.jgea.experimenter.builders.NetworkGates.rToI()` by jgea-experimenter:2.7.1-SNAPSHOT
+
+### Builder `ea.ttpn.gate.repeater()`
+
+`ea.ttpn.gate.repeater()`
+
+Produces <code><abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Gate">Gate</abbr></code>; built from `io.github.ericmedvet.jgea.experimenter.builders.NetworkGates.repeater()` by jgea-experimenter:2.7.1-SNAPSHOT
 
 ### Builder `ea.ttpn.gate.sBefore()`
 

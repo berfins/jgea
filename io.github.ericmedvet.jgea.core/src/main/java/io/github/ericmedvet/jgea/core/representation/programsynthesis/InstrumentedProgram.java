@@ -21,9 +21,7 @@ package io.github.ericmedvet.jgea.core.representation.programsynthesis;
 
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jnb.datastructure.NamedFunction;
-import io.github.ericmedvet.jnb.datastructure.Parametrized;
 import io.github.ericmedvet.jsdynsym.core.composed.Composed;
-
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;

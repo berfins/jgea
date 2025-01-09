@@ -35,8 +35,6 @@ import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisProble
 import io.github.ericmedvet.jgea.problem.programsynthesis.synthetic.PrecomputedSyntheticPSProblem;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
 import io.github.ericmedvet.jnb.datastructure.FormattedNamedFunction;
-import org.w3c.dom.ls.LSOutput;
-
 import java.util.*;
 import java.util.random.RandomGenerator;
 import java.util.stream.Collectors;

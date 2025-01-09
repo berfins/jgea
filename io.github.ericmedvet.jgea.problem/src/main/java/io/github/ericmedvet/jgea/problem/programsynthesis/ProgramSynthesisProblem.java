@@ -31,7 +31,6 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import io.github.ericmedvet.jnb.datastructure.TriFunction;
 import io.github.ericmedvet.jsdynsym.core.composed.Composed;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.SequencedMap;
@@ -59,17 +58,21 @@ public interface ProgramSynthesisProblem extends SimpleEBMOProblem<Program, List
             .count() / (double) outcomes.size()
     ), TTPN_BLOCKED_OUTPUTS_RATE(
         (outcomes, d) -> Composed.deepest(outcomes.getFirst().executionOutcome().instrumentedProgram(), Network.class)
-            .map(n -> (double) n.outputGates()
-                .keySet()
-                .stream()
-                .filter(gi -> n.isGateAutoBlocked(gi) || !n.isWiredToInput(gi))
-                .count() / (double) n.outputTypes().size())
+            .map(
+                n -> (double) n.outputGates()
+                    .keySet()
+                    .stream()
+                    .filter(gi -> n.isGateAutoBlocked(gi) || !n.isWiredToInput(gi))
+                    .count() / (double) n.outputTypes().size()
+            )
             .orElse(Double.NaN)
     ), TTPN_BLOCKED_GATES_RATE(
         (outcomes, d) -> Composed.deepest(outcomes.getFirst().executionOutcome().instrumentedProgram(), Network.class)
-            .map(n -> (double) IntStream.range(0, n.gates().size())
-                .filter(n::isGateAutoBlocked)
-                .count() / (double) n.gates().size())
+            .map(
+                n -> (double) IntStream.range(0, n.gates().size())
+                    .filter(n::isGateAutoBlocked)
+                    .count() / (double) n.gates().size()
+            )
             .orElse(Double.NaN)
     ), PROFILE_AVG_STEPS(
         (outcomes, d) -> outcomes.stream()
