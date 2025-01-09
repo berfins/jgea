@@ -28,6 +28,7 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.problem.image.ImageUtils;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
 import io.github.ericmedvet.jviz.core.drawer.Drawer;
+
 import java.awt.*;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
@@ -48,7 +49,7 @@ public class TTPNDrawer implements Drawer<Network> {
       Color bgColor, Color fgColor, Map<Base, Color> baseTypeColors, Color otherTypeColor, double gateW, double wireW,
       double gateWHRatio, double portRadiusHRate, double gapWRate, double gapHRate, double marginWRate,
       double marginHRate, double gateOutputWRate, double gateOutputHRate, double ioGateOutputWRate,
-      double ioGateOutputHRate, double textHMarginRate,
+      double ioGateOutputHRate, double textWMarginRate, double textHMarginRate,
       boolean showGateIndex
   ) {
     public static Configuration DEFAULT = new Configuration(
@@ -73,6 +74,7 @@ public class TTPNDrawer implements Drawer<Network> {
         0.75d,
         0.5d,
         0.5d,
+        0.05,
         0.05,
         true
     );
@@ -352,12 +354,14 @@ public class TTPNDrawer implements Drawer<Network> {
       str = str + "[%d]".formatted(gi);
     }
     Rectangle2D strR = ImageUtils.bounds(str, g.getFont(), g);
-    float labelY = switch (gate) {
-      case Gate.InputGate inputGate -> (float) (yR.center() + strR.getHeight() / 2d);
-      case Gate.OutputGate outputGate -> (float) (yR.center() + strR.getHeight() / 2d);
-      default -> (float) (yR.min() + strR.getHeight() + yR.extent() * configuration.textHMarginRate);
+    float labelY = (float) (yR.min() + strR.getHeight() + yR.extent() * configuration.textHMarginRate);
+    float labelX = switch (gate) {
+      case Gate.InputGate inputGate -> (float) (xR.min() + xR.extent() * configuration.textHMarginRate);
+      case Gate.OutputGate outputGate ->
+          (float) (xR.max() - strR.getWidth() - xR.extent() * configuration.textHMarginRate);
+      default -> (float) (xR.center() - strR.getWidth() / 2d);
     };
-    g.drawString(str, (float) (xR.center() - strR.getWidth() / 2d), labelY);
+    g.drawString(str, labelX, labelY);
     // write generics
     if (gate.hasGenerics()) {
       str = network.concreteMapping(gi)
