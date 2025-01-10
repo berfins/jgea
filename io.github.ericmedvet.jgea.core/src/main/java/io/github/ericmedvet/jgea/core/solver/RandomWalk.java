@@ -25,7 +25,6 @@ import io.github.ericmedvet.jgea.core.operator.Mutation;
 import io.github.ericmedvet.jgea.core.order.PartialComparator;
 import io.github.ericmedvet.jgea.core.problem.QualityBasedProblem;
 import io.github.ericmedvet.jgea.core.selector.Last;
-
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;

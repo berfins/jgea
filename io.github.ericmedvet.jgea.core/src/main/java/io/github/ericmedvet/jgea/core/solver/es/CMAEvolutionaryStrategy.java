@@ -20,14 +20,13 @@
 
 package io.github.ericmedvet.jgea.core.solver.es;
 
+import static io.github.ericmedvet.jgea.core.util.VectorUtils.*;
+
 import io.github.ericmedvet.jgea.core.Factory;
 import io.github.ericmedvet.jgea.core.problem.TotalOrderQualityBasedProblem;
 import io.github.ericmedvet.jgea.core.solver.AbstractPopulationBasedIterativeSolver;
 import io.github.ericmedvet.jgea.core.solver.Individual;
 import io.github.ericmedvet.jgea.core.solver.SolverException;
-import org.apache.commons.math3.linear.EigenDecomposition;
-import org.apache.commons.math3.linear.RealMatrix;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -39,8 +38,8 @@ import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.random.RandomGenerator;
 import java.util.stream.IntStream;
-
-import static io.github.ericmedvet.jgea.core.util.VectorUtils.*;
+import org.apache.commons.math3.linear.EigenDecomposition;
+import org.apache.commons.math3.linear.RealMatrix;
 
 // source -> https://arxiv.org/pdf/1604.00772.pdf
 

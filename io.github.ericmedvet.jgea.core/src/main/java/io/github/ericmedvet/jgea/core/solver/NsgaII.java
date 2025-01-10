@@ -25,7 +25,6 @@ import io.github.ericmedvet.jgea.core.order.PartialComparator;
 import io.github.ericmedvet.jgea.core.order.PartiallyOrderedCollection;
 import io.github.ericmedvet.jgea.core.problem.MultiObjectiveProblem;
 import io.github.ericmedvet.jgea.core.util.Misc;
-
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
@@ -50,7 +49,7 @@ public class NsgaII<G, S, Q> extends AbstractPopulationBasedIterativeSolver<POCP
       Map<GeneticOperator<G>, Double> operators,
       int maxUniquenessAttempts,
       boolean remap,
-      List<PartialComparator<? super Individual<G,S,Q>>> additionalIndividualComparators
+      List<PartialComparator<? super Individual<G, S, Q>>> additionalIndividualComparators
   ) {
     super(solutionMapper, genotypeFactory, stopCondition, remap, additionalIndividualComparators);
     this.operators = operators;
@@ -89,7 +88,7 @@ public class NsgaII<G, S, Q> extends AbstractPopulationBasedIterativeSolver<POCP
   private static <G, S, Q> Collection<RankedIndividual<G, S, Q>> decorate(
       Collection<? extends Individual<G, S, Q>> individuals,
       MultiObjectiveProblem<S, Q, Double> problem,
-      PartialComparator<? super Individual<G,S,Q>> partialComparator
+      PartialComparator<? super Individual<G, S, Q>> partialComparator
   ) {
     List<? extends Collection<? extends Individual<G, S, Q>>> fronts = PartiallyOrderedCollection
         .from(
@@ -248,7 +247,8 @@ public class NsgaII<G, S, Q> extends AbstractPopulationBasedIterativeSolver<POCP
         executor
     );
     PartialComparator<? super Individual<G, S, Q>> partialComparator = partialComparator(state.problem());
-    List<RankedIndividual<G, S, Q>> rankedIndividuals = decorate(newPopulation, state.problem(), partialComparator).stream()
+    List<RankedIndividual<G, S, Q>> rankedIndividuals = decorate(newPopulation, state.problem(), partialComparator)
+        .stream()
         .sorted(rankedComparator())
         .limit(populationSize)
         .toList();

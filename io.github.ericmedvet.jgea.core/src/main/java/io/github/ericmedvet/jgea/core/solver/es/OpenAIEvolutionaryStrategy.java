@@ -20,13 +20,14 @@
 
 package io.github.ericmedvet.jgea.core.solver.es;
 
+import static io.github.ericmedvet.jgea.core.util.VectorUtils.*;
+
 import io.github.ericmedvet.jgea.core.Factory;
 import io.github.ericmedvet.jgea.core.problem.TotalOrderQualityBasedProblem;
 import io.github.ericmedvet.jgea.core.representation.sequence.FixedLengthListFactory;
 import io.github.ericmedvet.jgea.core.solver.AbstractPopulationBasedIterativeSolver;
 import io.github.ericmedvet.jgea.core.solver.Individual;
 import io.github.ericmedvet.jgea.core.solver.SolverException;
-
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -38,8 +39,6 @@ import java.util.function.Predicate;
 import java.util.random.RandomGenerator;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
-import static io.github.ericmedvet.jgea.core.util.VectorUtils.*;
 
 // https://bacrobotics.com/
 // https://github.com/snolfi/evorobotpy2/blob/master/bin/openaies.py

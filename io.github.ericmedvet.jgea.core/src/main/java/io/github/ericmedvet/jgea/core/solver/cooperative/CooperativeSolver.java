@@ -28,7 +28,6 @@ import io.github.ericmedvet.jgea.core.solver.AbstractPopulationBasedIterativeSol
 import io.github.ericmedvet.jgea.core.solver.Individual;
 import io.github.ericmedvet.jgea.core.solver.POCPopulationState;
 import io.github.ericmedvet.jgea.core.solver.SolverException;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;

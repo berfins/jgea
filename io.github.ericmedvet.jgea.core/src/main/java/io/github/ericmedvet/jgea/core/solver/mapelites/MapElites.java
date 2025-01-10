@@ -29,7 +29,6 @@ import io.github.ericmedvet.jgea.core.solver.Individual;
 import io.github.ericmedvet.jgea.core.solver.SolverException;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -52,7 +51,7 @@ public class MapElites<G, S, Q> extends AbstractPopulationBasedIterativeSolver<M
       Mutation<G> mutation,
       int populationSize,
       List<Descriptor<G, S, Q>> descriptors,
-      List<PartialComparator<? super MEIndividual<G,S,Q>>> additionalIndividualComparators
+      List<PartialComparator<? super MEIndividual<G, S, Q>>> additionalIndividualComparators
   ) {
     super(solutionMapper, genotypeFactory, stopCondition, false, additionalIndividualComparators);
     this.mutation = mutation;

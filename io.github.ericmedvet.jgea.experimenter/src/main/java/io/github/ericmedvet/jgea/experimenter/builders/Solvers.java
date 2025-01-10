@@ -24,6 +24,7 @@ import io.github.ericmedvet.jgea.core.InvertibleMapper;
 import io.github.ericmedvet.jgea.core.distance.Jaccard;
 import io.github.ericmedvet.jgea.core.operator.GeneticOperator;
 import io.github.ericmedvet.jgea.core.operator.Mutation;
+import io.github.ericmedvet.jgea.core.order.PartialComparator;
 import io.github.ericmedvet.jgea.core.representation.graph.*;
 import io.github.ericmedvet.jgea.core.representation.graph.numeric.Constant;
 import io.github.ericmedvet.jgea.core.representation.graph.numeric.Input;
@@ -40,9 +41,7 @@ import io.github.ericmedvet.jgea.core.solver.cabea.SubstrateFiller;
 import io.github.ericmedvet.jgea.core.solver.es.CMAEvolutionaryStrategy;
 import io.github.ericmedvet.jgea.core.solver.es.OpenAIEvolutionaryStrategy;
 import io.github.ericmedvet.jgea.core.solver.es.SimpleEvolutionaryStrategy;
-import io.github.ericmedvet.jgea.core.solver.mapelites.CoMapElites;
-import io.github.ericmedvet.jgea.core.solver.mapelites.MapElites;
-import io.github.ericmedvet.jgea.core.solver.mapelites.MultiArchiveMapElites;
+import io.github.ericmedvet.jgea.core.solver.mapelites.*;
 import io.github.ericmedvet.jgea.core.solver.mapelites.strategy.CoMEStrategy;
 import io.github.ericmedvet.jgea.core.solver.pso.ParticleSwarmOptimization;
 import io.github.ericmedvet.jgea.core.solver.speciation.LazySpeciator;
@@ -79,7 +78,8 @@ public class Solvers {
       @Param(value = "toroidal", dB = true) boolean toroidal,
       @Param(value = "mooreRadius", dI = 1) int mooreRadius,
       @Param(value = "gridSize", dI = 11) int gridSize,
-      @Param(value = "substrate", dS = "empty") SubstrateFiller.Predefined substrate
+      @Param(value = "substrate", dS = "empty") SubstrateFiller.Predefined substrate,
+      @Param("iComparators") List<PartialComparator<? super Individual<G, S, Q>>> additionalIndividualComparators
   ) {
     return exampleS -> {
       Representation<G> r = representation.apply(mapper.exampleFor(exampleS));
@@ -91,7 +91,8 @@ public class Solvers {
           new CellularAutomataBasedSolver.MooreNeighborhood(mooreRadius, toroidal),
           keepProbability,
           r.geneticOperators(crossoverP),
-          new Tournament(nTour)
+          new Tournament(nTour),
+          additionalIndividualComparators
       );
     };
   }
@@ -130,7 +131,8 @@ public class Solvers {
       @Param(value = "nOfOffspring", dI = 50) int nOfOffspring,
       @Param(value = "strategy", dS = "identity") CoMEStrategy.Prepared strategy,
       @Param(value = "neighborRadius", dD = 2) double neighborRadius,
-      @Param(value = "maxNOfNeighbors", dI = 2) int maxNOfNeighbors
+      @Param(value = "maxNOfNeighbors", dI = 2) int maxNOfNeighbors,
+      @Param("iComparators") List<PartialComparator<? super CoMEIndividual<G1, G2, S1, S2, S, Q>>> additionalIndividualComparators
   ) {
     return exampleS -> {
       Pair<S1, S2> splitExample = invertibleMapperMerger.exampleFor(exampleS);
@@ -155,7 +157,8 @@ public class Solvers {
           nOfOffspring,
           strategy,
           neighborRadius,
-          maxNOfNeighbors
+          maxNOfNeighbors,
+          additionalIndividualComparators
       );
     };
   }
@@ -208,7 +211,8 @@ public class Solvers {
       @Param(value = "nPop", dI = 100) int nPop,
       @Param(value = "nEval", dI = 1000) int nEval,
       @Param(value = "maxUniquenessAttempts", dI = 100) int maxUniquenessAttempts,
-      @Param(value = "remap") boolean remap
+      @Param(value = "remap") boolean remap,
+      @Param("iComparators") List<PartialComparator<? super Individual<G, S, Q>>> additionalIndividualComparators
   ) {
     return exampleS -> {
       Representation<G> r = representation.apply(mapper.exampleFor(exampleS));
@@ -223,7 +227,8 @@ public class Solvers {
           nPop,
           true,
           maxUniquenessAttempts,
-          remap
+          remap,
+          additionalIndividualComparators
       );
     };
   }
@@ -237,7 +242,8 @@ public class Solvers {
       @Param(value = "nPop", dI = 100) int nPop,
       @Param(value = "nEval", dI = 1000) int nEval,
       @Param("descriptors1") List<MapElites.Descriptor<G, S, Q>> descriptors1,
-      @Param("descriptors2") List<MapElites.Descriptor<G, S, Q>> descriptors2
+      @Param("descriptors2") List<MapElites.Descriptor<G, S, Q>> descriptors2,
+      @Param("iComparators") List<PartialComparator<? super Individual<G, S, Q>>> additionalIndividualComparators
   ) {
     return exampleS -> {
       Representation<G> r = representation.apply(mapper.exampleFor(exampleS));
@@ -247,7 +253,8 @@ public class Solvers {
           StopConditions.nOfFitnessEvaluations(nEval),
           r.mutations().getFirst(),
           nPop,
-          List.of(descriptors1, descriptors2)
+          List.of(descriptors1, descriptors2),
+          additionalIndividualComparators
       );
     };
   }
@@ -260,7 +267,8 @@ public class Solvers {
       @Param(value = "mapper", dNPM = "ea.m.identity()") InvertibleMapper<G, S> mapper,
       @Param(value = "nPop", dI = 100) int nPop,
       @Param(value = "nEval", dI = 1000) int nEval,
-      @Param("descriptors") List<MapElites.Descriptor<G, S, Q>> descriptors
+      @Param("descriptors") List<MapElites.Descriptor<G, S, Q>> descriptors,
+      @Param("iComparators") List<PartialComparator<? super MEIndividual<G, S, Q>>> additionalIndividualComparators
   ) {
     return exampleS -> {
       Representation<G> r = representation.apply(mapper.exampleFor(exampleS));
@@ -270,7 +278,8 @@ public class Solvers {
           StopConditions.nOfFitnessEvaluations(nEval),
           r.mutations().getFirst(),
           nPop,
-          descriptors
+          descriptors,
+          additionalIndividualComparators
       );
     };
   }
@@ -285,7 +294,8 @@ public class Solvers {
       @Param(value = "nPop", dI = 100) int nPop,
       @Param(value = "nEval", dI = 1000) int nEval,
       @Param(value = "maxUniquenessAttempts", dI = 100) int maxUniquenessAttempts,
-      @Param(value = "remap") boolean remap
+      @Param(value = "remap") boolean remap,
+      @Param("iComparators") List<PartialComparator<? super Individual<G, S, Q>>> additionalIndividualComparators
   ) {
     return exampleS -> {
       Representation<G> r = representation.apply(mapper.exampleFor(exampleS));
@@ -296,7 +306,8 @@ public class Solvers {
           StopConditions.nOfFitnessEvaluations(nEval),
           r.geneticOperators(crossoverP),
           maxUniquenessAttempts,
-          remap
+          remap,
+          additionalIndividualComparators
       );
     };
   }
@@ -318,7 +329,8 @@ public class Solvers {
       @Param(value = "nodeAdditionRate", dD = 1d) double nodeAdditionRate,
       @Param(value = "nPop", dI = 5) int minSpeciesSizeForElitism,
       @Param(value = "rankBase", dD = 0.75d) double rankBase,
-      @Param(value = "remap") boolean remap
+      @Param(value = "remap") boolean remap,
+      @Param("iComparators") List<PartialComparator<? super Individual<Graph<Node, OperatorGraph.NonValuedArc>, S, Q>>> additionalIndividualComparators
   ) {
     return exampleS -> {
       Map<GeneticOperator<Graph<Node, OperatorGraph.NonValuedArc>>, Double> geneticOperators = Map.ofEntries(
@@ -371,6 +383,7 @@ public class Solvers {
           geneticOperators,
           nPop,
           remap,
+          additionalIndividualComparators,
           minSpeciesSizeForElitism,
           new LazySpeciator<>(
               (new Jaccard<Node>()).on(i -> i.genotype().nodes()),
@@ -443,14 +456,16 @@ public class Solvers {
       @Param(value = "name", dS = "rs") String name,
       @Param("representation") Function<G, Representation<G>> representation,
       @Param(value = "mapper", dNPM = "ea.m.identity()") InvertibleMapper<G, S> mapper,
-      @Param(value = "nEval", dI = 1000) int nEval
+      @Param(value = "nEval", dI = 1000) int nEval,
+      @Param("iComparators") List<PartialComparator<? super Individual<G, S, Q>>> additionalIndividualComparators
   ) {
     return exampleS -> {
       Representation<G> r = representation.apply(mapper.exampleFor(exampleS));
       return new RandomSearch<>(
           mapper.mapperFor(exampleS),
           r.factory(),
-          StopConditions.nOfFitnessEvaluations(nEval)
+          StopConditions.nOfFitnessEvaluations(nEval),
+          additionalIndividualComparators
       );
     };
   }
@@ -461,7 +476,8 @@ public class Solvers {
       @Param(value = "name", dS = "rw") String name,
       @Param("representation") Function<G, Representation<G>> representation,
       @Param(value = "mapper", dNPM = "ea.m.identity()") InvertibleMapper<G, S> mapper,
-      @Param(value = "nEval", dI = 1000) int nEval
+      @Param(value = "nEval", dI = 1000) int nEval,
+      @Param("iComparators") List<PartialComparator<? super Individual<G, S, Q>>> additionalIndividualComparators
   ) {
     return exampleS -> {
       Representation<G> r = representation.apply(mapper.exampleFor(exampleS));
@@ -469,7 +485,8 @@ public class Solvers {
           mapper.mapperFor(exampleS),
           r.factory(),
           StopConditions.nOfFitnessEvaluations(nEval),
-          r.mutations().getFirst()
+          r.mutations().getFirst(),
+          additionalIndividualComparators
       );
     };
   }

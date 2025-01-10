@@ -25,7 +25,6 @@ import io.github.ericmedvet.jgea.core.order.PartialComparator;
 import io.github.ericmedvet.jgea.core.order.PartiallyOrderedCollection;
 import io.github.ericmedvet.jgea.core.problem.QualityBasedProblem;
 import io.github.ericmedvet.jgea.core.selector.Selector;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +45,7 @@ public class StandardEvolver<G, S, Q> extends AbstractStandardEvolver<POCPopulat
       boolean overlapping,
       int maxUniquenessAttempts,
       boolean remap,
-      List<PartialComparator<? super Individual<G,S,Q>>> additionalIndividualComparators
+      List<PartialComparator<? super Individual<G, S, Q>>> additionalIndividualComparators
   ) {
     super(
         solutionMapper,

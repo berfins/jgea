@@ -19,11 +19,12 @@
  */
 package io.github.ericmedvet.jgea.core.solver.pso;
 
+import static io.github.ericmedvet.jgea.core.util.VectorUtils.*;
+
 import io.github.ericmedvet.jgea.core.Factory;
 import io.github.ericmedvet.jgea.core.problem.TotalOrderQualityBasedProblem;
 import io.github.ericmedvet.jgea.core.solver.AbstractPopulationBasedIterativeSolver;
 import io.github.ericmedvet.jgea.core.solver.SolverException;
-
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -34,8 +35,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.random.RandomGenerator;
-
-import static io.github.ericmedvet.jgea.core.util.VectorUtils.*;
 
 public class ParticleSwarmOptimization<S, Q> extends AbstractPopulationBasedIterativeSolver<PSOState<S, Q>, TotalOrderQualityBasedProblem<S, Q>, PSOIndividual<S, Q>, List<Double>, S, Q> {
 

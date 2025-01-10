@@ -20,13 +20,14 @@
 
 package io.github.ericmedvet.jgea.core.solver.es;
 
+import static io.github.ericmedvet.jgea.core.util.VectorUtils.*;
+
 import io.github.ericmedvet.jgea.core.Factory;
 import io.github.ericmedvet.jgea.core.problem.TotalOrderQualityBasedProblem;
 import io.github.ericmedvet.jgea.core.solver.AbstractPopulationBasedIterativeSolver;
 import io.github.ericmedvet.jgea.core.solver.Individual;
 import io.github.ericmedvet.jgea.core.solver.ListPopulationState;
 import io.github.ericmedvet.jgea.core.solver.SolverException;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -36,8 +37,6 @@ import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.random.RandomGenerator;
 import java.util.stream.IntStream;
-
-import static io.github.ericmedvet.jgea.core.util.VectorUtils.*;
 
 public class SimpleEvolutionaryStrategy<S, Q> extends AbstractPopulationBasedIterativeSolver<ListPopulationState<Individual<List<Double>, S, Q>, List<Double>, S, Q, TotalOrderQualityBasedProblem<S, Q>>, TotalOrderQualityBasedProblem<S, Q>, Individual<List<Double>, S, Q>, List<Double>, S, Q> {
 

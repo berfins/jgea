@@ -21,7 +21,6 @@ package io.github.ericmedvet.jgea.core.problem;
 
 import io.github.ericmedvet.jgea.core.order.ParetoDominance;
 import io.github.ericmedvet.jgea.core.order.PartialComparator;
-
 import java.util.Comparator;
 import java.util.SequencedMap;
 import java.util.function.Function;
