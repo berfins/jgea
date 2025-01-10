@@ -88,7 +88,7 @@ public record Tuple(List<Type> types) implements Composed {
         }
       }
     }
-    return false;
+    return true;
   }
 
   @Override
