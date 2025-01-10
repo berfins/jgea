@@ -19,6 +19,8 @@
  */
 package io.github.ericmedvet.jgea.experimenter.drawer;
 
+import io.github.ericmedvet.jgea.core.order.ParetoDominance;
+import io.github.ericmedvet.jgea.core.order.PartialComparator;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.InstrumentedProgram;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.Program;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.ProgramExecutionException;
@@ -81,6 +83,24 @@ public class TTPNMain {
         Gates.bXor(),
         Gates.repeater(),
         Gates.iRange()
+    );
+  }
+
+  private static void comparator() {
+    ParetoDominance<Double> basePC = new ParetoDominance<>(
+        List.of(
+            Double::compareTo,
+            Double::compareTo
+        )
+    );
+    PartialComparator<List<Double>> extendedBasePC = basePC.on(vs -> vs.subList(0, 2));
+    PartialComparator<List<Double>> addedPC = PartialComparator.from(Double::compareTo).on(List::getLast);
+    System.out.println(basePC.compare(List.of(1d, 2d), List.of(3d, 4d)));
+    System.out.println(basePC.compare(List.of(1d, 5d), List.of(3d, 4d)));
+    System.out.println(addedPC.compare(List.of(2d, 1d, 4d), List.of(4d, 3d, 4d)));
+    System.out.println(extendedBasePC.compare(List.of(2d, 1d, 4d), List.of(4d, 3d, 4d)));
+    System.out.println(
+        ParetoDominance.compare(List.of(2d, 1d, 4d), List.of(4d, 3d, 4d), List.of(extendedBasePC, addedPC))
     );
   }
 
@@ -264,7 +284,6 @@ public class TTPNMain {
     IntStream.range(0, 1000).forEach(i -> factory.build(rnd, n -> System.out.printf("======%n%s%n===%n", n)));
   }
 
-
   private static void factoryStats() throws ProgramExecutionException {
     RandomGenerator rnd = new Random(1);
     NetworkFactory factory = new NetworkFactory(
@@ -397,7 +416,8 @@ public class TTPNMain {
     //weirdOne();
     //factory();
     //doComputationStuff();
-    factoryStats();
+    //factoryStats();
+    comparator();
   }
 
   private static void weirdOne() throws NetworkStructureException, TypeException {

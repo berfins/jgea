@@ -23,7 +23,9 @@ package io.github.ericmedvet.jgea.core.order;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class ParetoDominance<C> implements PartialComparator<List<C>> {
 
@@ -31,15 +33,6 @@ public class ParetoDominance<C> implements PartialComparator<List<C>> {
 
   public ParetoDominance(List<Comparator<C>> comparators) {
     this.comparators = comparators;
-  }
-
-  public static <C extends Comparable<C>> ParetoDominance<C> from(@SuppressWarnings("unused") Class<C> cClass, int n) {
-    return new ParetoDominance<>(Collections.nCopies(n, Comparable::compareTo));
-  }
-
-  @Override
-  public PartialComparatorOutcome compare(List<C> cs1, List<C> cs2) {
-    return compare(cs1, cs2, Function.identity(), comparators);
   }
 
   public static <K, C> PartialComparatorOutcome compare(
@@ -75,6 +68,42 @@ public class ParetoDominance<C> implements PartialComparator<List<C>> {
       return PartialComparatorOutcome.SAME;
     }
     return PartialComparatorOutcome.NOT_COMPARABLE;
+  }
+
+  public static <C> PartialComparatorOutcome compare(
+      C c1,
+      C c2,
+      List<PartialComparator<C>> comparators
+  ) {
+    Map<PartialComparatorOutcome, Long> counts = comparators.stream()
+        .map(pc -> pc.compare(c1, c2))
+        .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+    long before = counts.getOrDefault(PartialComparatorOutcome.BEFORE, 0L);
+    long after = counts.getOrDefault(PartialComparatorOutcome.AFTER, 0L);
+    long same = counts.getOrDefault(PartialComparatorOutcome.SAME, 0L);
+    long notComparable = counts.getOrDefault(PartialComparatorOutcome.NOT_COMPARABLE, 0L);
+    if (notComparable > 0) {
+      return PartialComparatorOutcome.NOT_COMPARABLE;
+    }
+    if (before > 0 && after == 0) {
+      return PartialComparatorOutcome.BEFORE;
+    }
+    if (after > 0 && before == 0) {
+      return PartialComparatorOutcome.AFTER;
+    }
+    if (same == comparators.size()) {
+      return PartialComparatorOutcome.SAME;
+    }
+    return PartialComparatorOutcome.NOT_COMPARABLE;
+  }
+
+  public static <C extends Comparable<C>> ParetoDominance<C> from(@SuppressWarnings("unused") Class<C> cClass, int n) {
+    return new ParetoDominance<>(Collections.nCopies(n, Comparable::compareTo));
+  }
+
+  @Override
+  public PartialComparatorOutcome compare(List<C> cs1, List<C> cs2) {
+    return compare(cs1, cs2, Function.identity(), comparators);
   }
 
 }
