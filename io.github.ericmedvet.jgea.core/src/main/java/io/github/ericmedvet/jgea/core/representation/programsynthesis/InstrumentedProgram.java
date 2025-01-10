@@ -27,7 +27,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public interface InstrumentedProgram extends Program {
-  record Outcome(List<Object> outputs, RunProfile profile, InstrumentedProgram instrumentedProgram) {
+  record Outcome(List<Object> outputs, RunProfile profile) {
     @Override
     public String toString() {
       return "%s with %s".formatted(outputs, profile);

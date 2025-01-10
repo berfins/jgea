@@ -265,8 +265,7 @@ public class Runner {
     }
     return new InstrumentedProgram.Outcome(
         outputs.values().stream().toList(),
-        new RunProfile(states),
-        asInstrumentedProgram(network)
+        new RunProfile(states)
     );
   }
 }

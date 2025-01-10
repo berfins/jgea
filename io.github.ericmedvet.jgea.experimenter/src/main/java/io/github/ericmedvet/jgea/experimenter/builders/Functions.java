@@ -20,6 +20,7 @@
 package io.github.ericmedvet.jgea.experimenter.builders;
 
 import io.github.ericmedvet.jgea.core.problem.*;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Network;
 import io.github.ericmedvet.jgea.core.representation.sequence.bit.BitString;
 import io.github.ericmedvet.jgea.core.representation.sequence.integer.IntString;
 import io.github.ericmedvet.jgea.core.representation.tree.Tree;
@@ -59,6 +60,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
+import java.util.stream.IntStream;
 
 @Discoverable(prefixTemplate = "ea.function|f")
 public class Functions {
@@ -804,6 +806,32 @@ public class Functions {
   ) {
     Function<Tree<C>, Integer> f = Tree::size;
     return FormattedNamedFunction.from(f, format, "tree.size").compose(beforeF);
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  public static <X> FormattedNamedFunction<X, Double> ttpnDeadGatesRate(
+      @Param(value = "of", dNPM = "f.identity()") Function<X, Network> beforeF,
+      @Param(value = "format", dS = "%5.3f") String format
+  ) {
+    Function<Network, Double> f = n -> (double) IntStream.range(0, n.gates().size())
+        .filter(gi -> n.isGateAutoBlocked(gi) || !n.isWiredToInput(gi))
+        .count() / (double) n.gates().size();
+    return FormattedNamedFunction.from(f, format, "ttpn.dead.gates.rate").compose(beforeF);
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  public static <X> FormattedNamedFunction<X, Double> ttpnDeadOutputGatesRate(
+      @Param(value = "of", dNPM = "f.identity()") Function<X, Network> beforeF,
+      @Param(value = "format", dS = "%5.3f") String format
+  ) {
+    Function<Network, Double> f = n -> (double) n.outputGates()
+        .keySet()
+        .stream()
+        .filter(gi -> n.isGateAutoBlocked(gi) || !n.isWiredToInput(gi))
+        .count() / (double) n.gates().size();
+    return FormattedNamedFunction.from(f, format, "ttpn.dead.output.gates.rate").compose(beforeF);
   }
 
   @SuppressWarnings("unused")

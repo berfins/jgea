@@ -170,11 +170,11 @@ public abstract class AbstractPopulationBasedIterativeSolver<T extends POCPopula
     if (additionalIndividualComparators.isEmpty()) {
       return basePC;
     }
-    Stream<PartialComparator<? super I>> concat = Stream.concat(
+    List<PartialComparator<? super I>> allPCs = Stream.concat(
         Stream.of(basePC),
         additionalIndividualComparators.stream()
-    );
-    return (i1, i2) -> ParetoDominance.compare(i1, i2, concat.toList());
+    ).toList();
+    return (i1, i2) -> ParetoDominance.compare(i1, i2, allPCs);
   }
 
   protected Predicate<State<?, ?>> stopCondition() {

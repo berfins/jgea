@@ -3,15 +3,15 @@ $nEvals = [10000]
 ea.experiment(
   runs = (randomGenerator = (seed = [1:1:1]) * [m.defaultRG()]) *
     (problem = [
-      ea.p.ps.synthetic(name = "dIntSum"; nOfCases = 10; maxExceptionRate = 10; metrics = [fail_rate; avg_raw_dissimilarity; exception_error_rate; ttpn_blocked_outputs_rate; ttpn_blocked_gates_rate; profile_avg_tot_size]);
-      ea.p.ps.synthetic(name = "iArraySum"; nOfCases = 10; maxExceptionRate = 10; metrics = [ttpn_blocked_gates_rate]);
-      ea.p.ps.synthetic(name = "iArraySum"; nOfCases = 10; maxExceptionRate = 10; metrics = [fail_rate; avg_raw_dissimilarity; exception_error_rate; ttpn_blocked_outputs_rate; ttpn_blocked_gates_rate; profile_avg_tot_size]);
-      ea.p.ps.synthetic(name = "sLengther"; nOfCases = 10; maxExceptionRate = 10; metrics = [fail_rate; avg_raw_dissimilarity; exception_error_rate; ttpn_blocked_outputs_rate; ttpn_blocked_gates_rate; profile_avg_tot_size]);
-      ea.p.ps.synthetic(name = "biLongestString"; nOfCases = 10; maxExceptionRate = 10; metrics = [fail_rate; avg_raw_dissimilarity; exception_error_rate; ttpn_blocked_outputs_rate; ttpn_blocked_gates_rate; profile_avg_tot_size]);
-      ea.p.ps.synthetic(name = "triLongestString"; nOfCases = 10; maxExceptionRate = 10; metrics = [fail_rate; avg_raw_dissimilarity; exception_error_rate; ttpn_blocked_outputs_rate; ttpn_blocked_gates_rate; profile_avg_tot_size])
+      ea.p.ps.synthetic(name = "iArraySum"; nOfCases = 10; maxExceptionRate = 10; metrics = [fail_rate]);
+      ea.p.ps.synthetic(name = "iArraySum"; nOfCases = 10; maxExceptionRate = 10; metrics = [fail_rate; exception_error_rate]);
+      ea.p.ps.synthetic(name = "dIntSum"; nOfCases = 10; maxExceptionRate = 10; metrics = [fail_rate; exception_error_rate]);
+      ea.p.ps.synthetic(name = "sLengther"; nOfCases = 10; maxExceptionRate = 10; metrics = [fail_rate; exception_error_rate]);
+      ea.p.ps.synthetic(name = "biLongestString"; nOfCases = 10; maxExceptionRate = 10; metrics = [fail_rate; exception_error_rate]);
+      ea.p.ps.synthetic(name = "triLongestString"; nOfCases = 10; maxExceptionRate = 10; metrics = [fail_rate; exception_error_rate])
     ]) *
     (solver = (nEval = $nEvals) * [
-      ea.s.ttpnGp()
+      ea.s.ttpnGp(iComparators = [ea.comparator.pAscending(of = ea.f.ttpnDeadGatesRate(of = ea.f.genotype()))])
     ]) * [
     ea.run()
   ];
@@ -20,20 +20,26 @@ ea.experiment(
       functions = [
         ea.f.size(of = ea.f.genotype(of = ea.f.best()); format = "%3d");
         ea.f.hist(of = f.each(of = ea.f.all(); mapF = ea.f.size(of = ea.f.genotype())));
-        f.mapValue(key = fail_rate; of = ea.f.quality(of = ea.f.best()); format = "%6.2f");
-        f.mapValue(key = avg_raw_dissimilarity; of = ea.f.quality(of = ea.f.best()); format = "%6.2f");
-        f.mapValue(key = exception_error_rate; of = ea.f.quality(of = ea.f.best()); format = "%6.2f");
-        f.mapValue(key = ttpn_blocked_outputs_rate; of = ea.f.quality(of = ea.f.best()); format = "%6.2f");
-        f.mapValue(key = ttpn_blocked_gates_rate; of = ea.f.quality(of = ea.f.best()); format = "%6.2f");
-        f.mapValue(key = profile_avg_tot_size; of = ea.f.quality(of = ea.f.best()); format = "%6.2f");
+        f.mapValue(key = fail_rate; of = ea.f.quality(of = ea.f.best()); format = "%5.3f");
+        f.mapValue(key = exception_error_rate; of = ea.f.quality(of = ea.f.best()); format = "%5.3f");
+        f.mapValue(key = avg_raw_dissimilarity; of = ea.f.quality(of = ea.f.best()); format = "%5.3f");
         ea.f.hist(of = f.each(of = ea.f.all(); mapF = f.mapValue(key = fail_rate; of = ea.f.quality())));
-        f.mapValue(key = fail_rate; of = ea.f.validationQuality(); format = "%6.2f")
+        f.min(of = f.each(of = ea.f.all(); mapF = ea.f.ttpnDeadGatesRate(of = ea.f.genotype())); format = "%5.2f");
+        ea.f.hist(of = f.each(of = ea.f.all(); mapF = ea.f.ttpnDeadGatesRate(of = ea.f.genotype())))
       ];
       onlyLast = false
     );
     ea.l.savePlotForExp(
       path = "../../Documenti/experiments/{name}/{startTime}/best-fail_rate";
       plot = ea.plot.multi.quality(q = f.mapValue(key = fail_rate))
+    );
+    ea.l.savePlotForRun(
+      path = "../../Documenti/experiments/{name}/{startTime}/objectives-{run.problem.name}-{run.solver.name}-{run.randomGenerator.seed:%03d}";
+      plot = ea.plot.single.biObjectivePopulation(
+        x = f.mapValue(key = fail_rate; of = ea.f.quality());
+        y = ea.f.ttpnDeadGatesRate(of = ea.f.genotype())
+      );
+      processor = ea.f.imagePlotter(secondary = true)
     )
   ]
 )

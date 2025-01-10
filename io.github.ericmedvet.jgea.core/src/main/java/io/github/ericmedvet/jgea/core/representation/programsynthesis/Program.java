@@ -107,11 +107,21 @@ public interface Program {
     List<Type> inputTypes = parameters.stream()
         .map(p -> StringParser.parse(p.getAnnotation(Typed.class).value()))
         .toList();
+    Type outputType = StringParser.parse(outTyped.value());
     return Program.from(
         NamedFunction.from(
             inputs -> {
               try {
-                return List.of(method.invoke(null, inputs.toArray()));
+                Object output = method.invoke(null, inputs.toArray());
+                if (!outputType.matches(output)) {
+                  throw new IllegalArgumentException(
+                      "Wrong output: %s expected, %s produced".formatted(
+                          outputType,
+                          output.getClass().getSimpleName()
+                      )
+                  );
+                }
+                return List.of(output);
               } catch (IllegalAccessException | InvocationTargetException e) {
                 throw new RuntimeException(new ProgramExecutionException(e));
               }
@@ -119,7 +129,7 @@ public interface Program {
             method.getName()
         ),
         inputTypes,
-        List.of(StringParser.parse(outTyped.value()))
+        List.of(outputType)
     );
   }
 

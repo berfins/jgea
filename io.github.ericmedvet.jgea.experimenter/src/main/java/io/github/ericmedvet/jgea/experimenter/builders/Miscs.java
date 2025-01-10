@@ -47,14 +47,6 @@ public class Miscs {
   }
 
   @SuppressWarnings("unused")
-  @Cacheable
-  public static <X, T extends Comparable<? super T>> Comparator<X> ascendingComparator(
-      @Param(value = "of", dNPM = "f.identity()") Function<? super X, ? extends T> beforeF
-  ) {
-    return Comparator.comparing(beforeF);
-  }
-
-  @SuppressWarnings("unused")
   public static VideoBuilder<MultivariateRealGridCellularAutomaton> caVideo(
       @Param(value = "gray", dB = true) boolean gray,
       @Param(value = "caStateRange", dNPM = "m.range(min=-1;max=1)") DoubleRange caStateRange,
@@ -110,15 +102,6 @@ public class Miscs {
   @SuppressWarnings("unused")
   public static Color colorByRgb(@Param("r") int r, @Param("g") int g, @Param("b") int b) {
     return new Color(r, g, b);
-  }
-
-  @SuppressWarnings("unused")
-  @Cacheable
-  public static <X, T extends Comparable<? super T>> Comparator<X> descendingComparator(
-      @Param(value = "of", dNPM = "f.identity()") Function<? super X, ? extends T> beforeF
-  ) {
-    //noinspection unchecked
-    return (Comparator<X>) Comparator.comparing(beforeF).reversed();
   }
 
   @SuppressWarnings("unused")

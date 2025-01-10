@@ -39,7 +39,18 @@ public final class Network implements Sized {
   private final Map<Wire.EndPoint, Type> outputConcreteTypes;
   private final Map<Integer, Map<Generic, Type>> gateConcreteTypes;
 
+  private List<Network> disjointSubnetwork;
+  private List<List<Integer>> disjointSubnetworksGateIndexes;
+  private Set<Wire.EndPoint> freeInputEndPoints;
+  private Set<Wire.EndPoint> freeOutputEndPoints;
+  private final Map<Integer, Boolean> wiredToInputsMap;
+  private final Map<Integer, Boolean> wiredToOutputsMap;
+  private final Map<Integer, Boolean> blockedMap;
+
   public Network(List<Gate> gates, Set<Wire> wires) throws NetworkStructureException, TypeException {
+    wiredToInputsMap = new HashMap<>();
+    wiredToOutputsMap = new HashMap<>();
+    blockedMap = new HashMap<>();
     this.gates = Collections.unmodifiableList(gates);
     this.wires = Collections.unmodifiableSortedSet(new TreeSet<>(wires));
     // validate wires
@@ -193,8 +204,11 @@ public final class Network implements Sized {
     );
   }
 
-  public List<Network> disjointSubnetworks() throws NetworkStructureException, TypeException {
-    List<Network> list = new ArrayList<>();
+  public synchronized List<Network> disjointSubnetworks() throws NetworkStructureException, TypeException {
+    if (disjointSubnetwork != null) {
+      return disjointSubnetwork;
+    }
+    disjointSubnetwork = new ArrayList<>();
     for (List<Integer> integers : disjointSubnetworksGateIndexes()) {
       Network network = new Network(
           integers.stream().map(gates::get).toList(),
@@ -211,21 +225,24 @@ public final class Network implements Sized {
               )
               .collect(Collectors.toCollection(LinkedHashSet::new))
       );
-      list.add(network);
+      disjointSubnetwork.add(network);
     }
-    return list;
+    return disjointSubnetwork;
   }
 
-  public List<List<Integer>> disjointSubnetworksGateIndexes() {
-    List<List<Integer>> subnetworkGis = new ArrayList<>();
+  public synchronized List<List<Integer>> disjointSubnetworksGateIndexes() {
+    if (disjointSubnetworksGateIndexes != null) {
+      return disjointSubnetworksGateIndexes;
+    }
+    disjointSubnetworksGateIndexes = new ArrayList<>();
     SequencedSet<Integer> allGis = new LinkedHashSet<>(IntStream.range(0, gates.size()).boxed().toList());
     while (!allGis.isEmpty()) {
       SequencedSet<Integer> subnetGis = new LinkedHashSet<>();
       findWiredGates(allGis.getFirst(), subnetGis);
-      subnetworkGis.add(subnetGis.stream().toList());
+      disjointSubnetworksGateIndexes.add(subnetGis.stream().toList());
       allGis.removeAll(subnetGis);
     }
-    return subnetworkGis;
+    return disjointSubnetworksGateIndexes;
   }
 
   private void findWiredGates(int gi, SequencedSet<Integer> gis) {
@@ -241,8 +258,11 @@ public final class Network implements Sized {
     }
   }
 
-  public Set<Wire.EndPoint> freeInputEndPoints() {
-    return IntStream.range(0, gates.size())
+  public synchronized Set<Wire.EndPoint> freeInputEndPoints() {
+    if (freeInputEndPoints != null) {
+      return freeInputEndPoints;
+    }
+    freeInputEndPoints = IntStream.range(0, gates.size())
         .mapToObj(
             gi -> IntStream.range(0, gates.get(gi).inputPorts().size())
                 .mapToObj(pi -> new Wire.EndPoint(gi, pi))
@@ -250,6 +270,7 @@ public final class Network implements Sized {
         .flatMap(Function.identity())
         .filter(ep -> wireTo(ep).isEmpty())
         .collect(Collectors.toCollection(LinkedHashSet::new));
+    return freeInputEndPoints;
   }
 
   public Set<Wire.EndPoint> freeInputEndPoints(int gi) {
@@ -266,8 +287,11 @@ public final class Network implements Sized {
         .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
-  public Set<Wire.EndPoint> freeOutputEndPoints() {
-    return IntStream.range(0, gates.size())
+  public synchronized Set<Wire.EndPoint> freeOutputEndPoints() {
+    if (freeOutputEndPoints != null) {
+      return freeOutputEndPoints;
+    }
+    freeOutputEndPoints = IntStream.range(0, gates.size())
         .mapToObj(
             gi -> IntStream.range(0, gates.get(gi).outputTypes().size())
                 .mapToObj(pi -> new Wire.EndPoint(gi, pi))
@@ -275,6 +299,7 @@ public final class Network implements Sized {
         .flatMap(Function.identity())
         .filter(ep -> wiresFrom(ep).isEmpty())
         .collect(Collectors.toCollection(LinkedHashSet::new));
+    return freeOutputEndPoints;
   }
 
   public List<Gate> gates() {
@@ -378,18 +403,28 @@ public final class Network implements Sized {
     return inputGates().values().stream().toList();
   }
 
-  public boolean isWiredToInput(int gi) {
-    Set<Wire.EndPoint> endPoints = new HashSet<>();
-    Set<Integer> gateIndexes = new HashSet<>();
-    wiredInputEndPoints(gi, gateIndexes, endPoints);
-    return gateIndexes.stream().anyMatch(localGi -> gates.get(localGi) instanceof Gate.InputGate);
+  public synchronized boolean isWiredToInput(int gi) {
+    return wiredToInputsMap.computeIfAbsent(
+        gi,
+        igi -> {
+          Set<Wire.EndPoint> endPoints = new HashSet<>();
+          Set<Integer> gateIndexes = new HashSet<>();
+          wiredInputEndPoints(igi, gateIndexes, endPoints);
+          return gateIndexes.stream().anyMatch(localGi -> gates.get(localGi) instanceof Gate.InputGate);
+        }
+    );
   }
 
-  public boolean isWiredToOutput(int gi) {
-    Set<Wire.EndPoint> endPoints = new HashSet<>();
-    Set<Integer> gateIndexes = new HashSet<>();
-    wiredOutputEndPoints(gi, gateIndexes, endPoints);
-    return gateIndexes.stream().anyMatch(localGi -> gates.get(localGi) instanceof Gate.OutputGate);
+  public synchronized boolean isWiredToOutput(int gi) {
+    return wiredToOutputsMap.computeIfAbsent(
+        gi,
+        igi -> {
+          Set<Wire.EndPoint> endPoints = new HashSet<>();
+          Set<Integer> gateIndexes = new HashSet<>();
+          wiredOutputEndPoints(igi, gateIndexes, endPoints);
+          return gateIndexes.stream().anyMatch(localGi -> gates.get(localGi) instanceof Gate.OutputGate);
+        }
+    );
   }
 
   public Network mergedWith(Network other) throws NetworkStructureException, TypeException {
@@ -733,24 +768,32 @@ public final class Network implements Sized {
         .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
-  public boolean isGateAutoBlocked(int gi) {
-    Gate gate = gates.get(gi);
+  public synchronized boolean isGateAutoBlocked(int igi) {
+    Boolean b = blockedMap.get(igi);
+    if (b != null) {
+      return b;
+    }
+    Gate gate = gates.get(igi);
     for (int pi = 0; pi < gate.inputPorts().size(); pi = pi + 1) {
       if (gate.inputPorts().get(pi).n() > 0) {
-        if (wireTo(gi, pi).isEmpty()) {
+        if (wireTo(igi, pi).isEmpty()) {
+          blockedMap.put(igi, true);
           return true;
         }
         Set<Wire.EndPoint> endPoints = new HashSet<>();
         Set<Integer> gateIndexes = new HashSet<>();
-        wiredInputEndPoints(new Wire.EndPoint(gi, pi), gateIndexes, endPoints);
-        if (gateIndexes.contains(gi)) {
+        wiredInputEndPoints(new Wire.EndPoint(igi, pi), gateIndexes, endPoints);
+        if (gateIndexes.contains(igi)) {
+          blockedMap.put(igi, true);
           return true;
         }
         if (gateIndexes.stream().anyMatch(this::isGateAutoBlocked)) {
+          blockedMap.put(igi, true);
           return true;
         }
       }
     }
+    blockedMap.put(igi, false);
     return false;
   }
 
