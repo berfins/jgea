@@ -29,6 +29,7 @@ import io.github.ericmedvet.jgea.core.solver.AbstractPopulationBasedIterativeSol
 import io.github.ericmedvet.jgea.core.solver.Individual;
 import io.github.ericmedvet.jgea.core.solver.SolverException;
 import io.github.ericmedvet.jgea.core.util.Misc;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -55,11 +56,12 @@ public class SpeciatedEvolver<G, S, Q> extends AbstractPopulationBasedIterativeS
       Map<GeneticOperator<G>, Double> operators,
       int populationSize,
       boolean remap,
+      List<PartialComparator<? super Individual<G,S,Q>>> additionalIndividualComparators,
       int minSpeciesSizeForElitism,
       Speciator<Individual<G, S, Q>> speciator,
       double rankBase
   ) {
-    super(solutionMapper, genotypeFactory, stopCondition, remap);
+    super(solutionMapper, genotypeFactory, stopCondition, remap, additionalIndividualComparators);
     this.operators = operators;
     this.populationSize = populationSize;
     this.minSpeciesSizeForElitism = minSpeciesSizeForElitism;
@@ -122,7 +124,7 @@ public class SpeciatedEvolver<G, S, Q> extends AbstractPopulationBasedIterativeS
     );
     // put elites
     Collection<Individual<G, S, Q>> elites = new ArrayList<>();
-    PartialComparator<? super Individual<?, ?, Q>> partialComparator = partialComparator(state.problem());
+    PartialComparator<? super Individual<G, S, Q>> partialComparator = partialComparator(state.problem());
     individuals.stream()
         .reduce(
             (i1, i2) -> partialComparator

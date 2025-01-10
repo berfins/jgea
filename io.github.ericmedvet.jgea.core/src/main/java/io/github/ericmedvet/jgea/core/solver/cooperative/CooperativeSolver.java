@@ -28,6 +28,7 @@ import io.github.ericmedvet.jgea.core.solver.AbstractPopulationBasedIterativeSol
 import io.github.ericmedvet.jgea.core.solver.Individual;
 import io.github.ericmedvet.jgea.core.solver.POCPopulationState;
 import io.github.ericmedvet.jgea.core.solver.SolverException;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -51,11 +52,6 @@ public class CooperativeSolver<T1 extends POCPopulationState<Individual<G1, S1, 
   private final MultiSelector<Individual<G2, S2, Q>> extractor2;
   private final Function<Collection<Q>, Q> qualityAggregator;
 
-  @FunctionalInterface
-  public interface MultiSelector<K> {
-    Collection<K> select(PartiallyOrderedCollection<K> ks, RandomGenerator random);
-  }
-
   public CooperativeSolver(
       Function<? super Void, ? extends S> solutionMapper,
       Factory<? extends Void> genotypeFactory,
@@ -66,15 +62,21 @@ public class CooperativeSolver<T1 extends POCPopulationState<Individual<G1, S1, 
       BiFunction<S1, S2, S> solutionAggregator,
       MultiSelector<Individual<G1, S1, Q>> extractor1,
       MultiSelector<Individual<G2, S2, Q>> extractor2,
-      Function<Collection<Q>, Q> qualityAggregator
+      Function<Collection<Q>, Q> qualityAggregator,
+      List<PartialComparator<? super Individual<Void, S, Q>>> additionalIndividualComparators
   ) {
-    super(solutionMapper, genotypeFactory, stopCondition, remap);
+    super(solutionMapper, genotypeFactory, stopCondition, remap, additionalIndividualComparators);
     this.solver1 = solver1;
     this.solver2 = solver2;
     this.solutionAggregator = solutionAggregator;
     this.extractor1 = extractor1;
     this.extractor2 = extractor2;
     this.qualityAggregator = qualityAggregator;
+  }
+
+  @FunctionalInterface
+  public interface MultiSelector<K> {
+    Collection<K> select(PartiallyOrderedCollection<K> ks, RandomGenerator random);
   }
 
   private static <S, Q> QualityBasedProblem<S, Q> problem(

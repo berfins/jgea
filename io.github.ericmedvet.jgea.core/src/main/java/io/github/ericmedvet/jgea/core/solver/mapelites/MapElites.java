@@ -22,12 +22,14 @@ package io.github.ericmedvet.jgea.core.solver.mapelites;
 
 import io.github.ericmedvet.jgea.core.Factory;
 import io.github.ericmedvet.jgea.core.operator.Mutation;
+import io.github.ericmedvet.jgea.core.order.PartialComparator;
 import io.github.ericmedvet.jgea.core.problem.QualityBasedProblem;
 import io.github.ericmedvet.jgea.core.solver.AbstractPopulationBasedIterativeSolver;
 import io.github.ericmedvet.jgea.core.solver.Individual;
 import io.github.ericmedvet.jgea.core.solver.SolverException;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -49,9 +51,10 @@ public class MapElites<G, S, Q> extends AbstractPopulationBasedIterativeSolver<M
       Predicate<? super MEPopulationState<G, S, Q, QualityBasedProblem<S, Q>>> stopCondition,
       Mutation<G> mutation,
       int populationSize,
-      List<Descriptor<G, S, Q>> descriptors
+      List<Descriptor<G, S, Q>> descriptors,
+      List<PartialComparator<? super MEIndividual<G,S,Q>>> additionalIndividualComparators
   ) {
-    super(solutionMapper, genotypeFactory, stopCondition, false);
+    super(solutionMapper, genotypeFactory, stopCondition, false, additionalIndividualComparators);
     this.mutation = mutation;
     this.populationSize = populationSize;
     this.descriptors = descriptors;

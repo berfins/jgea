@@ -33,12 +33,11 @@ import io.github.ericmedvet.jsdynsym.control.SimulationOutcomeDrawer;
 import io.github.ericmedvet.jviz.core.drawer.Drawer;
 import io.github.ericmedvet.jviz.core.drawer.ImageBuilder;
 import io.github.ericmedvet.jviz.core.drawer.VideoBuilder;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
@@ -46,6 +45,14 @@ import java.util.stream.IntStream;
 public class Miscs {
 
   private Miscs() {
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  public static <X,T extends Comparable<? super T>> Comparator<X> ascendingComparator(
+      @Param("of") Function<? super X, ? extends T> beforeF
+  ) {
+    return Comparator.comparing(beforeF);
   }
 
   @SuppressWarnings("unused")
@@ -104,6 +111,15 @@ public class Miscs {
   @SuppressWarnings("unused")
   public static Color colorByRgb(@Param("r") int r, @Param("g") int g, @Param("b") int b) {
     return new Color(r, g, b);
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  public static <X,T extends Comparable<? super T>> Comparator<X> descendingComparator(
+      @Param("of") Function<? super X, ? extends T> beforeF
+  ) {
+    //noinspection unchecked
+    return (Comparator<X>) Comparator.comparing(beforeF).reversed();
   }
 
   @SuppressWarnings("unused")

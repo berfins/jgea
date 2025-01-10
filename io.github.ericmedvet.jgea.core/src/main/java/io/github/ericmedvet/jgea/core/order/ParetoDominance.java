@@ -73,7 +73,7 @@ public class ParetoDominance<C> implements PartialComparator<List<C>> {
   public static <C> PartialComparatorOutcome compare(
       C c1,
       C c2,
-      List<PartialComparator<C>> comparators
+      List<PartialComparator<? super C>> comparators
   ) {
     Map<PartialComparatorOutcome, Long> counts = comparators.stream()
         .map(pc -> pc.compare(c1, c2))

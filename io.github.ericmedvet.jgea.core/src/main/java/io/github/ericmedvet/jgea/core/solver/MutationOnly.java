@@ -22,8 +22,10 @@ package io.github.ericmedvet.jgea.core.solver;
 
 import io.github.ericmedvet.jgea.core.Factory;
 import io.github.ericmedvet.jgea.core.operator.Mutation;
+import io.github.ericmedvet.jgea.core.order.PartialComparator;
 import io.github.ericmedvet.jgea.core.problem.QualityBasedProblem;
 import io.github.ericmedvet.jgea.core.selector.Selector;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +44,8 @@ public class MutationOnly<G, S, Q> extends StandardEvolver<G, S, Q> {
       int populationSize,
       Predicate<? super POCPopulationState<Individual<G, S, Q>, G, S, Q, QualityBasedProblem<S, Q>>> stopCondition,
       Selector<? super Individual<? super G, ? super S, ? super Q>> unsurvivalSelector,
-      Mutation<G> mutation
+      Mutation<G> mutation,
+      List<PartialComparator<? super Individual<G,S,Q>>> additionalIndividualComparators
   ) {
     super(
         solutionMapper,
@@ -55,7 +58,8 @@ public class MutationOnly<G, S, Q> extends StandardEvolver<G, S, Q> {
         0,
         true,
         0,
-        false
+        false,
+        additionalIndividualComparators
     );
     this.mutation = mutation;
   }

@@ -21,10 +21,13 @@ package io.github.ericmedvet.jgea.core.solver;
 
 import io.github.ericmedvet.jgea.core.Factory;
 import io.github.ericmedvet.jgea.core.operator.GeneticOperator;
+import io.github.ericmedvet.jgea.core.order.PartialComparator;
 import io.github.ericmedvet.jgea.core.order.PartiallyOrderedCollection;
 import io.github.ericmedvet.jgea.core.problem.QualityBasedProblem;
 import io.github.ericmedvet.jgea.core.selector.Selector;
+
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -42,7 +45,8 @@ public class StandardEvolver<G, S, Q> extends AbstractStandardEvolver<POCPopulat
       int offspringSize,
       boolean overlapping,
       int maxUniquenessAttempts,
-      boolean remap
+      boolean remap,
+      List<PartialComparator<? super Individual<G,S,Q>>> additionalIndividualComparators
   ) {
     super(
         solutionMapper,
@@ -55,7 +59,8 @@ public class StandardEvolver<G, S, Q> extends AbstractStandardEvolver<POCPopulat
         offspringSize,
         overlapping,
         maxUniquenessAttempts,
-        remap
+        remap,
+        additionalIndividualComparators
     );
   }
 

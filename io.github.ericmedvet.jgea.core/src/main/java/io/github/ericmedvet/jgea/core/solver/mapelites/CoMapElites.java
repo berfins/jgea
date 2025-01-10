@@ -32,6 +32,7 @@ import io.github.ericmedvet.jgea.core.solver.mapelites.strategy.CoMEStrategy;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
 import io.github.ericmedvet.jnb.datastructure.Pair;
+
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -44,7 +45,9 @@ import java.util.random.RandomGenerator;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-public class CoMapElites<G1, G2, S1, S2, S, Q> extends AbstractPopulationBasedIterativeSolver<CoMEPopulationState<G1, G2, S1, S2, S, Q, QualityBasedProblem<S, Q>>, QualityBasedProblem<S, Q>, CoMEIndividual<G1, G2, S1, S2, S, Q>, Pair<G1, G2>, S, Q> {
+public class CoMapElites<G1, G2, S1, S2, S, Q> extends AbstractPopulationBasedIterativeSolver<CoMEPopulationState<G1,
+    G2, S1, S2, S, Q, QualityBasedProblem<S, Q>>, QualityBasedProblem<S, Q>, CoMEIndividual<G1, G2, S1, S2, S, Q>,
+    Pair<G1, G2>, S, Q> {
 
   private final Factory<? extends G1> genotypeFactory1;
   private final Factory<? extends G2> genotypeFactory2;
@@ -76,9 +79,10 @@ public class CoMapElites<G1, G2, S1, S2, S, Q> extends AbstractPopulationBasedIt
       int nOfOffspring,
       Supplier<CoMEStrategy> strategySupplier,
       double neighborRadius,
-      int maxNOfNeighbors
+      int maxNOfNeighbors,
+      List<PartialComparator<? super CoMEIndividual<G1, G2, S1, S2, S, Q>>> additionalIndividualComparators
   ) {
-    super(null, null, stopCondition, false);
+    super(null, null, stopCondition, false, additionalIndividualComparators);
     this.genotypeFactory1 = genotypeFactory1;
     this.genotypeFactory2 = genotypeFactory2;
     this.solutionMapper1 = solutionMapper1;
@@ -168,7 +172,8 @@ public class CoMapElites<G1, G2, S1, S2, S, Q> extends AbstractPopulationBasedIt
         .toList();
   }
 
-  private static <GT, GO, ST, SO, S, Q> Callable<Pair<CoMEPartialIndividual<GT, ST, GT, GO, ST, SO, S, Q>, List<CoMEIndividual<GT, GO, ST, SO, S, Q>>>> reproduceCallable(
+  private static <GT, GO, ST, SO, S, Q> Callable<Pair<CoMEPartialIndividual<GT, ST, GT, GO, ST, SO, S, Q>,
+      List<CoMEIndividual<GT, GO, ST, SO, S, Q>>>> reproduceCallable(
       Archive<? extends MEIndividual<GT, ST, Q>> thisArchive,
       Archive<? extends MEIndividual<GO, SO, Q>> otherArchive,
       Mutation<GT> mutation,
@@ -226,9 +231,9 @@ public class CoMapElites<G1, G2, S1, S2, S, Q> extends AbstractPopulationBasedIt
           })
           .toList();
       CoMEIndividual<GT, GO, ST, SO, S, Q> bestCompleteIndividual = PartiallyOrderedCollection.from(
-          localCompositeIndividuals,
-          problem.qualityComparator().comparing(CoMEIndividual::quality)
-      )
+              localCompositeIndividuals,
+              problem.qualityComparator().comparing(CoMEIndividual::quality)
+          )
           .firsts()
           .stream()
           .findAny()
@@ -301,8 +306,11 @@ public class CoMapElites<G1, G2, S1, S2, S, Q> extends AbstractPopulationBasedIt
     // update strategies
     updateStrategies(newState, coMEIndividuals);
     // update archive
-    PartialComparator<? super CoMEPartialIndividual<?, ?, G1, G2, S1, S2, S, Q>> partialComparator = partialComparator(
-        problem
+    PartialComparator<? super CoMEIndividual<G1, G2, S1, S2, S, Q>> partialComparatorInner = partialComparator(problem);
+    @SuppressWarnings("unchecked") PartialComparator<? super CoMEPartialIndividual<?, ?, G1, G2, S1, S2, S, Q>> partialComparator =
+        (pi1, pi2) -> partialComparatorInner.compare(
+            (CoMEIndividual<G1, G2, S1, S2, S, Q>)pi1,
+            (CoMEIndividual<G1, G2, S1, S2, S, Q>)pi2
     );
     Archive<CoMEPartialIndividual<G1, S1, G1, G2, S1, S2, S, Q>> archive1 = newState.archive1()
         .updated(
@@ -393,9 +401,12 @@ public class CoMapElites<G1, G2, S1, S2, S, Q> extends AbstractPopulationBasedIt
     // update strategies
     updateStrategies(state, offspring);
     // update archives
-    PartialComparator<? super CoMEPartialIndividual<?, ?, G1, G2, S1, S2, S, Q>> partialComparator = partialComparator(
-        state.problem()
-    );
+    PartialComparator<? super CoMEIndividual<G1, G2, S1, S2, S, Q>> partialComparatorInner = partialComparator(state.problem());
+    @SuppressWarnings("unchecked") PartialComparator<? super CoMEPartialIndividual<?, ?, G1, G2, S1, S2, S, Q>> partialComparator =
+        (pi1, pi2) -> partialComparatorInner.compare(
+            (CoMEIndividual<G1, G2, S1, S2, S, Q>)pi1,
+            (CoMEIndividual<G1, G2, S1, S2, S, Q>)pi2
+        );
     Archive<CoMEPartialIndividual<G1, S1, G1, G2, S1, S2, S, Q>> archive1 = state.archive1()
         .updated(
             offspring.stream().map(CoMEPartialIndividual::from1).toList(),

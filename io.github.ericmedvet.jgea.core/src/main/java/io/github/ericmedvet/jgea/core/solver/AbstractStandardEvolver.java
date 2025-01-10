@@ -22,10 +22,12 @@ package io.github.ericmedvet.jgea.core.solver;
 import io.github.ericmedvet.jgea.core.Factory;
 import io.github.ericmedvet.jgea.core.operator.GeneticOperator;
 import io.github.ericmedvet.jgea.core.order.DAGPartiallyOrderedCollection;
+import io.github.ericmedvet.jgea.core.order.PartialComparator;
 import io.github.ericmedvet.jgea.core.order.PartiallyOrderedCollection;
 import io.github.ericmedvet.jgea.core.problem.QualityBasedProblem;
 import io.github.ericmedvet.jgea.core.selector.Selector;
 import io.github.ericmedvet.jgea.core.util.Misc;
+
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
@@ -56,9 +58,10 @@ public abstract class AbstractStandardEvolver<T extends POCPopulationState<I, G,
       int offspringSize,
       boolean overlapping,
       int maxUniquenessAttempts,
-      boolean remap
+      boolean remap,
+      List<PartialComparator<? super I>> additionalIndividualComparators
   ) {
-    super(solutionMapper, genotypeFactory, stopCondition, remap);
+    super(solutionMapper, genotypeFactory, stopCondition, remap, additionalIndividualComparators);
     this.operators = operators;
     this.parentSelector = parentSelector;
     this.unsurvivalSelector = unsurvivalSelector;

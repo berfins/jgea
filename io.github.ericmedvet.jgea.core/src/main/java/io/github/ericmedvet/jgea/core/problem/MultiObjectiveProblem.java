@@ -21,6 +21,7 @@ package io.github.ericmedvet.jgea.core.problem;
 
 import io.github.ericmedvet.jgea.core.order.ParetoDominance;
 import io.github.ericmedvet.jgea.core.order.PartialComparator;
+
 import java.util.Comparator;
 import java.util.SequencedMap;
 import java.util.function.Function;
@@ -33,16 +34,8 @@ public interface MultiObjectiveProblem<S, Q, O> extends QualityBasedProblem<S, Q
 
   SequencedMap<String, Objective<Q, O>> objectives();
 
-  default TotalOrderQualityBasedProblem<S, Q> toTotalOrderQualityBasedProblem(String objective) {
-    Comparator<Q> qComparator = Comparator.comparing(
-        objectives().get(objective).function(),
-        objectives().get(objective).comparator()
-    );
-    return TotalOrderQualityBasedProblem.from(this, qComparator);
-  }
-
-  default TotalOrderQualityBasedProblem<S, Q> toTotalOrderQualityBasedProblem() {
-    return toTotalOrderQualityBasedProblem(objectives().firstEntry().getKey());
+  private Comparator<O> apply(Objective<Q, O> obj) {
+    return obj.comparator;
   }
 
   @Override
@@ -59,5 +52,17 @@ public interface MultiObjectiveProblem<S, Q, O> extends QualityBasedProblem<S, Q
             .map(Objective::comparator)
             .toList()
     );
+  }
+
+  default TotalOrderQualityBasedProblem<S, Q> toTotalOrderQualityBasedProblem() {
+    return toTotalOrderQualityBasedProblem(objectives().firstEntry().getKey());
+  }
+
+  default TotalOrderQualityBasedProblem<S, Q> toTotalOrderQualityBasedProblem(String objective) {
+    Comparator<Q> qComparator = Comparator.comparing(
+        objectives().get(objective).function(),
+        objectives().get(objective).comparator()
+    );
+    return TotalOrderQualityBasedProblem.from(this, qComparator);
   }
 }

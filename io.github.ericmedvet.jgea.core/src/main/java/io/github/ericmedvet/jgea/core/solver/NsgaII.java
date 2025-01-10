@@ -21,9 +21,11 @@ package io.github.ericmedvet.jgea.core.solver;
 
 import io.github.ericmedvet.jgea.core.Factory;
 import io.github.ericmedvet.jgea.core.operator.GeneticOperator;
+import io.github.ericmedvet.jgea.core.order.PartialComparator;
 import io.github.ericmedvet.jgea.core.order.PartiallyOrderedCollection;
 import io.github.ericmedvet.jgea.core.problem.MultiObjectiveProblem;
 import io.github.ericmedvet.jgea.core.util.Misc;
+
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
@@ -47,9 +49,10 @@ public class NsgaII<G, S, Q> extends AbstractPopulationBasedIterativeSolver<POCP
       Predicate<? super POCPopulationState<Individual<G, S, Q>, G, S, Q, MultiObjectiveProblem<S, Q, Double>>> stopCondition,
       Map<GeneticOperator<G>, Double> operators,
       int maxUniquenessAttempts,
-      boolean remap
+      boolean remap,
+      List<PartialComparator<? super Individual<G,S,Q>>> additionalIndividualComparators
   ) {
-    super(solutionMapper, genotypeFactory, stopCondition, remap);
+    super(solutionMapper, genotypeFactory, stopCondition, remap, additionalIndividualComparators);
     this.operators = operators;
     this.populationSize = populationSize;
     this.maxUniquenessAttempts = maxUniquenessAttempts;
@@ -83,9 +86,43 @@ public class NsgaII<G, S, Q> extends AbstractPopulationBasedIterativeSolver<POCP
     }
   }
 
-  private static <G, S, Q> Comparator<RankedIndividual<G, S, Q>> rankedComparator() {
-    return Comparator.comparingInt((RankedIndividual<G, S, Q> i) -> i.rank)
-        .thenComparing((i1, i2) -> Double.compare(i2.crowdingDistance, i1.crowdingDistance));
+  private static <G, S, Q> Collection<RankedIndividual<G, S, Q>> decorate(
+      Collection<? extends Individual<G, S, Q>> individuals,
+      MultiObjectiveProblem<S, Q, Double> problem,
+      PartialComparator<? super Individual<G,S,Q>> partialComparator
+  ) {
+    List<? extends Collection<? extends Individual<G, S, Q>>> fronts = PartiallyOrderedCollection
+        .from(
+            individuals,
+            partialComparator
+        )
+        .fronts();
+    SequencedMap<String, MultiObjectiveProblem.Objective<Q, Double>> objectives = problem.objectives();
+    return IntStream.range(0, fronts.size())
+        .mapToObj(fi -> {
+          List<? extends Individual<G, S, Q>> is = fronts.get(fi)
+              .stream()
+              .toList();
+          List<Double> distances = distances(is, objectives);
+          return IntStream.range(0, is.size())
+              .mapToObj(ii -> {
+                Individual<G, S, Q> individual = is.get(ii);
+                return new RankedIndividual<>(
+                    individual.id(),
+                    individual.genotype(),
+                    individual.solution(),
+                    individual.quality(),
+                    individual.qualityMappingIteration(),
+                    individual.genotypeBirthIteration(),
+                    fi,
+                    distances.get(ii),
+                    individual.parentIds()
+                );
+              })
+              .toList();
+        })
+        .flatMap(List::stream)
+        .toList();
   }
 
   private static <G, S, Q> List<Double> distances(
@@ -118,42 +155,9 @@ public class NsgaII<G, S, Q> extends AbstractPopulationBasedIterativeSolver<POCP
     return Arrays.stream(dists).boxed().toList();
   }
 
-  private static <G, S, Q> Collection<RankedIndividual<G, S, Q>> decorate(
-      Collection<? extends Individual<G, S, Q>> individuals,
-      MultiObjectiveProblem<S, Q, Double> problem
-  ) {
-    List<? extends Collection<? extends Individual<G, S, Q>>> fronts = PartiallyOrderedCollection
-        .from(
-            individuals,
-            partialComparator(problem)
-        )
-        .fronts();
-    SequencedMap<String, MultiObjectiveProblem.Objective<Q, Double>> objectives = problem.objectives();
-    return IntStream.range(0, fronts.size())
-        .mapToObj(fi -> {
-          List<? extends Individual<G, S, Q>> is = fronts.get(fi)
-              .stream()
-              .toList();
-          List<Double> distances = distances(is, objectives);
-          return IntStream.range(0, is.size())
-              .mapToObj(ii -> {
-                Individual<G, S, Q> individual = is.get(ii);
-                return new RankedIndividual<>(
-                    individual.id(),
-                    individual.genotype(),
-                    individual.solution(),
-                    individual.quality(),
-                    individual.qualityMappingIteration(),
-                    individual.genotypeBirthIteration(),
-                    fi,
-                    distances.get(ii),
-                    individual.parentIds()
-                );
-              })
-              .toList();
-        })
-        .flatMap(List::stream)
-        .toList();
+  private static <G, S, Q> Comparator<RankedIndividual<G, S, Q>> rankedComparator() {
+    return Comparator.comparingInt((RankedIndividual<G, S, Q> i) -> i.rank)
+        .thenComparing((i1, i2) -> Double.compare(i2.crowdingDistance, i1.crowdingDistance));
   }
 
   @Override
@@ -243,7 +247,8 @@ public class NsgaII<G, S, Q> extends AbstractPopulationBasedIterativeSolver<POCP
         random,
         executor
     );
-    List<RankedIndividual<G, S, Q>> rankedIndividuals = decorate(newPopulation, state.problem()).stream()
+    PartialComparator<? super Individual<G, S, Q>> partialComparator = partialComparator(state.problem());
+    List<RankedIndividual<G, S, Q>> rankedIndividuals = decorate(newPopulation, state.problem(), partialComparator).stream()
         .sorted(rankedComparator())
         .limit(populationSize)
         .toList();
@@ -251,7 +256,7 @@ public class NsgaII<G, S, Q> extends AbstractPopulationBasedIterativeSolver<POCP
     return state.updatedWithIteration(
         offspringChildGenotypes.size(),
         offspringChildGenotypes.size() + (remap ? populationSize : 0),
-        PartiallyOrderedCollection.from(newIndividuals, partialComparator(state.problem()))
+        PartiallyOrderedCollection.from(newIndividuals, partialComparator)
     );
   }
 }

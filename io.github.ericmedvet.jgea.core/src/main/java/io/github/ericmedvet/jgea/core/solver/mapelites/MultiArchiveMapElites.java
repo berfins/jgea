@@ -28,6 +28,7 @@ import io.github.ericmedvet.jgea.core.solver.AbstractPopulationBasedIterativeSol
 import io.github.ericmedvet.jgea.core.solver.Individual;
 import io.github.ericmedvet.jgea.core.solver.SolverException;
 import io.github.ericmedvet.jgea.core.util.Misc;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -49,9 +50,10 @@ public class MultiArchiveMapElites<G, S, Q> extends AbstractPopulationBasedItera
       Predicate<? super MAMEPopulationState<G, S, Q, QualityBasedProblem<S, Q>>> stopCondition,
       Mutation<G> mutation,
       int populationSize,
-      List<List<MapElites.Descriptor<G, S, Q>>> listsOfDescriptors
+      List<List<MapElites.Descriptor<G, S, Q>>> listsOfDescriptors,
+      List<PartialComparator<? super Individual<G,S,Q>>> additionalIndividualComparators
   ) {
-    super(solutionMapper, genotypeFactory, stopCondition, false);
+    super(solutionMapper, genotypeFactory, stopCondition, false, additionalIndividualComparators);
     this.populationSize = populationSize;
     this.mutation = mutation;
     this.listsOfDescriptors = listsOfDescriptors;

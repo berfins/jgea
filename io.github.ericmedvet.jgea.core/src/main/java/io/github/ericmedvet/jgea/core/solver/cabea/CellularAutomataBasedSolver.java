@@ -32,6 +32,7 @@ import io.github.ericmedvet.jgea.core.solver.SolverException;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import io.github.ericmedvet.jnb.datastructure.ArrayGrid;
 import io.github.ericmedvet.jnb.datastructure.Grid;
+
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -57,9 +58,10 @@ public class CellularAutomataBasedSolver<G, S, Q> extends AbstractPopulationBase
       Neighborhood neighborhood,
       double keepProbability,
       Map<GeneticOperator<G>, Double> operators,
-      Selector<? super Individual<G, S, Q>> parentSelector
+      Selector<? super Individual<G, S, Q>> parentSelector,
+      List<PartialComparator<? super Individual<G, S, Q>>> additionalIndividualComparators
   ) {
-    super(solutionMapper, genotypeFactory, stopCondition, false);
+    super(solutionMapper, genotypeFactory, stopCondition, false, additionalIndividualComparators);
     this.substrate = substrate;
     this.neighborhood = neighborhood;
     this.keepProbability = keepProbability;
@@ -130,7 +132,7 @@ public class CellularAutomataBasedSolver<G, S, Q> extends AbstractPopulationBase
       GridPopulationState<G, S, Q, QualityBasedProblem<S, Q>> state
   ) throws SolverException {
     AtomicLong counter = new AtomicLong(state.nOfBirths());
-    PartialComparator<? super Individual<?, ?, Q>> partialComparator = partialComparator(state.problem());
+    PartialComparator<? super Individual<G, S, Q>> partialComparator = partialComparator(state.problem());
     List<Callable<CellProcessOutcome<Individual<G, S, Q>>>> callables = state.gridPopulation()
         .entries()
         .stream()
@@ -152,7 +154,7 @@ public class CellularAutomataBasedSolver<G, S, Q> extends AbstractPopulationBase
 
   private Callable<CellProcessOutcome<Individual<G, S, Q>>> processCell(
       Grid.Entry<Individual<G, S, Q>> entry,
-      PartialComparator<? super Individual<?, ?, Q>> partialComparator,
+      PartialComparator<? super Individual<G, S, Q>> partialComparator,
       GridPopulationState<G, S, Q, QualityBasedProblem<S, Q>> state,
       RandomGenerator random,
       AtomicLong counter

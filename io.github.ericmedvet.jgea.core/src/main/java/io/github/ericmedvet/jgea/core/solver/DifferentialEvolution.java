@@ -22,6 +22,7 @@ package io.github.ericmedvet.jgea.core.solver;
 import io.github.ericmedvet.jgea.core.Factory;
 import io.github.ericmedvet.jgea.core.problem.TotalOrderQualityBasedProblem;
 import io.github.ericmedvet.jgea.core.selector.Last;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -56,7 +57,8 @@ public class DifferentialEvolution<S, Q> extends AbstractStandardEvolver<ListPop
         populationSize,
         true,
         0,
-        remap
+        remap,
+        List.of()
     );
     this.differentialWeight = differentialWeight;
     this.crossoverProb = crossoverProb;

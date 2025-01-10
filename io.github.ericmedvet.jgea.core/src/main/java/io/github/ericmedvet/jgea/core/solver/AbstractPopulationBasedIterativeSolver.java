@@ -21,10 +21,12 @@
 package io.github.ericmedvet.jgea.core.solver;
 
 import io.github.ericmedvet.jgea.core.Factory;
+import io.github.ericmedvet.jgea.core.order.ParetoDominance;
 import io.github.ericmedvet.jgea.core.order.PartialComparator;
 import io.github.ericmedvet.jgea.core.problem.QualityBasedProblem;
 import io.github.ericmedvet.jgea.core.problem.TotalOrderQualityBasedProblem;
 import io.github.ericmedvet.jnb.datastructure.TriFunction;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -38,28 +40,33 @@ import java.util.function.Predicate;
 import java.util.random.RandomGenerator;
 import java.util.stream.Stream;
 
-public abstract class AbstractPopulationBasedIterativeSolver<T extends POCPopulationState<I, G, S, Q, P>, P extends QualityBasedProblem<S, Q>, I extends Individual<G, S, Q>, G, S, Q> implements IterativeSolver<T, P, S> {
+public abstract class AbstractPopulationBasedIterativeSolver<T extends POCPopulationState<I, G, S, Q, P>,
+    P extends QualityBasedProblem<S, Q>, I extends Individual<G, S, Q>, G, S, Q> implements IterativeSolver<T, P, S> {
 
   protected final Function<? super G, ? extends S> solutionMapper;
   protected final Factory<? extends G> genotypeFactory;
   protected final boolean remap;
+  protected final List<PartialComparator<? super I>> additionalIndividualComparators;
   private final Predicate<? super T> stopCondition;
 
   public AbstractPopulationBasedIterativeSolver(
       Function<? super G, ? extends S> solutionMapper,
       Factory<? extends G> genotypeFactory,
       Predicate<? super T> stopCondition,
-      boolean remap
+      boolean remap,
+      List<PartialComparator<? super I>> additionalIndividualComparators
   ) {
     this.solutionMapper = solutionMapper;
     this.genotypeFactory = genotypeFactory;
     this.stopCondition = stopCondition;
     this.remap = remap;
+    this.additionalIndividualComparators = additionalIndividualComparators;
   }
 
   public record ChildGenotype<G>(long id, G genotype, Collection<Long> parentIds) {}
 
-  protected static <P extends TotalOrderQualityBasedProblem<?, Q>, I extends Individual<?, ?, Q>, Q> Comparator<? super I> comparator(
+  protected static <P extends TotalOrderQualityBasedProblem<?, Q>, I extends Individual<?, ?, Q>, Q> Comparator<?
+      super I> comparator(
       P problem
   ) {
     return (i1, i2) -> problem.totalOrderComparator().compare(i1.quality(), i2.quality());
@@ -88,7 +95,8 @@ public abstract class AbstractPopulationBasedIterativeSolver<T extends POCPopula
     }
   }
 
-  protected static <T extends POCPopulationState<I, G, S, Q, P>, P extends QualityBasedProblem<S, Q>, I extends Individual<G, S, Q>, G, S, Q> Collection<Future<I>> map(
+  protected static <T extends POCPopulationState<I, G, S, Q, P>, P extends QualityBasedProblem<S, Q>,
+      I extends Individual<G, S, Q>, G, S, Q> Collection<Future<I>> map(
       Collection<ChildGenotype<G>> childGenotypes,
       TriFunction<ChildGenotype<G>, T, RandomGenerator, I> mapper,
       T state,
@@ -106,38 +114,8 @@ public abstract class AbstractPopulationBasedIterativeSolver<T extends POCPopula
     }
   }
 
-  protected Collection<I> mapAll(
-      Collection<ChildGenotype<G>> childGenotypes,
-      TriFunction<ChildGenotype<G>, T, RandomGenerator, I> mapper,
-      Collection<I> individuals,
-      TriFunction<I, T, RandomGenerator, I> remapper,
-      T state,
-      RandomGenerator random,
-      ExecutorService executor
-  ) throws SolverException {
-    if (!remap) {
-      return Stream.concat(
-          getAll(map(childGenotypes, mapper, state, random, executor)).stream(),
-          individuals.stream()
-      )
-          .toList();
-    }
-    return getAll(
-        Stream.concat(
-            map(childGenotypes, mapper, state, random, executor).stream(),
-            remap(individuals, remapper, state, random, executor).stream()
-        )
-            .toList()
-    );
-  }
-
-  protected static <P extends QualityBasedProblem<?, Q>, I extends Individual<?, ?, Q>, Q> PartialComparator<? super I> partialComparator(
-      P problem
-  ) {
-    return (i1, i2) -> problem.qualityComparator().compare(i1.quality(), i2.quality());
-  }
-
-  protected static <T extends POCPopulationState<I, G, S, Q, P>, P extends QualityBasedProblem<S, Q>, I extends Individual<G, S, Q>, G, S, Q> Collection<Future<I>> remap(
+  protected static <T extends POCPopulationState<I, G, S, Q, P>, P extends QualityBasedProblem<S, Q>,
+      I extends Individual<G, S, Q>, G, S, Q> Collection<Future<I>> remap(
       Collection<I> individuals,
       TriFunction<I, T, RandomGenerator, I> mapper,
       T state,
@@ -163,6 +141,45 @@ public abstract class AbstractPopulationBasedIterativeSolver<T extends POCPopula
   @Override
   public boolean terminate(RandomGenerator random, ExecutorService executor, T state) {
     return stopCondition.test(state);
+  }
+
+  protected Collection<I> mapAll(
+      Collection<ChildGenotype<G>> childGenotypes,
+      TriFunction<ChildGenotype<G>, T, RandomGenerator, I> mapper,
+      Collection<I> individuals,
+      TriFunction<I, T, RandomGenerator, I> remapper,
+      T state,
+      RandomGenerator random,
+      ExecutorService executor
+  ) throws SolverException {
+    if (!remap) {
+      return Stream.concat(
+              getAll(map(childGenotypes, mapper, state, random, executor)).stream(),
+              individuals.stream()
+          )
+          .toList();
+    }
+    return getAll(
+        Stream.concat(
+                map(childGenotypes, mapper, state, random, executor).stream(),
+                remap(individuals, remapper, state, random, executor).stream()
+            )
+            .toList()
+    );
+  }
+
+  protected PartialComparator<? super I> partialComparator(
+      P problem
+  ) {
+    PartialComparator<? super I> basePC = (i1, i2) -> problem.qualityComparator().compare(i1.quality(), i2.quality());
+    if (additionalIndividualComparators.isEmpty()) {
+      return basePC;
+    }
+    Stream<PartialComparator<? super I>> concat = Stream.concat(
+        Stream.of(basePC),
+        additionalIndividualComparators.stream()
+    );
+    return (i1, i2) -> ParetoDominance.compare(i1, i2, concat.toList());
   }
 
   protected Predicate<State<?, ?>> stopCondition() {
