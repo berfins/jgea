@@ -17,7 +17,7 @@
  * limitations under the License.
  * =========================LICENSE_END==================================
  */
-package io.github.ericmedvet.jgea.problem.programsynthesis;
+package io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn;
 
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Base;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Sequence;

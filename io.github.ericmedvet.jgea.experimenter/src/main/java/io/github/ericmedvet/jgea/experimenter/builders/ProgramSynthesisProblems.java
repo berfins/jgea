@@ -21,8 +21,8 @@ package io.github.ericmedvet.jgea.experimenter.builders;
 
 import io.github.ericmedvet.jgea.core.problem.SimpleMOProblem;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.Program;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.DataFactory;
 import io.github.ericmedvet.jgea.core.util.IntRange;
-import io.github.ericmedvet.jgea.problem.programsynthesis.DataFactory;
 import io.github.ericmedvet.jgea.problem.programsynthesis.Problems;
 import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisProblem;
 import io.github.ericmedvet.jgea.problem.programsynthesis.synthetic.PrecomputedSyntheticPSProblem;

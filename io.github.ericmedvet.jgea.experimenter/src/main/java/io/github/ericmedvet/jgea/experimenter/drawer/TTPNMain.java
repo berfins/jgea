@@ -25,24 +25,19 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.Instrument
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.Program;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.ProgramExecutionException;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.*;
+import io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.DataFactory;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Base;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Composed;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.StringParser;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
 import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
 import io.github.ericmedvet.jgea.core.util.IntRange;
-import io.github.ericmedvet.jgea.problem.programsynthesis.DataFactory;
 import io.github.ericmedvet.jgea.problem.programsynthesis.Problems;
 import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisProblem;
 import io.github.ericmedvet.jgea.problem.programsynthesis.synthetic.PrecomputedSyntheticPSProblem;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
-import io.github.ericmedvet.jnb.datastructure.FormattedNamedFunction;
-
 import java.util.*;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.random.RandomGenerator;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class TTPNMain {
@@ -287,158 +282,6 @@ public class TTPNMain {
     IntStream.range(0, 1000).forEach(i -> factory.build(rnd, n -> System.out.printf("======%n%s%n===%n", n)));
   }
 
-  private static void factoryStats() throws ProgramExecutionException {
-    RandomGenerator rnd = new Random(1);
-    int maxNumberOfGates = 32;
-    NetworkFactory factory = new NetworkFactory(
-        List.of(Composed.sequence(Base.REAL), Composed.sequence(Base.REAL)),
-        List.of(Base.REAL),
-        new LinkedHashSet<>(allGates()),
-        maxNumberOfGates,
-        0
-    );
-    Runner runner = new Runner(100, 1000, false);
-    List<List<Object>> cases = List.of(
-        List.of(List.of(1d, 2d), List.of(3d, 4d)),
-        List.of(List.of(1d), List.of(3d, 4d)),
-        List.of(List.of(1d, 2d), List.of(3d)),
-        List.of(List.of(1d), List.of(3d))
-    );
-    Predicate<Network> goodGatesPredicate = network -> IntStream.range(0, network.gates().size())
-        .noneMatch(network::isGateAutoBlocked);
-    List<FormattedNamedFunction<Network, Double>> fs = List.of(
-        FormattedNamedFunction.from(n -> (double) n.size(), "%5.1f", "size"),
-        FormattedNamedFunction.from(n -> (double) n.gates().size(), "%4.1f", "n.gates"),
-        FormattedNamedFunction.from(
-            n -> {
-              try {
-                return (double) (n.disjointSubnetworks().size());
-              } catch (NetworkStructureException | TypeException e) {
-                return Double.NaN;
-              }
-            },
-            "%4.1f",
-            "n.subnetworks"
-        ),
-        FormattedNamedFunction.from(
-            n -> (double) n.inputGates().keySet().stream().filter(n::isWiredToOutput).count(),
-            "%3.1f",
-            "n.outputWiredInputs"
-        ),
-        FormattedNamedFunction.from(
-            n -> (double) n.outputGates().keySet().stream().filter(n::isWiredToInput).count(),
-            "%3.1f",
-            "n.inputWiredOutputs"
-        ),
-        FormattedNamedFunction.from(
-            n -> goodGatesPredicate.test(n) ? 1d : 0d,
-            "%6.4f",
-            "isAllGood"
-        ),
-        FormattedNamedFunction.from(
-            n -> (double) n.outputGates()
-                .keySet()
-                .stream()
-                .filter(n::isGateAutoBlocked)
-                .count(),
-            "%3.1f",
-            "n.blockedOutputs"
-        ),
-        FormattedNamedFunction.from(
-            n -> (double) n.outputGates()
-                .keySet()
-                .stream()
-                .filter(gi -> !n.isGateAutoBlocked(gi) && n.isWiredToInput(gi))
-                .count(),
-            "%3.1f",
-            "n.unblockedAndIWiredOutputs"
-        ),
-        FormattedNamedFunction.from(
-            n -> (double) n.outputGates()
-                .keySet()
-                .stream()
-                .filter(gi -> !n.isGateAutoBlocked(gi) && n.isWiredToInput(gi))
-                .count() / (double) n.outputTypes().size(),
-            "%6.4f",
-            "rate.unblockedOutputs"
-        ),
-        FormattedNamedFunction.from(
-            n -> cases.stream()
-                .mapToDouble(c -> runner.asInstrumentedProgram(n).safelyRun(c) == null ? 1d : 0d)
-                .average()
-                .orElseThrow(),
-            "%6.4f",
-            "rate.cases.null"
-        )
-    );
-    /*ns.forEach(n -> System.out.println(runner.asInstrumentedProgram(n)));
-    System.out.println(io.github.ericmedvet.jsdynsym.core.composed.Composed.deepest(ns.getFirst(), Network.class));
-    new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT).show(ns.get(2));
-    new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT).show(ns.get(8));
-    new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT).show(ns.get(9));
-    */
-
-    System.out.println(fs.stream().map(f -> f.name()).collect(Collectors.joining("\t")));
-    Function<Collection<Network>, Map<String, Double>> statter = networks -> fs.stream()
-        .collect(
-            Collectors.toMap(
-                f -> f.name(),
-                f -> networks.stream().mapToDouble(f::apply).average().orElse(Double.NaN)
-            )
-        );
-    Function<Collection<Network>, String> sStatter = statter.andThen(
-        map -> fs.stream()
-            .map(f -> f.format().formatted(map.get(f.name())))
-            .collect(Collectors.joining(" "))
-    );
-
-    List<Network> all = factory.build(100, rnd);
-    NetworkMutation mutation = new NetworkMutation(new LinkedHashSet<>(allGates()), maxNumberOfGates);
-
-    SequencedMap<String, List<Network>> map = new LinkedHashMap<>();
-    map.put("factory-all", all);
-    map.put("factory-good", all.stream().filter(goodGatesPredicate).toList());
-    map.put("factory-bad", all.stream().filter(goodGatesPredicate.negate()).toList());
-    map.put("mutated-all", all.stream().map(network -> mutation.mutate(network, rnd)).toList());
-    map.put(
-        "mutated-good",
-        map.get("factory-good").stream().map(network -> mutation.mutate(network, rnd)).toList()
-    );
-    map.put("mutated-bad", map.get("factory-bad").stream().map(network -> mutation.mutate(network, rnd)).toList());
-
-    map.forEach(
-        (name, networks) -> System.out.printf("%16.16s (%4d) -> %s%n", name, networks.size(), sStatter.apply(networks))
-    );
-
-    /*
-    List<Map<String, Double>> maps = ns.stream()
-        .map(
-            n -> fs.stream()
-                .collect(Collectors.toMap(f -> f.name(), f -> f.apply(n)))
-        )
-        .toList();
-    System.out.println(fs.stream().map(f -> f.name()).collect(Collectors.joining("\t")));
-    IntStream.range(0, maps.size())
-        .forEach(
-            i -> System.out.printf(
-                "%3d : %s%n",
-                i,
-                fs.stream()
-                    .map(f -> f.format().formatted(maps.get(i).get(f.name())))
-                    .collect(Collectors.joining(" "))
-            )
-        );
-    System.out.printf(
-        "SUMMARY:%n    : %s%n",
-        fs.stream()
-            .map(f -> f.format().formatted(maps.stream().mapToDouble(m -> m.get(f.name())).average().orElseThrow()))
-            .collect(
-                Collectors.joining(" ")
-            )
-    );
-    */
-  }
-
   private static void loopedNet() throws NetworkStructureException, TypeException {
     Network n = new Network(
         List.of(
@@ -461,8 +304,7 @@ public class TTPNMain {
     //weirdOne();
     //factory();
     //doComputationStuff();
-    factoryStats();
-    //comparator();
+    comparator();
   }
 
   private static void weirdOne() throws NetworkStructureException, TypeException {
