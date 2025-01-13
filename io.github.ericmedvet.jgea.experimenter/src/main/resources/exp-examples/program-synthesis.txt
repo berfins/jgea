@@ -1,7 +1,7 @@
-$nEvals = [2000]
+$nEvals = [20000]
 
 ea.experiment(
-  runs = (randomGenerator = (seed = [1:1:1]) * [m.defaultRG()]) *
+  runs = (randomGenerator = (seed = [1:1:2]) * [m.defaultRG()]) *
     (problem = (smoProblem = [
       ea.p.ps.synthetic(name = "iArraySum"; metrics = [avg_raw_dissimilarity; fail_rate; exception_error_rate; profile_avg_steps]);
       ea.p.ps.synthetic(name = "vProduct"; metrics = [avg_raw_dissimilarity; fail_rate; exception_error_rate; profile_avg_steps]);
