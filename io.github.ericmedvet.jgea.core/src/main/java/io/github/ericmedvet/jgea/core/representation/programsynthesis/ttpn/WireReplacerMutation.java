@@ -27,11 +27,11 @@ import java.util.SequencedSet;
 import java.util.Set;
 import java.util.random.RandomGenerator;
 
-public class NetworkMutation implements Mutation<Network> {
+public class WireReplacerMutation implements Mutation<Network> {
   private final SequencedSet<Gate> gates;
   private final int maxNOfGates;
 
-  public NetworkMutation(SequencedSet<Gate> gates, int maxNOfGates) {
+  public WireReplacerMutation(SequencedSet<Gate> gates, int maxNOfGates) {
     this.gates = gates;
     this.maxNOfGates = maxNOfGates;
   }
@@ -48,10 +48,9 @@ public class NetworkMutation implements Mutation<Network> {
     }
     try {
       n = new Network(n.gates(), newWires);
+      return NetworkFactory.growOnBoth(n, gates, rnd);
     } catch (NetworkStructureException | TypeException e) {
       return n;
     }
-    // attempt adding gates
-    return NetworkUtils.grow(n, gates, rnd, maxNOfGates);
   }
 }

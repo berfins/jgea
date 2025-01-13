@@ -26,6 +26,7 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
 import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
 import io.github.ericmedvet.jgea.core.util.IntRange;
+import io.github.ericmedvet.jgea.core.util.Misc;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
 import io.github.ericmedvet.jnb.datastructure.FormattedNamedFunction;
 import java.util.*;
@@ -39,6 +40,7 @@ public class StatsMain {
 
   public static final int MAX_N_OF_STEPS = 100;
   public static final int MAX_N_OF_TOKENS = 1000;
+  public static final double XOVER_SUBNET_SIZE_RATE = 0.5;
   public static final List<Gate> ALL_GATES = List.of(
       Gates.rPMathOperator(Element.Operator.MULTIPLICATION),
       Gates.rPMathOperator(Element.Operator.ADDITION),
@@ -84,15 +86,15 @@ public class StatsMain {
       Gates.iConst(5),
       Gates.dConst(0),
       Gates.dConst(0.1),
-      Gates.dConst(0.5),
+      Gates.dConst(XOVER_SUBNET_SIZE_RATE),
       Gates.bConst(true)
   );
 
   public static final DataFactory DATA_FACTORY = new DataFactory(
-      List.of(1, 2, 3),
+      List.of(1, 2, 7, 11),
       List.of(1d, 2d, 3d, 1.5, 2.5, 3.14),
       List.of("cat", "dog", "Hello World!", "mummy"),
-      new IntRange(-10, MAX_N_OF_STEPS),
+      new IntRange(-10, 100),
       new DoubleRange(-10, 10),
       new IntRange(2, 20),
       new IntRange(3, 8)
@@ -111,7 +113,8 @@ public class StatsMain {
         outputTypes,
         new LinkedHashSet<>(ALL_GATES),
         maxNumberOfGates,
-        0
+        10,
+        true
     );
     Runner runner = new Runner(MAX_N_OF_STEPS, MAX_N_OF_TOKENS, false);
     List<List<Object>> cases = IntStream.range(0, nOfCases)
@@ -122,7 +125,7 @@ public class StatsMain {
         )
         .toList();
     Predicate<Network> goodGatesPredicate = network -> IntStream.range(0, network.gates().size())
-        .noneMatch(network::isGateAutoBlocked);
+        .noneMatch(network::isDeadGate);
     List<FormattedNamedFunction<Network, Double>> fs = List.of(
         FormattedNamedFunction.from(n -> (double) n.size(), "%5.1f", "size"),
         FormattedNamedFunction.from(n -> (double) n.gates().size(), "%4.1f", "n.gates"),
@@ -148,36 +151,19 @@ public class StatsMain {
             "n.inputWiredOutputs"
         ),
         FormattedNamedFunction.from(
+            n -> (double) n.deadGates().size(),
+            "%4.1f",
+            "n.deadGates"
+        ),
+        FormattedNamedFunction.from(
+            n -> (double) n.deadOrIUnwiredOutputGates().size(),
+            "%4.1f",
+            "n.deadOrIUnwiredOutputGates"
+        ),
+        FormattedNamedFunction.from(
             n -> goodGatesPredicate.test(n) ? 1d : 0d,
             "*%6.4f",
             "isAllGood"
-        ),
-        FormattedNamedFunction.from(
-            n -> (double) n.outputGates()
-                .keySet()
-                .stream()
-                .filter(n::isGateAutoBlocked)
-                .count(),
-            "%3.1f",
-            "n.blockedOutputs"
-        ),
-        FormattedNamedFunction.from(
-            n -> (double) n.outputGates()
-                .keySet()
-                .stream()
-                .filter(gi -> !n.isGateAutoBlocked(gi) && n.isWiredToInput(gi))
-                .count(),
-            "%3.1f",
-            "n.unblockedAndIWiredOutputs"
-        ),
-        FormattedNamedFunction.from(
-            n -> (double) n.outputGates()
-                .keySet()
-                .stream()
-                .filter(gi -> !n.isGateAutoBlocked(gi) && n.isWiredToInput(gi))
-                .count() / (double) n.outputTypes().size(),
-            "%6.4f",
-            "rate.unblockedOutputs"
         ),
         FormattedNamedFunction.from(
             n -> cases.stream()
@@ -201,19 +187,42 @@ public class StatsMain {
             .map(f -> f.format().formatted(map.get(f.name())))
             .collect(Collectors.joining(" "))
     );
-
+    WireReplacerMutation mutation = new WireReplacerMutation(new LinkedHashSet<>(ALL_GATES), maxNumberOfGates);
+    NetworkCrossover xover = new NetworkCrossover(maxNumberOfGates, XOVER_SUBNET_SIZE_RATE);
+    // prepare map with stats
     List<Network> all = factory.build(nOfNetworks, rnd);
-    NetworkMutation mutation = new NetworkMutation(new LinkedHashSet<>(ALL_GATES), maxNumberOfGates);
     SequencedMap<String, List<Network>> map = new LinkedHashMap<>();
     map.put("factory-all", all);
-    map.put("factory-good", all.stream().filter(goodGatesPredicate).toList());
-    map.put("factory-bad", all.stream().filter(goodGatesPredicate.negate()).toList());
-    map.put("mutated-all", all.stream().map(network -> mutation.mutate(network, rnd)).toList());
+    map.put("factory-good", all.parallelStream().filter(goodGatesPredicate).toList());
+    map.put("factory-bad", all.parallelStream().filter(goodGatesPredicate.negate()).toList());
+    map.put("mutated-all", all.parallelStream().map(network -> mutation.mutate(network, rnd)).toList());
     map.put(
         "mutated-good",
-        map.get("factory-good").stream().map(network -> mutation.mutate(network, rnd)).toList()
+        map.get("factory-good").parallelStream().map(network -> mutation.mutate(network, rnd)).toList()
     );
-    map.put("mutated-bad", map.get("factory-bad").stream().map(network -> mutation.mutate(network, rnd)).toList());
+    map.put(
+        "mutated-bad",
+        map.get("factory-bad").parallelStream().map(network -> mutation.mutate(network, rnd)).toList()
+    );
+    map.put(
+        "xover-all",
+        all.parallelStream().map(network -> xover.recombine(network, Misc.pickRandomly(all, rnd), rnd)).toList()
+    );
+    map.put(
+        "xover-good",
+        map.get("factory-good")
+            .parallelStream()
+            .map(network -> xover.recombine(network, Misc.pickRandomly(map.get("factory-good"), rnd), rnd))
+            .toList()
+    );
+    map.put(
+        "xover-bad",
+        map.get("factory-bad")
+            .parallelStream()
+            .map(network -> xover.recombine(network, Misc.pickRandomly(map.get("factory-bad"), rnd), rnd))
+            .toList()
+    );
+    // print table
     map.forEach(
         (name, networks) -> System.out.printf("%16.16s (%4d) -> %s%n", name, networks.size(), sStatter.apply(networks))
     );
@@ -223,8 +232,8 @@ public class StatsMain {
     factoryStats(
         List.of(Composed.sequence(Base.REAL), Composed.sequence(Base.REAL)),
         List.of(Base.REAL),
-        200,
-        32,
+        100,
+        64,
         10,
         new Random(1)
     );

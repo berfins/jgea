@@ -37,19 +37,22 @@ public class NetworkFactory implements IndependentFactory<Network> {
   private final SequencedSet<Gate> gates;
   private final int maxNOfGates;
   private final int maxNOfAttempts;
+  private final boolean avoidDeadGates;
 
   public NetworkFactory(
       List<Type> inputTypes,
       List<Type> outputTypes,
       SequencedSet<Gate> gates,
       int maxNOfGates,
-      int maxNOfAttempts
+      int maxNOfAttempts,
+      boolean avoidDeadGates
   ) {
     this.inputTypes = inputTypes;
     this.outputTypes = outputTypes;
     this.gates = gates;
     this.maxNOfGates = maxNOfGates;
     this.maxNOfAttempts = maxNOfAttempts;
+    this.avoidDeadGates = avoidDeadGates;
   }
 
   @Override
@@ -76,32 +79,45 @@ public class NetworkFactory implements IndependentFactory<Network> {
         try {
           consumer.accept(n);
           int nOfGates = n.gates().size();
-          int nOfWires = n.wires().size();
           if (n.gates().size() < targetNOfGates) {
             Collections.shuffle(gateAdditions, rnd);
             for (GateAddition gateAddition : gateAdditions) {
-              n = switch (gateAddition) {
-                case GROW_IN -> growOnInputs(n, rnd);
-                case GROW_OUT -> growOnOutputs(n, rnd);
-                case LINK_IO -> growOnBoth(n, rnd);
+              int nOfDeadsBefore = n.deadGates().size();
+              Network newN = switch (gateAddition) {
+                case GROW_IN -> growOnInputs(n, gates, rnd);
+                case GROW_OUT -> growOnOutputs(n, gates, rnd);
+                case LINK_IO -> growOnBoth(n, gates, rnd);
               };
+              int nOfDeadsAfter = newN.deadGates().size();
+              if (!avoidDeadGates || nOfDeadsAfter <= nOfDeadsBefore) {
+                n = newN;
+              }
               if (n.gates().size() != nOfGates) {
                 break;
               }
             }
           }
+          int nOfWires = n.wires().size();
           Collections.shuffle(wireAdditions, rnd);
           for (WireAddition wireAddition : wireAdditions) {
-            n = switch (wireAddition) {
+            int nOfDeadsBefore = n.deadGates().size();
+            Network newN = switch (wireAddition) {
               case INTER_SUBNETS -> wire(n, true, rnd);
               case INTRA_SUBNETS -> wire(n, false, rnd);
             };
+            int nOfDeadsAfter = newN.deadGates().size();
+            if (!avoidDeadGates || nOfDeadsAfter <= nOfDeadsBefore) {
+              n = newN;
+            }
             if (n.wires().size() != nOfWires) {
               break;
             }
           }
           if (nOfGates == n.gates().size() && nOfWires == n.wires().size()) {
-            break;
+            nOfAttempts = nOfAttempts + 1;
+            if (nOfAttempts > maxNOfAttempts) {
+              break;
+            }
           }
         } catch (NetworkStructureException | TypeException e) {
           nOfAttempts = nOfAttempts + 1;
@@ -116,7 +132,11 @@ public class NetworkFactory implements IndependentFactory<Network> {
     }
   }
 
-  private Network growOnBoth(Network n, RandomGenerator rnd) throws NetworkStructureException, TypeException {
+  protected static Network growOnBoth(
+      Network n,
+      SequencedSet<Gate> gates,
+      RandomGenerator rnd
+  ) throws NetworkStructureException, TypeException {
     List<Wire.EndPoint> iEps = new ArrayList<>(n.freeInputEndPoints());
     List<Wire.EndPoint> oEps = new ArrayList<>(n.freeOutputEndPoints());
     List<Gate> shuffledGates = new ArrayList<>(gates);
@@ -158,7 +178,11 @@ public class NetworkFactory implements IndependentFactory<Network> {
     return n;
   }
 
-  private Network growOnInputs(Network n, RandomGenerator rnd) throws NetworkStructureException, TypeException {
+  protected static Network growOnInputs(
+      Network n,
+      SequencedSet<Gate> gates,
+      RandomGenerator rnd
+  ) throws NetworkStructureException, TypeException {
     record WeightedEndPoint(Wire.EndPoint endPoint, int distance) {}
     Optional<Wire.EndPoint> oFreeEndPoint = n.freeInputEndPoints()
         .stream()
@@ -186,7 +210,11 @@ public class NetworkFactory implements IndependentFactory<Network> {
     return new Network(newGates, newWires);
   }
 
-  private Network growOnOutputs(Network n, RandomGenerator rnd) throws NetworkStructureException, TypeException {
+  protected static Network growOnOutputs(
+      Network n,
+      SequencedSet<Gate> gates,
+      RandomGenerator rnd
+  ) throws NetworkStructureException, TypeException {
     record WeightedEndPoint(Wire.EndPoint endPoint, int distance) {}
     Optional<Wire.EndPoint> oFreeEndPoint = n.freeOutputEndPoints()
         .stream()

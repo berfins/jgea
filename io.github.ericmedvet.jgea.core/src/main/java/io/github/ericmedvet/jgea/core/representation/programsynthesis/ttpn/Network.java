@@ -38,19 +38,18 @@ public final class Network implements Sized {
   private final Map<Wire.EndPoint, Type> inputConcreteTypes;
   private final Map<Wire.EndPoint, Type> outputConcreteTypes;
   private final Map<Integer, Map<Generic, Type>> gateConcreteTypes;
-
+  private final Map<Integer, Boolean> wiredToInputsMap;
+  private final Map<Integer, Boolean> wiredToOutputsMap;
+  private final Map<Integer, Boolean> deadMap;
   private List<Network> disjointSubnetwork;
   private List<List<Integer>> disjointSubnetworksGateIndexes;
   private Set<Wire.EndPoint> freeInputEndPoints;
   private Set<Wire.EndPoint> freeOutputEndPoints;
-  private final Map<Integer, Boolean> wiredToInputsMap;
-  private final Map<Integer, Boolean> wiredToOutputsMap;
-  private final Map<Integer, Boolean> blockedMap;
 
   public Network(List<Gate> gates, Set<Wire> wires) throws NetworkStructureException, TypeException {
     wiredToInputsMap = new HashMap<>();
     wiredToOutputsMap = new HashMap<>();
-    blockedMap = new HashMap<>();
+    deadMap = new HashMap<>();
     this.gates = Collections.unmodifiableList(gates);
     this.wires = Collections.unmodifiableSortedSet(new TreeSet<>(wires));
     // validate wires
@@ -201,6 +200,42 @@ public final class Network implements Sized {
     return outputConcreteTypes.getOrDefault(
         endPoint,
         gates.get(endPoint.gateIndex()).outputTypes().get(endPoint.portIndex())
+    );
+  }
+
+  public List<Integer> deadGates() {
+    return IntStream.range(0, gates.size()).filter(this::isDeadGate).boxed().toList();
+  }
+
+  public List<Integer> deadOrIUnwiredGates() {
+    return IntStream.range(0, gates.size()).filter(gi -> isDeadGate(gi) || !isWiredToInput(gi)).boxed().toList();
+  }
+
+  public SortedMap<Integer, Type> deadOrIUnwiredOutputGates() {
+    return new TreeMap<>(
+        outputGates().entrySet()
+            .stream()
+            .filter(e -> isDeadGate(e.getKey()) || !isWiredToInput(e.getKey()))
+            .collect(
+                Collectors.toMap(
+                    Map.Entry::getKey,
+                    Map.Entry::getValue
+                )
+            )
+    );
+  }
+
+  public SortedMap<Integer, Type> deadOutputGates() {
+    return new TreeMap<>(
+        outputGates().entrySet()
+            .stream()
+            .filter(e -> isDeadGate(e.getKey()))
+            .collect(
+                Collectors.toMap(
+                    Map.Entry::getKey,
+                    Map.Entry::getValue
+                )
+            )
     );
   }
 
@@ -401,6 +436,35 @@ public final class Network implements Sized {
 
   public List<Type> inputTypes() {
     return inputGates().values().stream().toList();
+  }
+
+  public synchronized boolean isDeadGate(int igi) {
+    Boolean b = deadMap.get(igi);
+    if (b != null) {
+      return b;
+    }
+    Gate gate = gates.get(igi);
+    for (int pi = 0; pi < gate.inputPorts().size(); pi = pi + 1) {
+      if (gate.inputPorts().get(pi).n() > 0) {
+        if (wireTo(igi, pi).isEmpty()) {
+          deadMap.put(igi, true);
+          return true;
+        }
+        Set<Wire.EndPoint> endPoints = new HashSet<>();
+        Set<Integer> gateIndexes = new HashSet<>();
+        wiredInputEndPoints(new Wire.EndPoint(igi, pi), gateIndexes, endPoints);
+        if (gateIndexes.contains(igi)) {
+          deadMap.put(igi, true);
+          return true;
+        }
+        if (gateIndexes.stream().anyMatch(this::isDeadGate)) {
+          deadMap.put(igi, true);
+          return true;
+        }
+      }
+    }
+    deadMap.put(igi, false);
+    return false;
   }
 
   public synchronized boolean isWiredToInput(int gi) {
@@ -766,35 +830,6 @@ public final class Network implements Sized {
         .filter(Optional::isPresent)
         .map(Optional::get)
         .collect(Collectors.toCollection(LinkedHashSet::new));
-  }
-
-  public synchronized boolean isGateAutoBlocked(int igi) {
-    Boolean b = blockedMap.get(igi);
-    if (b != null) {
-      return b;
-    }
-    Gate gate = gates.get(igi);
-    for (int pi = 0; pi < gate.inputPorts().size(); pi = pi + 1) {
-      if (gate.inputPorts().get(pi).n() > 0) {
-        if (wireTo(igi, pi).isEmpty()) {
-          blockedMap.put(igi, true);
-          return true;
-        }
-        Set<Wire.EndPoint> endPoints = new HashSet<>();
-        Set<Integer> gateIndexes = new HashSet<>();
-        wiredInputEndPoints(new Wire.EndPoint(igi, pi), gateIndexes, endPoints);
-        if (gateIndexes.contains(igi)) {
-          blockedMap.put(igi, true);
-          return true;
-        }
-        if (gateIndexes.stream().anyMatch(this::isGateAutoBlocked)) {
-          blockedMap.put(igi, true);
-          return true;
-        }
-      }
-    }
-    blockedMap.put(igi, false);
-    return false;
   }
 
 }

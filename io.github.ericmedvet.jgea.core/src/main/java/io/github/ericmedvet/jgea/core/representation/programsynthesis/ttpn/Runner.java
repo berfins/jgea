@@ -125,7 +125,7 @@ public class Runner {
       long nOfBlockedOutputs = network.outputGates()
           .keySet()
           .stream()
-          .filter(gi -> network.isGateAutoBlocked(gi) || !network.isWiredToInput(gi))
+          .filter(gi -> network.isDeadGate(gi) || !network.isWiredToInput(gi))
           .count();
       if (nOfBlockedOutputs > 0) {
         throw new ProgramExecutionException(

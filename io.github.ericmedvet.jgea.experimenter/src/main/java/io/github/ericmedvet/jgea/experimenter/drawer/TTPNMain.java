@@ -244,7 +244,8 @@ public class TTPNMain {
         List.of(Base.REAL),
         new LinkedHashSet<>(allGates()),
         20,
-        0
+        10,
+        true
     );
     Network newN = nf.build(rnd);
     //drawer.show(newN);
@@ -275,7 +276,8 @@ public class TTPNMain {
         List.of(Base.REAL),
         new LinkedHashSet<>(allGates()),
         32,
-        0
+        10,
+        true
     );
     TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
     factory.build(rnd, drawer::show);
