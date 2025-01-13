@@ -38,4 +38,5 @@ public interface SimpleEBMOProblem<S, EI, EO, EQ, O> extends EBMOProblem<S, EI, 
   default SequencedMap<String, Comparator<O>> comparators() {
     return Misc.sequencedTransformValues(aggregateObjectives(), Objective::comparator);
   }
+
 }

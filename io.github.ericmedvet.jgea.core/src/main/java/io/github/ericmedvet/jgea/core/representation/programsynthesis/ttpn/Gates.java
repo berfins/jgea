@@ -25,7 +25,6 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Compo
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Generic;
 import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
 import io.github.ericmedvet.jnb.datastructure.NamedFunction;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -140,10 +139,12 @@ public class Gates {
             in -> {
               int n = in.one(1, Integer.class);
               if (n > MAX_N_OF_OUT_TOKENS) {
-                throw new IllegalArgumentException("Size of token train is too large: %d>%d".formatted(
-                    n,
-                    MAX_N_OF_OUT_TOKENS
-                ));
+                throw new IllegalArgumentException(
+                    "Size of token train is too large: %d>%d".formatted(
+                        n,
+                        MAX_N_OF_OUT_TOKENS
+                    )
+                );
               }
               return Gate.Data.single(
                   IntStream.range(0, n)
@@ -183,9 +184,9 @@ public class Gates {
                     .stream()
                     .reduce((n1, n2) -> n1 * n2)
                     .orElseThrow() * in.all(1, Integer.class)
-                    .stream()
-                    .reduce((n1, n2) -> n1 * n2)
-                    .orElse(1)
+                        .stream()
+                        .reduce((n1, n2) -> n1 * n2)
+                        .orElse(1)
             ),
             "sp*"
         )
@@ -202,9 +203,9 @@ public class Gates {
                     .stream()
                     .reduce(Integer::sum)
                     .orElseThrow() + in.all(1, Integer.class)
-                    .stream()
-                    .reduce(Integer::sum)
-                    .orElse(0)
+                        .stream()
+                        .reduce(Integer::sum)
+                        .orElse(0)
             ),
             "sp+"
         )
@@ -346,9 +347,9 @@ public class Gates {
                     .stream()
                     .reduce((n1, n2) -> n1 * n2)
                     .orElseThrow() * in.all(1, Double.class)
-                    .stream()
-                    .reduce((n1, n2) -> n1 * n2)
-                    .orElse(1d)
+                        .stream()
+                        .reduce((n1, n2) -> n1 * n2)
+                        .orElse(1d)
             ),
             "sp*"
         )
@@ -365,9 +366,9 @@ public class Gates {
                     .stream()
                     .reduce(Double::sum)
                     .orElseThrow() + in.all(1, Double.class)
-                    .stream()
-                    .reduce(Double::sum)
-                    .orElse(0d)
+                        .stream()
+                        .reduce(Double::sum)
+                        .orElse(0d)
             ),
             "sp+"
         )
@@ -411,13 +412,16 @@ public class Gates {
             in -> {
               int n = in.one(1, Integer.class);
               if (n > MAX_N_OF_OUT_TOKENS) {
-                throw new IllegalArgumentException("Size of token train is too large: %d>%d".formatted(
-                    n,
-                    MAX_N_OF_OUT_TOKENS
-                ));
+                throw new IllegalArgumentException(
+                    "Size of token train is too large: %d>%d".formatted(
+                        n,
+                        MAX_N_OF_OUT_TOKENS
+                    )
+                );
               }
               return Gate.Data.single(Collections.nCopies(n, in.one(0)));
-            }, "repeater"
+            },
+            "repeater"
         )
     );
   }

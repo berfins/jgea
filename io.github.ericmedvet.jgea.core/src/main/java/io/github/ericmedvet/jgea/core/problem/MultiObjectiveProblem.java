@@ -33,10 +33,6 @@ public interface MultiObjectiveProblem<S, Q, O> extends QualityBasedProblem<S, Q
 
   SequencedMap<String, Objective<Q, O>> objectives();
 
-  private Comparator<O> apply(Objective<Q, O> obj) {
-    return obj.comparator;
-  }
-
   @Override
   default PartialComparator<Q> qualityComparator() {
     return (q1, q2) -> ParetoDominance.compare(
@@ -53,15 +49,16 @@ public interface MultiObjectiveProblem<S, Q, O> extends QualityBasedProblem<S, Q
     );
   }
 
+  default TotalOrderQualityBasedProblem<S, Q> toTotalOrderQualityBasedProblem(String objectiveName) {
+    Comparator<Q> qComparator = Comparator.comparing(
+        objectives().get(objectiveName).function(),
+        objectives().get(objectiveName).comparator()
+    );
+    return TotalOrderQualityBasedProblem.from(this, qComparator);
+  }
+
   default TotalOrderQualityBasedProblem<S, Q> toTotalOrderQualityBasedProblem() {
     return toTotalOrderQualityBasedProblem(objectives().firstEntry().getKey());
   }
 
-  default TotalOrderQualityBasedProblem<S, Q> toTotalOrderQualityBasedProblem(String objective) {
-    Comparator<Q> qComparator = Comparator.comparing(
-        objectives().get(objective).function(),
-        objectives().get(objective).comparator()
-    );
-    return TotalOrderQualityBasedProblem.from(this, qComparator);
-  }
 }

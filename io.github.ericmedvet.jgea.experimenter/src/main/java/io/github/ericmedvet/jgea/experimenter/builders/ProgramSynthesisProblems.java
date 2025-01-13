@@ -19,6 +19,7 @@
  */
 package io.github.ericmedvet.jgea.experimenter.builders;
 
+import io.github.ericmedvet.jgea.core.problem.SimpleMOProblem;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.Program;
 import io.github.ericmedvet.jgea.core.util.IntRange;
 import io.github.ericmedvet.jgea.problem.programsynthesis.DataFactory;
@@ -32,6 +33,7 @@ import io.github.ericmedvet.jnb.datastructure.DoubleRange;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.random.RandomGenerator;
 
 @Discoverable(prefixTemplate = "ea.problem|p.programSynthesis|ps")
@@ -42,10 +44,10 @@ public class ProgramSynthesisProblems {
 
   @SuppressWarnings("unused")
   @Cacheable
-  public static ProgramSynthesisProblem synthetic(
+  public static SimpleMOProblem<Program, Double> synthetic(
       @Param("name") String name,
       @Param(value = "metrics", dSs = {"fail_rate"}) List<ProgramSynthesisProblem.Metric> metrics,
-      @Param(value = "maxDissimilarity", dD = 100d) double maxDissimilarity,
+      @Param(value = "maxDissimilarity", dD = 1000d) double maxDissimilarity,
       @Param(value = "randomGenerator", dNPM = "m.defaultRG()") RandomGenerator randomGenerator,
       @Param(value = "nOfCases", dI = 10) int nOfCases,
       @Param(value = "nOfValidationCases", dI = 100) int nOfValidationCases,
@@ -81,7 +83,7 @@ public class ProgramSynthesisProblems {
         nOfCases,
         nOfValidationCases,
         maxExceptionRate
-    );
+    ).toReducedSimpleMOProblem(Set.of("avg_raw_dissimilarity"));
   }
 
 }

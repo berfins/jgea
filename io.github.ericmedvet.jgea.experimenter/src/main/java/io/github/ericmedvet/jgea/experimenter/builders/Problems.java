@@ -33,6 +33,8 @@ import io.github.ericmedvet.jsdynsym.control.SingleAgentTask;
 import io.github.ericmedvet.jsdynsym.core.numerical.NumericalDynamicalSystem;
 import io.github.ericmedvet.jsdynsym.core.numerical.NumericalStatelessSystem;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -110,6 +112,25 @@ public class Problems {
         }
       };
     }
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  public static <S, Q, O> TotalOrderQualityBasedProblem<S, Q> moToSo(
+      @Param(value = "name", iS = "{moProblem.name}[{objective}]") String name,
+      @Param("objective") String objective,
+      @Param("moProblem") MultiObjectiveProblem<S, Q, O> moProblem
+  ) {
+    return moProblem.toTotalOrderQualityBasedProblem(objective);
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  public static <S> SimpleMOProblem<S, Double> mtToMo(
+      @Param(value = "name", iS = "mt2mo[{mtProblem.name}]") String name,
+      @Param("mtProblem") MultiTargetProblem<S> mtProblem
+  ) {
+    return mtProblem.toMHOProblem();
   }
 
   @SuppressWarnings("unused")
@@ -193,21 +214,12 @@ public class Problems {
 
   @SuppressWarnings("unused")
   @Cacheable
-  public static <S> SimpleMOProblem<S, Double> mtToMo(
-      @Param(value = "name", iS = "mt2mo[{mtProblem.name}]") String name,
-      @Param("mtProblem") MultiTargetProblem<S> mtProblem
+  public static <S, O> SimpleMOProblem<S, O> smoToSubsettedSmo(
+      @Param(value = "name", iS = "{smoProblem.name}") String name,
+      @Param("objectives") List<String> objectives,
+      @Param("smoProblem") SimpleMOProblem<S, O> smoProblem
   ) {
-    return mtProblem.toMHOProblem();
-  }
-
-  @SuppressWarnings("unused")
-  @Cacheable
-  public static <S, Q, O> TotalOrderQualityBasedProblem<S, Q> moToSo(
-      @Param(value = "name", iS = "{moProblem.name}[{objective}]") String name,
-      @Param("objective") String objective,
-      @Param("moProblem") MultiObjectiveProblem<S, Q, O> moProblem
-  ) {
-    return moProblem.toTotalOrderQualityBasedProblem(objective);
+    return smoProblem.toReducedSimpleMOProblem(new HashSet<>(objectives));
   }
 
   @SuppressWarnings("unused")
