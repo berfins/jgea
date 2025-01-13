@@ -37,6 +37,8 @@ import java.util.stream.IntStream;
 
 public class StatsMain {
 
+  public static final int MAX_N_OF_STEPS = 100;
+  public static final int MAX_N_OF_TOKENS = 1000;
   public static final List<Gate> ALL_GATES = List.of(
       Gates.rPMathOperator(Element.Operator.MULTIPLICATION),
       Gates.rPMathOperator(Element.Operator.ADDITION),
@@ -74,15 +76,23 @@ public class StatsMain {
       Gates.bOr(),
       Gates.bAnd(),
       Gates.bXor(),
+      Gates.bNot(),
       Gates.repeater(),
-      Gates.iRange()
+      Gates.iRange(),
+      Gates.iConst(0),
+      Gates.iConst(1),
+      Gates.iConst(5),
+      Gates.dConst(0),
+      Gates.dConst(0.1),
+      Gates.dConst(0.5),
+      Gates.bConst(true)
   );
 
   public static final DataFactory DATA_FACTORY = new DataFactory(
       List.of(1, 2, 3),
       List.of(1d, 2d, 3d, 1.5, 2.5, 3.14),
       List.of("cat", "dog", "Hello World!", "mummy"),
-      new IntRange(-10, 100),
+      new IntRange(-10, MAX_N_OF_STEPS),
       new DoubleRange(-10, 10),
       new IntRange(2, 20),
       new IntRange(3, 8)
@@ -103,7 +113,7 @@ public class StatsMain {
         maxNumberOfGates,
         0
     );
-    Runner runner = new Runner(100, 1000, false);
+    Runner runner = new Runner(MAX_N_OF_STEPS, MAX_N_OF_TOKENS, false);
     List<List<Object>> cases = IntStream.range(0, nOfCases)
         .mapToObj(
             i -> inputTypes.stream()

@@ -2523,7 +2523,7 @@ Aliases: `ea.p.programSynthesis`, `ea.p.ps`, `ea.problem.programSynthesis`, `ea.
 | `stringLengthRange` | npm | `m.range(min = 2; max = 20)` | <code><abbr title="io.github.ericmedvet.jnb.datastructure.DoubleRange">DoubleRange</abbr></code> |
 | `sequenceSizeRange` | npm | `m.range(min = 1; max = 8)` | <code><abbr title="io.github.ericmedvet.jnb.datastructure.DoubleRange">DoubleRange</abbr></code> |
 
-Produces <code><abbr title="io.github.ericmedvet.jgea.core.problem.SimpleMOProblem">SimpleMOProblem</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.Program">Program</abbr>, <abbr title="java.lang.Double">Double</abbr>&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.ProgramSynthesisProblems.synthetic()` by jgea-experimenter:2.7.1-SNAPSHOT
+Produces <code><abbr title="io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisProblem">ProgramSynthesisProblem</abbr></code>; built from `io.github.ericmedvet.jgea.experimenter.builders.ProgramSynthesisProblems.synthetic()` by jgea-experimenter:2.7.1-SNAPSHOT
 
 ## Package `ea.problem.synthetic`
 
@@ -2999,7 +2999,7 @@ Produces <code><abbr title="java.util.function.Function">Function</abbr>&lt;<abb
 | `maxNOfGates` | i | `32` | <code>int</code> |
 | `maxNOfAttempts` | i | `10` | <code>int</code> |
 | `subnetSizeRate` | d | `0.33` | <code>double</code> |
-| `gates` | npm[] | `[ea.ttpn.gate.bAnd(), ea.ttpn.gate.bOr(), ea.ttpn.gate.bXor(), ea.ttpn.gate.concat(), ea.ttpn.gate.equal(), ea.ttpn.gate.iTh(), ea.ttpn.gate.length(), ea.ttpn.gate.noop(), ea.ttpn.gate.pairer(), ea.ttpn.gate.queuer(), ea.ttpn.gate.select(), ea.ttpn.gate.sequencer(), ea.ttpn.gate.sink(), ea.ttpn.gate.splitter(), ea.ttpn.gate.unpairer(), ea.ttpn.gate.iBefore(), ea.ttpn.gate.iPMathOperator(operator = addition), ea.ttpn.gate.iPMathOperator(operator = subtraction), ea.ttpn.gate.iPMathOperator(operator = multiplication), ea.ttpn.gate.iPMathOperator(operator = division), ea.ttpn.gate.iRange(), ea.ttpn.gate.iSMult(), ea.ttpn.gate.iSPMult(), ea.ttpn.gate.iSPSum(), ea.ttpn.gate.iSSum(), ea.ttpn.gate.iToR(), ea.ttpn.gate.rBefore(), ea.ttpn.gate.repeater(), ea.ttpn.gate.rPMathOperator(operator = addition), ea.ttpn.gate.rPMathOperator(operator = subtraction), ea.ttpn.gate.rPMathOperator(operator = multiplication), ea.ttpn.gate.rPMathOperator(operator = division), ea.ttpn.gate.rSMult(), ea.ttpn.gate.rSPMult(), ea.ttpn.gate.rSPSum(), ea.ttpn.gate.rSSum(), ea.ttpn.gate.rToI(), ea.ttpn.gate.sBefore(), ea.ttpn.gate.sConcat(), ea.ttpn.gate.sSplitter()]` | <code><abbr title="java.util.List">List</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Gate">Gate</abbr>&gt;</code> |
+| `gates` | npm[] | `[ea.ttpn.gate.bAnd(), ea.ttpn.gate.bNot(), ea.ttpn.gate.bOr(), ea.ttpn.gate.bXor(), ea.ttpn.gate.concat(), ea.ttpn.gate.equal(), ea.ttpn.gate.iTh(), ea.ttpn.gate.length(), ea.ttpn.gate.noop(), ea.ttpn.gate.pairer(), ea.ttpn.gate.queuer(), ea.ttpn.gate.select(), ea.ttpn.gate.sequencer(), ea.ttpn.gate.sink(), ea.ttpn.gate.splitter(), ea.ttpn.gate.unpairer(), ea.ttpn.gate.iBefore(), ea.ttpn.gate.iPMathOperator(operator = addition), ea.ttpn.gate.iPMathOperator(operator = subtraction), ea.ttpn.gate.iPMathOperator(operator = multiplication), ea.ttpn.gate.iPMathOperator(operator = division), ea.ttpn.gate.iRange(), ea.ttpn.gate.iSMult(), ea.ttpn.gate.iSPMult(), ea.ttpn.gate.iSPSum(), ea.ttpn.gate.iSSum(), ea.ttpn.gate.iToR(), ea.ttpn.gate.rBefore(), ea.ttpn.gate.repeater(), ea.ttpn.gate.rPMathOperator(operator = addition), ea.ttpn.gate.rPMathOperator(operator = subtraction), ea.ttpn.gate.rPMathOperator(operator = multiplication), ea.ttpn.gate.rPMathOperator(operator = division), ea.ttpn.gate.rSMult(), ea.ttpn.gate.rSPMult(), ea.ttpn.gate.rSPSum(), ea.ttpn.gate.rSSum(), ea.ttpn.gate.rToI(), ea.ttpn.gate.sBefore(), ea.ttpn.gate.sConcat(), ea.ttpn.gate.sSplitter(), ea.ttpn.gate.bConst(value = true), ea.ttpn.gate.iConst(value = 0), ea.ttpn.gate.iConst(value = 1), ea.ttpn.gate.iConst(value = 2), ea.ttpn.gate.iConst(value = 5), ea.ttpn.gate.dConst(value = 0), ea.ttpn.gate.iConst(value = 0.1), ea.ttpn.gate.iConst(value = 0.2), ea.ttpn.gate.iConst(value = 0.5)]` | <code><abbr title="java.util.List">List</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Gate">Gate</abbr>&gt;</code> |
 | `forbiddenGates` | npm[] | `[]` | <code><abbr title="java.util.List">List</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Gate">Gate</abbr>&gt;</code> |
 
 Produces <code><abbr title="java.util.function.Function">Function</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Network">Network</abbr>, <abbr title="io.github.ericmedvet.jgea.experimenter.Representation">Representation</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Network">Network</abbr>&gt;&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.Representations.ttpn()` by jgea-experimenter:2.7.1-SNAPSHOT
@@ -3330,6 +3330,22 @@ Produces <code><abbr title="io.github.ericmedvet.jgea.core.solver.mapelites.MapE
 
 Produces <code><abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Gate">Gate</abbr></code>; built from `io.github.ericmedvet.jgea.experimenter.builders.NetworkGates.bAnd()` by jgea-experimenter:2.7.1-SNAPSHOT
 
+### Builder `ea.ttpn.gate.bConst()`
+
+`ea.ttpn.gate.bConst(value)`
+
+| Param | Type | Default | Java type |
+| --- | --- | --- | --- |
+| `value` | b | `false` | <code>boolean</code> |
+
+Produces <code><abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Gate">Gate</abbr></code>; built from `io.github.ericmedvet.jgea.experimenter.builders.NetworkGates.bConst()` by jgea-experimenter:2.7.1-SNAPSHOT
+
+### Builder `ea.ttpn.gate.bNot()`
+
+`ea.ttpn.gate.bNot()`
+
+Produces <code><abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Gate">Gate</abbr></code>; built from `io.github.ericmedvet.jgea.experimenter.builders.NetworkGates.bNot()` by jgea-experimenter:2.7.1-SNAPSHOT
+
 ### Builder `ea.ttpn.gate.bOr()`
 
 `ea.ttpn.gate.bOr()`
@@ -3348,6 +3364,16 @@ Produces <code><abbr title="io.github.ericmedvet.jgea.core.representation.progra
 
 Produces <code><abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Gate">Gate</abbr></code>; built from `io.github.ericmedvet.jgea.experimenter.builders.NetworkGates.concat()` by jgea-experimenter:2.7.1-SNAPSHOT
 
+### Builder `ea.ttpn.gate.dConst()`
+
+`ea.ttpn.gate.dConst(value)`
+
+| Param | Type | Default | Java type |
+| --- | --- | --- | --- |
+| `value` | d |  | <code>double</code> |
+
+Produces <code><abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Gate">Gate</abbr></code>; built from `io.github.ericmedvet.jgea.experimenter.builders.NetworkGates.dConst()` by jgea-experimenter:2.7.1-SNAPSHOT
+
 ### Builder `ea.ttpn.gate.equal()`
 
 `ea.ttpn.gate.equal()`
@@ -3359,6 +3385,16 @@ Produces <code><abbr title="io.github.ericmedvet.jgea.core.representation.progra
 `ea.ttpn.gate.iBefore()`
 
 Produces <code><abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Gate">Gate</abbr></code>; built from `io.github.ericmedvet.jgea.experimenter.builders.NetworkGates.iBefore()` by jgea-experimenter:2.7.1-SNAPSHOT
+
+### Builder `ea.ttpn.gate.iConst()`
+
+`ea.ttpn.gate.iConst(value)`
+
+| Param | Type | Default | Java type |
+| --- | --- | --- | --- |
+| `value` | i |  | <code>int</code> |
+
+Produces <code><abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Gate">Gate</abbr></code>; built from `io.github.ericmedvet.jgea.experimenter.builders.NetworkGates.iConst()` by jgea-experimenter:2.7.1-SNAPSHOT
 
 ### Builder `ea.ttpn.gate.iPMathOperator()`
 
@@ -3499,6 +3535,16 @@ Produces <code><abbr title="io.github.ericmedvet.jgea.core.representation.progra
 `ea.ttpn.gate.sConcat()`
 
 Produces <code><abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Gate">Gate</abbr></code>; built from `io.github.ericmedvet.jgea.experimenter.builders.NetworkGates.sConcat()` by jgea-experimenter:2.7.1-SNAPSHOT
+
+### Builder `ea.ttpn.gate.sConst()`
+
+`ea.ttpn.gate.sConst(value)`
+
+| Param | Type | Default | Java type |
+| --- | --- | --- | --- |
+| `value` | s |  | <code><abbr title="java.lang.String">String</abbr></code> |
+
+Produces <code><abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Gate">Gate</abbr></code>; built from `io.github.ericmedvet.jgea.experimenter.builders.NetworkGates.sConst()` by jgea-experimenter:2.7.1-SNAPSHOT
 
 ### Builder `ea.ttpn.gate.sSplitter()`
 

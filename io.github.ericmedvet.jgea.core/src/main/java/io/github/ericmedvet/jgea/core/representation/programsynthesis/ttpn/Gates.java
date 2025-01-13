@@ -49,6 +49,28 @@ public class Gates {
     );
   }
 
+  public static Gate bConst(boolean value) {
+    return Gate.of(
+        List.of(Gate.Port.single(Generic.of("t"))),
+        List.of(Base.BOOLEAN),
+        NamedFunction.from(
+            in -> Gate.Data.singleOne(value),
+            "const[%s]".formatted(value)
+        )
+    );
+  }
+
+  public static Gate bNot() {
+    return Gate.of(
+        List.of(Gate.Port.single(Base.BOOLEAN)),
+        List.of(Base.BOOLEAN),
+        NamedFunction.from(
+            in -> Gate.Data.singleOne(!in.one(0, Boolean.class)),
+            "not"
+        )
+    );
+  }
+
   public static Gate bOr() {
     return Gate.of(
         List.of(Gate.Port.single(Base.BOOLEAN), Gate.Port.single(Base.BOOLEAN)),
@@ -91,6 +113,17 @@ public class Gates {
     );
   }
 
+  public static Gate dConst(double value) {
+    return Gate.of(
+        List.of(Gate.Port.single(Generic.of("t"))),
+        List.of(Base.REAL),
+        NamedFunction.from(
+            in -> Gate.Data.singleOne(value),
+            "const[%.1f]".formatted(value)
+        )
+    );
+  }
+
   public static Gate equal() {
     return Gate.of(
         List.of(Gate.Port.single(Generic.of("t")), Gate.Port.single(Generic.of("t"))),
@@ -109,6 +142,17 @@ public class Gates {
         NamedFunction.from(
             in -> Gate.Data.singleOne(in.one(0, Double.class).compareTo(in.one(1, Double.class)) < 0),
             "iBefore"
+        )
+    );
+  }
+
+  public static Gate iConst(int value) {
+    return Gate.of(
+        List.of(Gate.Port.single(Generic.of("t"))),
+        List.of(Base.INT),
+        NamedFunction.from(
+            in -> Gate.Data.singleOne(value),
+            "const[%s]".formatted(value)
         )
     );
   }
@@ -444,6 +488,17 @@ public class Gates {
         NamedFunction.from(
             in -> Gate.Data.singleOne(in.one(0, String.class) + in.one(1, String.class)),
             "sConcat"
+        )
+    );
+  }
+
+  public static Gate sConst(String value) {
+    return Gate.of(
+        List.of(Gate.Port.single(Generic.of("t"))),
+        List.of(Base.STRING),
+        NamedFunction.from(
+            in -> Gate.Data.singleOne(value),
+            "const[%s]".formatted(value)
         )
     );
   }

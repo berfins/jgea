@@ -40,6 +40,18 @@ public class NetworkGates {
 
   @SuppressWarnings("unused")
   @Cacheable
+  public static Gate bConst(@Param("value") boolean value) {
+    return Gates.bConst(value);
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  public static Gate bNot() {
+    return Gates.bNot();
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
   public static Gate bOr() {
     return Gates.bOr();
   }
@@ -58,6 +70,12 @@ public class NetworkGates {
 
   @SuppressWarnings("unused")
   @Cacheable
+  public static Gate dConst(@Param("value") double value) {
+    return Gates.dConst(value);
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
   public static Gate equal() {
     return Gates.equal();
   }
@@ -66,6 +84,12 @@ public class NetworkGates {
   @Cacheable
   public static Gate iBefore() {
     return Gates.iBefore();
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  public static Gate iConst(@Param("value") int value) {
+    return Gates.iConst(value);
   }
 
   @SuppressWarnings("unused")
@@ -198,6 +222,12 @@ public class NetworkGates {
   @Cacheable
   public static Gate sConcat() {
     return Gates.sConcat();
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  public static Gate sConst(@Param("value") String value) {
+    return Gates.sConst(value);
   }
 
   @SuppressWarnings("unused")
