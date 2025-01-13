@@ -25,6 +25,7 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Compo
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Generic;
 import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
 import io.github.ericmedvet.jnb.datastructure.NamedFunction;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -32,6 +33,8 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class Gates {
+
+  private static final int MAX_N_OF_OUT_TOKENS = 100;
 
   private Gates() {
   }
@@ -134,12 +137,21 @@ public class Gates {
         List.of(Gate.Port.single(Base.INT), Gate.Port.single(Base.INT)),
         List.of(Base.INT),
         NamedFunction.from(
-            in -> Gate.Data.single(
-                IntStream.range(0, in.one(1, Integer.class))
-                    .boxed()
-                    .map(Object.class::cast)
-                    .toList()
-            ),
+            in -> {
+              int n = in.one(1, Integer.class);
+              if (n > MAX_N_OF_OUT_TOKENS) {
+                throw new IllegalArgumentException("Size of token train is too large: %d>%d".formatted(
+                    n,
+                    MAX_N_OF_OUT_TOKENS
+                ));
+              }
+              return Gate.Data.single(
+                  IntStream.range(0, n)
+                      .boxed()
+                      .map(Object.class::cast)
+                      .toList()
+              );
+            },
             "iRange"
         )
     );
@@ -171,9 +183,9 @@ public class Gates {
                     .stream()
                     .reduce((n1, n2) -> n1 * n2)
                     .orElseThrow() * in.all(1, Integer.class)
-                        .stream()
-                        .reduce((n1, n2) -> n1 * n2)
-                        .orElse(1)
+                    .stream()
+                    .reduce((n1, n2) -> n1 * n2)
+                    .orElse(1)
             ),
             "sp*"
         )
@@ -190,9 +202,9 @@ public class Gates {
                     .stream()
                     .reduce(Integer::sum)
                     .orElseThrow() + in.all(1, Integer.class)
-                        .stream()
-                        .reduce(Integer::sum)
-                        .orElse(0)
+                    .stream()
+                    .reduce(Integer::sum)
+                    .orElse(0)
             ),
             "sp+"
         )
@@ -334,9 +346,9 @@ public class Gates {
                     .stream()
                     .reduce((n1, n2) -> n1 * n2)
                     .orElseThrow() * in.all(1, Double.class)
-                        .stream()
-                        .reduce((n1, n2) -> n1 * n2)
-                        .orElse(1d)
+                    .stream()
+                    .reduce((n1, n2) -> n1 * n2)
+                    .orElse(1d)
             ),
             "sp*"
         )
@@ -353,9 +365,9 @@ public class Gates {
                     .stream()
                     .reduce(Double::sum)
                     .orElseThrow() + in.all(1, Double.class)
-                        .stream()
-                        .reduce(Double::sum)
-                        .orElse(0d)
+                    .stream()
+                    .reduce(Double::sum)
+                    .orElse(0d)
             ),
             "sp+"
         )
@@ -395,7 +407,18 @@ public class Gates {
     return Gate.of(
         List.of(Gate.Port.single(Generic.of("t")), Gate.Port.single(Base.INT)),
         List.of(Generic.of("t")),
-        NamedFunction.from(in -> Gate.Data.single(Collections.nCopies(in.one(1, Integer.class), in.one(0))), "repeater")
+        NamedFunction.from(
+            in -> {
+              int n = in.one(1, Integer.class);
+              if (n > MAX_N_OF_OUT_TOKENS) {
+                throw new IllegalArgumentException("Size of token train is too large: %d>%d".formatted(
+                    n,
+                    MAX_N_OF_OUT_TOKENS
+                ));
+              }
+              return Gate.Data.single(Collections.nCopies(n, in.one(0)));
+            }, "repeater"
+        )
     );
   }
 
