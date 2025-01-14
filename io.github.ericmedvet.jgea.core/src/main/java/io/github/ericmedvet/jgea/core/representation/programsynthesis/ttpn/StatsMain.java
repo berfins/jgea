@@ -187,7 +187,12 @@ public class StatsMain {
             .map(f -> f.format().formatted(map.get(f.name())))
             .collect(Collectors.joining(" "))
     );
-    WireReplacerMutation mutation = new WireReplacerMutation(new LinkedHashSet<>(ALL_GATES), maxNumberOfGates);
+    WireReplacerMutation mutation = new WireReplacerMutation(
+        new LinkedHashSet<>(ALL_GATES),
+        maxNumberOfGates,
+        10,
+        true
+    );
     NetworkCrossover xover = new NetworkCrossover(maxNumberOfGates, XOVER_SUBNET_SIZE_RATE);
     // prepare map with stats
     List<Network> all = factory.build(nOfNetworks, rnd);

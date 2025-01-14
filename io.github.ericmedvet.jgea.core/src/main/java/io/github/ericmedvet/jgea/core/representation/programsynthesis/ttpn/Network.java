@@ -31,6 +31,7 @@ import java.util.function.ToIntFunction;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public final class Network implements Sized {
   private final List<Gate> gates;
@@ -84,6 +85,31 @@ public final class Network implements Sized {
           throw new TypeException("Incompatible types on %s: %s on src, %s on dst".formatted(wire, srcType, dstType));
         }
       }
+    }
+  }
+
+  public record Addition(List<Gate> gates, Set<Wire> wires) {
+    public static Addition empty() {
+      return new Addition(List.of(), Set.of());
+    }
+
+    public Network applyTo(Network network) throws NetworkStructureException, TypeException {
+      if (isEmpty()) {
+        return network;
+      }
+      try {
+        Network n = new Network(
+            Stream.concat(network.gates.stream(), gates.stream()).toList(),
+            Stream.concat(network.wires.stream(), wires.stream()).collect(Collectors.toCollection(LinkedHashSet::new))
+        );
+        return n;
+      } catch (NetworkStructureException | TypeException e) {
+        throw e;
+      }
+    }
+
+    public boolean isEmpty() {
+      return gates.isEmpty() && wires.isEmpty();
     }
   }
 

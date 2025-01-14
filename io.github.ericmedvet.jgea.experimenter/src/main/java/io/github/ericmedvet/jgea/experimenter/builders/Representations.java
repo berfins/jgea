@@ -237,7 +237,7 @@ public class Representations {
             maxNOfAttempts,
             avoidDeadGates
         ),
-        new WireReplacerMutation(actualGates, maxNOfGates),
+        new WireReplacerMutation(actualGates, maxNOfGates, maxNOfAttempts, avoidDeadGates),
         new NetworkCrossover(maxNOfGates, subnetSizeRate)
     );
   }

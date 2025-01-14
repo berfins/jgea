@@ -27,30 +27,55 @@ import java.util.SequencedSet;
 import java.util.Set;
 import java.util.random.RandomGenerator;
 
+// TODO add a wire changer mutation and a gate remover mutation; fix crossover
 public class WireReplacerMutation implements Mutation<Network> {
   private final SequencedSet<Gate> gates;
   private final int maxNOfGates;
+  private final int maxNOfAttempts;
+  private final boolean avoidDeadGates;
 
-  public WireReplacerMutation(SequencedSet<Gate> gates, int maxNOfGates) {
+  public WireReplacerMutation(
+      SequencedSet<Gate> gates,
+      int maxNOfGates,
+      int maxNOfAttempts,
+      boolean avoidDeadGates
+  ) {
     this.gates = gates;
     this.maxNOfGates = maxNOfGates;
+    this.maxNOfAttempts = maxNOfAttempts;
+    this.avoidDeadGates = avoidDeadGates;
   }
 
   @Override
   public Network mutate(Network n, RandomGenerator rnd) {
-    if (n.gates().size() >= maxNOfGates) {
+    if (n.gates().size() >= maxNOfGates || n.wires().isEmpty()) {
       return n;
     }
-    // cut one wire
-    Set<Wire> newWires = new HashSet<>(n.wires());
-    if (!newWires.isEmpty()) {
-      newWires.remove(Misc.pickRandomly(newWires, rnd));
+    int nOfAttempts = 0;
+    while (nOfAttempts < maxNOfAttempts) {
+      // cut one wire
+      Wire toRemoveWire = Misc.pickRandomly(n.wires(), rnd);
+      Set<Wire> newWires = new HashSet<>(n.wires());
+      newWires.remove(toRemoveWire);
+      try {
+        Network newN = new Network(n.gates(), newWires);
+        newN = NetworkUtils.growOnEndPoints(newN, toRemoveWire.src(), toRemoveWire.dst(), gates, rnd)
+            .applyTo(newN);
+        while (true) {
+          Network.Addition addition = NetworkUtils.wire(newN, false, rnd);
+          if (addition.isEmpty()) {
+            break;
+          }
+          newN = addition.applyTo(newN);
+        }
+        if (!avoidDeadGates || NetworkUtils.deadComparator().compare(newN, n) <= 0) {
+          return newN;
+        }
+        nOfAttempts = nOfAttempts + 1;
+      } catch (NetworkStructureException | TypeException e) {
+        nOfAttempts = nOfAttempts + 1;
+      }
     }
-    try {
-      n = new Network(n.gates(), newWires);
-      return NetworkFactory.growOnBoth(n, gates, rnd);
-    } catch (NetworkStructureException | TypeException e) {
-      return n;
-    }
+    return n;
   }
 }
