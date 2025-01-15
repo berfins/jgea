@@ -22,7 +22,6 @@ package io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
 import io.github.ericmedvet.jgea.core.util.Misc;
-
 import java.util.*;
 import java.util.function.Function;
 import java.util.random.RandomGenerator;
@@ -102,7 +101,7 @@ public class NetworkUtils {
 
   // TODO modify to add more than one gates at once
   public static Network.Addition growOnEndPoints(
-      Network n,
+      Network network,
       Wire.EndPoint srcEndPoint,
       Wire.EndPoint dstEndPoint,
       SequencedSet<Gate> gates,
@@ -110,8 +109,8 @@ public class NetworkUtils {
   ) {
     List<Gate> shuffledGates = new ArrayList<>(gates);
     Collections.shuffle(shuffledGates, rnd);
-    Type dstType = n.concreteInputType(dstEndPoint);
-    Type srcType = n.concreteOutputType(srcEndPoint);
+    Type dstType = network.concreteInputType(dstEndPoint);
+    Type srcType = network.concreteOutputType(srcEndPoint);
     for (Gate gate : shuffledGates) {
       List<Integer> suitableIps = IntStream.range(0, gate.inputPorts().size())
           .filter(
@@ -127,13 +126,20 @@ public class NetworkUtils {
           .boxed()
           .toList();
       if (!suitableIps.isEmpty() && !suitableOps.isEmpty()) {
-        int newGateIndex = n.gates().size();
+        int newGateIndex = freeGateIndex(network);
         Wire inWire = new Wire(srcEndPoint, new Wire.EndPoint(newGateIndex, Misc.pickRandomly(suitableIps, rnd)));
         Wire outWire = new Wire(new Wire.EndPoint(newGateIndex, Misc.pickRandomly(suitableOps, rnd)), dstEndPoint);
         return new Network.Addition(Map.of(newGateIndex, gate), Set.of(inWire, outWire));
       }
     }
     return Network.Addition.empty();
+  }
+
+  public static int freeGateIndex(Network network) {
+    return IntStream.range(0, network.gates().size() + 1)
+        .filter(gi -> !network.gates().containsKey(gi))
+        .min()
+        .orElseThrow();
   }
 
   public static Network.Addition growOnInputs(
@@ -159,7 +165,7 @@ public class NetworkUtils {
       return Network.Addition.empty();
     }
     Gate newGate = suitableGates.get(rnd.nextInt(suitableGates.size()));
-    int newGateIndex = network.gates().size();
+    int newGateIndex = freeGateIndex(network);
     List<Integer> pis = NetworkUtils.compatibleOutputPorts(newGate, type);
     Wire wire = new Wire(new Wire.EndPoint(newGateIndex, pis.get(rnd.nextInt(pis.size()))), freeEndPoint);
     return new Network.Addition(Map.of(newGateIndex, newGate), Set.of(wire));
@@ -200,7 +206,9 @@ public class NetworkUtils {
       int targetNOfGates
   ) throws NetworkStructureException, TypeException {
     List<Integer> toRemoveGis = new ArrayList<>();
-    List<Integer> availableGis = n.gates().entrySet().stream()
+    List<Integer> availableGis = n.gates()
+        .entrySet()
+        .stream()
         .filter(e -> !(e.getValue() instanceof Gate.InputGate || e.getValue() instanceof Gate.OutputGate))
         .map(Map.Entry::getKey)
         .toList();
@@ -226,25 +234,20 @@ public class NetworkUtils {
       }
       toRemoveGis.add(availableGis.get(rnd.nextInt(availableGis.size())));
     }
-
-    Map<Integer, Gate> ng = n.gates().entrySet().stream().filter(e -> !toRemoveGis.contains(e.getKey())).collect(
-        Collectors.toMap(
-            Map.Entry::getKey,
-            Map.Entry::getValue
-        ));
-    Set<Wire> nw = n.wires()
-        .stream()
-        .filter(w -> !toRemoveGis.contains(w.src().gateIndex()) || !toRemoveGis.contains(w.dst().gateIndex()))
-        .collect(Collectors.toSet());
-
     return new Network(
-        n.gates().entrySet().stream().filter(e -> !toRemoveGis.contains(e.getKey())).collect(Collectors.toMap(
-            Map.Entry::getKey,
-            Map.Entry::getValue
-        )),
+        n.gates()
+            .entrySet()
+            .stream()
+            .filter(e -> !toRemoveGis.contains(e.getKey()))
+            .collect(
+                Collectors.toMap(
+                    Map.Entry::getKey,
+                    Map.Entry::getValue
+                )
+            ),
         n.wires()
             .stream()
-            .filter(w -> !toRemoveGis.contains(w.src().gateIndex()) || !toRemoveGis.contains(w.dst().gateIndex()))
+            .filter(w -> !toRemoveGis.contains(w.src().gateIndex()) && !toRemoveGis.contains(w.dst().gateIndex()))
             .collect(Collectors.toSet())
     );
   }

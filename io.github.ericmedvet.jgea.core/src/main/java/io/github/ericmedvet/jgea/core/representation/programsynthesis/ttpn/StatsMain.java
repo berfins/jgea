@@ -124,7 +124,9 @@ public class StatsMain {
                 .toList()
         )
         .toList();
-    Predicate<Network> goodGatesPredicate = network -> IntStream.range(0, network.gates().size())
+    Predicate<Network> goodGatesPredicate = network -> network.gates()
+        .keySet()
+        .stream()
         .noneMatch(network::isDeadGate);
     List<FormattedNamedFunction<Network, Double>> fs = List.of(
         FormattedNamedFunction.from(n -> (double) n.size(), "%5.1f", "size"),
@@ -198,32 +200,32 @@ public class StatsMain {
     List<Network> all = factory.build(nOfNetworks, rnd);
     SequencedMap<String, List<Network>> map = new LinkedHashMap<>();
     map.put("factory-all", all);
-    map.put("factory-good", all.parallelStream().filter(goodGatesPredicate).toList());
-    map.put("factory-bad", all.parallelStream().filter(goodGatesPredicate.negate()).toList());
-    map.put("mutated-all", all.parallelStream().map(network -> mutation.mutate(network, rnd)).toList());
+    map.put("factory-good", all.stream().filter(goodGatesPredicate).toList());
+    map.put("factory-bad", all.stream().filter(goodGatesPredicate.negate()).toList());
+    map.put("mutated-all", all.stream().map(network -> mutation.mutate(network, rnd)).toList());
     map.put(
         "mutated-good",
-        map.get("factory-good").parallelStream().map(network -> mutation.mutate(network, rnd)).toList()
+        map.get("factory-good").stream().map(network -> mutation.mutate(network, rnd)).toList()
     );
     map.put(
         "mutated-bad",
-        map.get("factory-bad").parallelStream().map(network -> mutation.mutate(network, rnd)).toList()
+        map.get("factory-bad").stream().map(network -> mutation.mutate(network, rnd)).toList()
     );
     map.put(
         "xover-all",
-        all.parallelStream().map(network -> xover.recombine(network, Misc.pickRandomly(all, rnd), rnd)).toList()
+        all.stream().map(network -> xover.recombine(network, Misc.pickRandomly(all, rnd), rnd)).toList()
     );
     map.put(
         "xover-good",
         map.get("factory-good")
-            .parallelStream()
+            .stream()
             .map(network -> xover.recombine(network, Misc.pickRandomly(map.get("factory-good"), rnd), rnd))
             .toList()
     );
     map.put(
         "xover-bad",
         map.get("factory-bad")
-            .parallelStream()
+            .stream()
             .map(network -> xover.recombine(network, Misc.pickRandomly(map.get("factory-bad"), rnd), rnd))
             .toList()
     );

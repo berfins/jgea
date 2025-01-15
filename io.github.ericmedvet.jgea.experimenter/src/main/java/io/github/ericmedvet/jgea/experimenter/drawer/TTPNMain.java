@@ -38,51 +38,8 @@ import io.github.ericmedvet.jgea.problem.programsynthesis.synthetic.PrecomputedS
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
 import java.util.*;
 import java.util.random.RandomGenerator;
-import java.util.stream.IntStream;
 
 public class TTPNMain {
-  private static List<Gate> allGates() {
-    return List.of(
-        Gates.rPMathOperator(Element.Operator.MULTIPLICATION),
-        Gates.rPMathOperator(Element.Operator.ADDITION),
-        Gates.rPMathOperator(Element.Operator.SUBTRACTION),
-        Gates.rPMathOperator(Element.Operator.DIVISION),
-        Gates.iPMathOperator(Element.Operator.MULTIPLICATION),
-        Gates.iPMathOperator(Element.Operator.ADDITION),
-        Gates.iPMathOperator(Element.Operator.SUBTRACTION),
-        Gates.iPMathOperator(Element.Operator.DIVISION),
-        Gates.rSPSum(),
-        Gates.rSPMult(),
-        Gates.rSSum(),
-        Gates.rSMult(),
-        Gates.iSPSum(),
-        Gates.iSPMult(),
-        Gates.iSSum(),
-        Gates.iSMult(),
-        Gates.splitter(),
-        Gates.sSplitter(),
-        Gates.pairer(),
-        Gates.unpairer(),
-        Gates.noop(),
-        Gates.length(),
-        Gates.iTh(),
-        Gates.sequencer(),
-        Gates.rToI(),
-        Gates.iToR(),
-        Gates.sink(),
-        Gates.queuer(),
-        Gates.equal(),
-        Gates.iBefore(),
-        Gates.rBefore(),
-        Gates.sBefore(),
-        Gates.select(),
-        Gates.bOr(),
-        Gates.bAnd(),
-        Gates.bXor(),
-        Gates.repeater(),
-        Gates.iRange()
-    );
-  }
 
   private static void comparator() {
     ParetoDominance<Double> basePC = new ParetoDominance<>(
@@ -242,7 +199,7 @@ public class TTPNMain {
     NetworkFactory nf = new NetworkFactory(
         List.of(Composed.sequence(Base.REAL), Composed.sequence(Base.REAL)),
         List.of(Base.REAL),
-        new LinkedHashSet<>(allGates()),
+        new LinkedHashSet<>(StatsMain.ALL_GATES),
         20,
         10,
         true
@@ -274,14 +231,17 @@ public class TTPNMain {
     NetworkFactory factory = new NetworkFactory(
         List.of(Composed.sequence(Base.REAL), Composed.sequence(Base.REAL)),
         List.of(Base.REAL),
-        new LinkedHashSet<>(allGates()),
+        new LinkedHashSet<>(StatsMain.ALL_GATES),
         32,
         10,
         true
     );
     TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
-    factory.build(rnd, drawer::show);
-    IntStream.range(0, 1000).forEach(i -> factory.build(rnd, n -> System.out.printf("======%n%s%n===%n", n)));
+    Network network = factory.build(rnd);
+    drawer.show(network);
+    System.out.println(network);
+
+    //IntStream.range(0, 1000).forEach(i -> factory.build(rnd, n -> System.out.printf("======%n%s%n===%n", n)));
   }
 
   private static void loopedNet() throws NetworkStructureException, TypeException {
@@ -304,9 +264,9 @@ public class TTPNMain {
       String[] args
   ) throws NetworkStructureException, ProgramExecutionException, NoSuchMethodException, TypeException {
     //weirdOne();
-    //factory();
+    factory();
     //doComputationStuff();
-    comparator();
+    //comparator();
   }
 
   private static void weirdOne() throws NetworkStructureException, TypeException {

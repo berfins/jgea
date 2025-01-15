@@ -109,10 +109,10 @@ public class TTPNDrawer implements Drawer<Network> {
 
   private static List<Point> computeGatePoints(Network network) {
     Map<Integer, Point> map = new TreeMap<>();
-    IntStream.range(0, network.gates().size())
-        .boxed()
+    network.gates()
+        .keySet()
+        .stream()
         .sorted(Comparator.comparingInt(gi -> network.wiresTo(gi).size()))
-        //.filter(gi -> network.wiresTo(gi).isEmpty())
         .forEach(
             gi -> fillGatesPoints(
                 network,
@@ -240,7 +240,7 @@ public class TTPNDrawer implements Drawer<Network> {
   public void draw(Graphics2D g, Network network) {
     Metrics m = Metrics.of(g.getClipBounds().getWidth(), g.getClipBounds().getHeight(), network);
     //draw gates
-    IntStream.range(0, network.gates().size()).forEach(gi -> drawGate(g, m, gi, network));
+    network.gates().keySet().forEach(gi -> drawGate(g, m, gi, network));
     //draw wires
     network.wires().forEach(w -> drawWire(g, m, w, network));
   }

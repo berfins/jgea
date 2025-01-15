@@ -21,7 +21,6 @@ package io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn;
 
 import io.github.ericmedvet.jgea.core.operator.Crossover;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
-
 import java.util.random.RandomGenerator;
 
 public class NetworkCrossover implements Crossover<Network> {
