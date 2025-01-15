@@ -25,16 +25,15 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import io.github.ericmedvet.jgea.core.util.Sized;
+
 import java.util.*;
-import java.util.function.Function;
 import java.util.function.ToIntFunction;
-import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public final class Network implements Sized {
-  private final List<Gate> gates;
+  private final SortedMap<Integer, Gate> gates;
   private final Set<Wire> wires;
   private final Map<Wire.EndPoint, Type> inputConcreteTypes;
   private final Map<Wire.EndPoint, Type> outputConcreteTypes;
@@ -48,10 +47,14 @@ public final class Network implements Sized {
   private Set<Wire.EndPoint> freeOutputEndPoints;
 
   public Network(List<Gate> gates, Set<Wire> wires) throws NetworkStructureException, TypeException {
+    this(IntStream.range(0, gates.size()).boxed().collect(Misc.toSequencedMap(gates::get)), wires);
+  }
+
+  public Network(Map<Integer, Gate> gates, Set<Wire> wires) throws NetworkStructureException, TypeException {
     wiredToInputsMap = new HashMap<>();
     wiredToOutputsMap = new HashMap<>();
     deadMap = new HashMap<>();
-    this.gates = Collections.unmodifiableList(gates);
+    this.gates = Collections.unmodifiableSortedMap(new TreeMap<>(gates));
     this.wires = Collections.unmodifiableSortedSet(new TreeSet<>(wires));
     // validate wires
     for (Wire wire : wires) {
@@ -88,28 +91,50 @@ public final class Network implements Sized {
     }
   }
 
-  public record Addition(List<Gate> gates, Set<Wire> wires) {
+  public record Addition(Map<Integer, Gate> gates, Set<Wire> wires) {
     public static Addition empty() {
-      return new Addition(List.of(), Set.of());
+      return new Addition(Map.of(), Set.of());
     }
 
     public Network applyTo(Network network) throws NetworkStructureException, TypeException {
       if (isEmpty()) {
         return network;
       }
-      try {
-        Network n = new Network(
-            Stream.concat(network.gates.stream(), gates.stream()).toList(),
-            Stream.concat(network.wires.stream(), wires.stream()).collect(Collectors.toCollection(LinkedHashSet::new))
-        );
-        return n;
-      } catch (NetworkStructureException | TypeException e) {
-        throw e;
+      if (network.gates.keySet().stream().anyMatch(gates::containsKey)) {
+        throw new IllegalArgumentException("Gates indexes already present: existing=%s, new=%s".formatted(network.gates.keySet(), gates.keySet()));
       }
+      return new Network(
+          Stream.concat(network.gates.entrySet().stream(), gates.entrySet().stream()).collect(Collectors.toMap(
+              Map.Entry::getKey,
+              Map.Entry::getValue
+          )),
+          Stream.concat(network.wires.stream(), wires.stream()).collect(Collectors.toCollection(LinkedHashSet::new))
+      );
     }
 
     public boolean isEmpty() {
       return gates.isEmpty() && wires.isEmpty();
+    }
+  }
+
+  public record Deletion(List<Integer> gateIndexes, Set<Wire> wires) {
+    public static Deletion empty() {
+      return new Deletion(List.of(), Set.of());
+    }
+
+    public Network applyTo(Network network) throws NetworkStructureException, TypeException {
+      if (isEmpty()) {
+        return network;
+      }
+      Map<Integer, Gate> newGates = new HashMap<>(network.gates());
+      gateIndexes.forEach(newGates::remove);
+      SequencedSet<Wire> newWires = new LinkedHashSet<>(network.wires());
+      wires.forEach(newWires::remove);
+      return new Network(newGates, newWires);
+    }
+
+    public boolean isEmpty() {
+      return gateIndexes.isEmpty() && wires.isEmpty();
     }
   }
 
@@ -230,11 +255,11 @@ public final class Network implements Sized {
   }
 
   public List<Integer> deadGates() {
-    return IntStream.range(0, gates.size()).filter(this::isDeadGate).boxed().toList();
+    return gates.keySet().stream().filter(this::isDeadGate).toList();
   }
 
   public List<Integer> deadOrIUnwiredGates() {
-    return IntStream.range(0, gates.size()).filter(gi -> isDeadGate(gi) || !isWiredToInput(gi)).boxed().toList();
+    return gates.keySet().stream().filter(gi -> isDeadGate(gi) || !isWiredToInput(gi)).toList();
   }
 
   public SortedMap<Integer, Type> deadOrIUnwiredOutputGates() {
@@ -296,7 +321,7 @@ public final class Network implements Sized {
       return disjointSubnetworksGateIndexes;
     }
     disjointSubnetworksGateIndexes = new ArrayList<>();
-    SequencedSet<Integer> allGis = new LinkedHashSet<>(IntStream.range(0, gates.size()).boxed().toList());
+    SequencedSet<Integer> allGis = new LinkedHashSet<>(gates.keySet());
     while (!allGis.isEmpty()) {
       SequencedSet<Integer> subnetGis = new LinkedHashSet<>();
       findWiredGates(allGis.getFirst(), subnetGis);
@@ -323,12 +348,11 @@ public final class Network implements Sized {
     if (freeInputEndPoints != null) {
       return freeInputEndPoints;
     }
-    freeInputEndPoints = IntStream.range(0, gates.size())
-        .mapToObj(
+    freeInputEndPoints = gates.keySet().stream()
+        .flatMap(
             gi -> IntStream.range(0, gates.get(gi).inputPorts().size())
                 .mapToObj(pi -> new Wire.EndPoint(gi, pi))
         )
-        .flatMap(Function.identity())
         .filter(ep -> wireTo(ep).isEmpty())
         .collect(Collectors.toCollection(LinkedHashSet::new));
     return freeInputEndPoints;
@@ -352,18 +376,17 @@ public final class Network implements Sized {
     if (freeOutputEndPoints != null) {
       return freeOutputEndPoints;
     }
-    freeOutputEndPoints = IntStream.range(0, gates.size())
-        .mapToObj(
+    freeOutputEndPoints = gates.keySet().stream()
+        .flatMap(
             gi -> IntStream.range(0, gates.get(gi).outputTypes().size())
                 .mapToObj(pi -> new Wire.EndPoint(gi, pi))
         )
-        .flatMap(Function.identity())
         .filter(ep -> wiresFrom(ep).isEmpty())
         .collect(Collectors.toCollection(LinkedHashSet::new));
     return freeOutputEndPoints;
   }
 
-  public List<Gate> gates() {
+  public SortedMap<Integer, Gate> gates() {
     return gates;
   }
 
@@ -384,31 +407,31 @@ public final class Network implements Sized {
 
   @Override
   public String toString() {
-    return IntStream.range(0, gates.size())
-        .mapToObj(
-            i -> "%3d: %s %s(%s)-->(%s)"
+    return gates.entrySet().stream()
+        .map(
+            e -> "%3d: %s %s(%s)-->(%s)"
                 .formatted(
-                    i,
-                    gates.get(i),
-                    (gates.get(i).hasGenerics() && !gateConcreteTypes.get(i).isEmpty()) ? "{with %s} ".formatted(
-                        gateConcreteTypes.get(i)
+                    e.getKey(),
+                    e.getValue(),
+                    (e.getValue().hasGenerics() && !gateConcreteTypes.get(e.getKey()).isEmpty()) ? "{with %s} ".formatted(
+                        gateConcreteTypes.get(e.getKey())
                             .entrySet()
                             .stream()
                             .map(Object::toString)
                             .collect(Collectors.joining(","))
                     ) : "",
-                    IntStream.range(0, gates.get(i).inputPorts().size())
+                    IntStream.range(0, e.getValue().inputPorts().size())
                         .mapToObj(
-                            j -> wireTo(new Wire.EndPoint(i, j))
+                            j -> wireTo(new Wire.EndPoint(e.getKey(), j))
                                 .map(w -> w.src().toString())
                                 .orElse("_")
                         )
                         .collect(Collectors.joining(",")),
-                    IntStream.range(0, gates.get(i).outputTypes().size())
+                    IntStream.range(0, e.getValue().outputTypes().size())
                         .mapToObj(
-                            j -> (wiresFrom(new Wire.EndPoint(i, j)).isEmpty() ? "_" : wiresFrom(
+                            j -> (wiresFrom(new Wire.EndPoint(e.getKey(), j)).isEmpty() ? "_" : wiresFrom(
                                 new Wire.EndPoint(
-                                    i,
+                                    e.getKey(),
                                     j
                                 )
                             ).stream()
@@ -444,13 +467,12 @@ public final class Network implements Sized {
 
   public SortedMap<Integer, Type> inputGates() {
     return new TreeMap<>(
-        IntStream.range(0, gates.size())
-            .filter(gi -> gates.get(gi) instanceof Gate.InputGate)
-            .boxed()
+        gates.entrySet().stream()
+            .filter(e -> e.getValue() instanceof Gate.InputGate)
             .collect(
                 Collectors.toMap(
-                    gi -> gi,
-                    gi -> ((Gate.InputGate) gates.get(gi)).type()
+                    Map.Entry::getKey,
+                    e -> ((Gate.InputGate) e.getValue()).type()
                 )
             )
     );
@@ -518,14 +540,16 @@ public final class Network implements Sized {
   }
 
   public Network mergedWith(Network other) throws NetworkStructureException, TypeException {
-    List<Gate> newGates = new ArrayList<>(gates);
+    int maxGI = gates.keySet().stream().mapToInt(i -> i).max().orElse(0);
+    Map<Integer, Gate> newGates = new HashMap<>(gates);
     Set<Wire> newWires = new LinkedHashSet<>(wires);
-    int deltaGI = newGates.size();
-    UnaryOperator<Wire.EndPoint> endPointRemapper = ep -> new Wire.EndPoint(ep.gateIndex() + deltaGI, ep.portIndex());
-    newGates.addAll(other.gates);
-    other.wires.stream()
-        .map(w -> new Wire(endPointRemapper.apply(w.src()), endPointRemapper.apply(w.dst())))
-        .forEach(newWires::add);
+    other.gates.forEach((gi, g) -> newGates.put(gi+maxGI+1, g));
+    other.wires.forEach(w -> newWires.add(Wire.of(
+        w.src().gateIndex()+maxGI+1,
+        w.src().portIndex(),
+        w.dst().gateIndex()+maxGI+1,
+        w.dst().portIndex()
+    )));
     return new Network(newGates, newWires);
   }
 
@@ -552,25 +576,23 @@ public final class Network implements Sized {
 
   public SortedMap<Integer, Type> outputGates() {
     return new TreeMap<>(
-        IntStream.range(0, gates.size())
-            .filter(gi -> gates.get(gi) instanceof Gate.OutputGate)
-            .boxed()
+        gates.entrySet().stream()
+            .filter(e -> e.getValue() instanceof Gate.OutputGate)
             .collect(
                 Collectors.toMap(
-                    gi -> gi,
-                    gi -> ((Gate.OutputGate) gates.get(gi)).type()
+                    Map.Entry::getKey,
+                    e -> ((Gate.OutputGate) e.getValue()).type()
                 )
             )
     );
   }
 
   public Set<Wire.EndPoint> outputPorts() {
-    return IntStream.range(0, gates.size())
-        .mapToObj(
-            gi -> IntStream.range(0, gates.get(gi).outputTypes().size())
-                .mapToObj(pi -> new Wire.EndPoint(gi, pi))
+    return gates.entrySet().stream()
+        .flatMap(
+            e -> IntStream.range(0, e.getValue().outputTypes().size())
+                .mapToObj(pi -> new Wire.EndPoint(e.getKey(), pi))
         )
-        .flatMap(Function.identity())
         .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
@@ -580,6 +602,7 @@ public final class Network implements Sized {
 
   public List<Type> outputTypes() {
     return gates()
+        .values()
         .stream()
         .filter(g -> g instanceof Gate.OutputGate)
         .map(g -> ((Gate.OutputGate) g).type())
@@ -687,16 +710,16 @@ public final class Network implements Sized {
   }
 
   private void validatePortIndexes(Wire wire) throws NetworkStructureException {
-    if (gates().get(wire.src().gateIndex()).outputTypes().size() <= wire.src().portIndex()) {
+    if (gates.get(wire.src().gateIndex()).outputTypes().size() <= wire.src().portIndex()) {
       throw new NetworkStructureException(
           "Not existing out port in src gate (%s)"
-              .formatted(gates().get(wire.src().gateIndex()))
+              .formatted(gates.get(wire.src().gateIndex()))
       );
     }
-    if (gates().get(wire.dst().gateIndex()).inputPorts().size() <= wire.dst().portIndex()) {
+    if (gates.get(wire.dst().gateIndex()).inputPorts().size() <= wire.dst().portIndex()) {
       throw new NetworkStructureException(
           "Not existing in port in dst gate (%s)"
-              .formatted(gates().get(wire.dst().gateIndex()))
+              .formatted(gates.get(wire.dst().gateIndex()))
       );
     }
   }

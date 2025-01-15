@@ -22,6 +22,7 @@ package io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
 import io.github.ericmedvet.jgea.core.util.Misc;
+
 import java.util.*;
 import java.util.function.Function;
 import java.util.random.RandomGenerator;
@@ -129,7 +130,7 @@ public class NetworkUtils {
         int newGateIndex = n.gates().size();
         Wire inWire = new Wire(srcEndPoint, new Wire.EndPoint(newGateIndex, Misc.pickRandomly(suitableIps, rnd)));
         Wire outWire = new Wire(new Wire.EndPoint(newGateIndex, Misc.pickRandomly(suitableOps, rnd)), dstEndPoint);
-        return new Network.Addition(List.of(gate), Set.of(inWire, outWire));
+        return new Network.Addition(Map.of(newGateIndex, gate), Set.of(inWire, outWire));
       }
     }
     return Network.Addition.empty();
@@ -157,38 +158,40 @@ public class NetworkUtils {
     if (suitableGates.isEmpty()) {
       return Network.Addition.empty();
     }
-    Gate gate = suitableGates.get(rnd.nextInt(suitableGates.size()));
-    List<Integer> pis = NetworkUtils.compatibleOutputPorts(gate, type);
-    Wire wire = new Wire(new Wire.EndPoint(network.gates().size(), pis.get(rnd.nextInt(pis.size()))), freeEndPoint);
-    return new Network.Addition(List.of(gate), Set.of(wire));
+    Gate newGate = suitableGates.get(rnd.nextInt(suitableGates.size()));
+    int newGateIndex = network.gates().size();
+    List<Integer> pis = NetworkUtils.compatibleOutputPorts(newGate, type);
+    Wire wire = new Wire(new Wire.EndPoint(newGateIndex, pis.get(rnd.nextInt(pis.size()))), freeEndPoint);
+    return new Network.Addition(Map.of(newGateIndex, newGate), Set.of(wire));
   }
 
   protected static Network.Addition growOnOutputs(
-      Network n,
+      Network network,
       SequencedSet<Gate> gates,
       RandomGenerator rnd
   ) throws NetworkStructureException, TypeException {
     record WeightedEndPoint(Wire.EndPoint endPoint, int distance) {}
-    Optional<Wire.EndPoint> oFreeEndPoint = n.freeOutputEndPoints()
+    Optional<Wire.EndPoint> oFreeEndPoint = network.freeOutputEndPoints()
         .stream()
-        .map(ep -> new WeightedEndPoint(ep, n.inputDistanceFrom(Gate.InputGate.class, ep.gateIndex())))
+        .map(ep -> new WeightedEndPoint(ep, network.inputDistanceFrom(Gate.InputGate.class, ep.gateIndex())))
         .min(Comparator.comparingInt(WeightedEndPoint::distance))
         .map(WeightedEndPoint::endPoint);
     if (oFreeEndPoint.isEmpty()) {
       return Network.Addition.empty();
     }
     Wire.EndPoint freeEndPoint = oFreeEndPoint.get();
-    Type type = n.concreteOutputType(freeEndPoint);
+    Type type = network.concreteOutputType(freeEndPoint);
     List<Gate> suitableGates = gates.stream()
         .filter(g -> !NetworkUtils.compatibleInputPorts(g, type).isEmpty())
         .toList();
     if (suitableGates.isEmpty()) {
       return Network.Addition.empty();
     }
-    Gate gate = suitableGates.get(rnd.nextInt(suitableGates.size()));
-    List<Integer> pis = NetworkUtils.compatibleInputPorts(gate, type);
-    Wire wire = new Wire(freeEndPoint, new Wire.EndPoint(n.gates().size(), pis.get(rnd.nextInt(pis.size()))));
-    return new Network.Addition(List.of(gate), Set.of(wire));
+    Gate newGate = suitableGates.get(rnd.nextInt(suitableGates.size()));
+    int newGateIndex = network.gates().size();
+    List<Integer> pis = NetworkUtils.compatibleInputPorts(newGate, type);
+    Wire wire = new Wire(freeEndPoint, new Wire.EndPoint(network.gates().size(), pis.get(rnd.nextInt(pis.size()))));
+    return new Network.Addition(Map.of(newGateIndex, newGate), Set.of(wire));
   }
 
   public static Network randomHoledNetwork(
@@ -196,14 +199,14 @@ public class NetworkUtils {
       RandomGenerator rnd,
       int targetNOfGates
   ) throws NetworkStructureException, TypeException {
-    List<Integer> gis = new ArrayList<>();
-    List<Integer> availableGis = IntStream.range(0, n.gates().size())
-        .boxed()
-        .filter(gi -> !(n.gates().get(gi) instanceof Gate.InputGate || n.gates().get(gi) instanceof Gate.OutputGate))
+    List<Integer> toRemoveGis = new ArrayList<>();
+    List<Integer> availableGis = n.gates().entrySet().stream()
+        .filter(e -> !(e.getValue() instanceof Gate.InputGate || e.getValue() instanceof Gate.OutputGate))
+        .map(Map.Entry::getKey)
         .toList();
-    while (gis.size() < targetNOfGates) {
-      if (!gis.isEmpty()) {
-        availableGis = gis.stream()
+    while (toRemoveGis.size() < targetNOfGates) {
+      if (!toRemoveGis.isEmpty()) {
+        availableGis = toRemoveGis.stream()
             .flatMap(
                 gi -> Stream.concat(
                     n.wiresFrom(gi).stream().map(w -> w.dst().gateIndex()),
@@ -211,7 +214,7 @@ public class NetworkUtils {
                 )
             )
             .distinct()
-            .filter(gi -> !gis.contains(gi))
+            .filter(gi -> !toRemoveGis.contains(gi))
             .filter(
                 gi -> !(n.gates().get(gi) instanceof Gate.InputGate || n.gates()
                     .get(gi) instanceof Gate.OutputGate)
@@ -221,25 +224,28 @@ public class NetworkUtils {
       if (availableGis.isEmpty()) {
         break;
       }
-      gis.add(availableGis.get(rnd.nextInt(availableGis.size())));
+      toRemoveGis.add(availableGis.get(rnd.nextInt(availableGis.size())));
     }
-    List<Integer> selectedGis = IntStream.range(0, n.gates().size()).filter(gi -> !gis.contains(gi)).boxed().toList();
-    // find and remap wires
-    SequencedSet<Wire> wires = n.wires()
+
+    Map<Integer, Gate> ng = n.gates().entrySet().stream().filter(e -> !toRemoveGis.contains(e.getKey())).collect(
+        Collectors.toMap(
+            Map.Entry::getKey,
+            Map.Entry::getValue
+        ));
+    Set<Wire> nw = n.wires()
         .stream()
-        .filter(w -> !gis.contains(w.src().gateIndex()) && !gis.contains(w.dst().gateIndex()))
-        .map(
-            w -> Wire.of(
-                selectedGis.indexOf(w.src().gateIndex()),
-                w.src().portIndex(),
-                selectedGis.indexOf(w.dst().gateIndex()),
-                w.dst().portIndex()
-            )
-        )
-        .collect(Collectors.toCollection(LinkedHashSet::new));
+        .filter(w -> !toRemoveGis.contains(w.src().gateIndex()) || !toRemoveGis.contains(w.dst().gateIndex()))
+        .collect(Collectors.toSet());
+
     return new Network(
-        selectedGis.stream().map(gi -> n.gates().get(gi)).toList(),
-        wires
+        n.gates().entrySet().stream().filter(e -> !toRemoveGis.contains(e.getKey())).collect(Collectors.toMap(
+            Map.Entry::getKey,
+            Map.Entry::getValue
+        )),
+        n.wires()
+            .stream()
+            .filter(w -> !toRemoveGis.contains(w.src().gateIndex()) || !toRemoveGis.contains(w.dst().gateIndex()))
+            .collect(Collectors.toSet())
     );
   }
 
@@ -248,14 +254,14 @@ public class NetworkUtils {
       RandomGenerator rnd,
       int targetNOfGates
   ) throws NetworkStructureException, TypeException {
-    List<Integer> gis = new ArrayList<>();
+    List<Integer> toKeepGis = new ArrayList<>();
     List<Integer> availableGis = IntStream.range(0, n.gates().size())
         .boxed()
         .filter(gi -> !(n.gates().get(gi) instanceof Gate.InputGate || n.gates().get(gi) instanceof Gate.OutputGate))
         .toList();
-    while (gis.size() < targetNOfGates) {
-      if (!gis.isEmpty()) {
-        availableGis = gis.stream()
+    while (toKeepGis.size() < targetNOfGates) {
+      if (!toKeepGis.isEmpty()) {
+        availableGis = toKeepGis.stream()
             .flatMap(
                 gi -> Stream.concat(
                     n.wiresFrom(gi).stream().map(w -> w.dst().gateIndex()),
@@ -263,7 +269,7 @@ public class NetworkUtils {
                 )
             )
             .distinct()
-            .filter(gi -> !gis.contains(gi))
+            .filter(gi -> !toKeepGis.contains(gi))
             .filter(
                 gi -> !(n.gates().get(gi) instanceof Gate.InputGate || n.gates()
                     .get(gi) instanceof Gate.OutputGate)
@@ -273,24 +279,14 @@ public class NetworkUtils {
       if (availableGis.isEmpty()) {
         break;
       }
-      gis.add(availableGis.get(rnd.nextInt(availableGis.size())));
+      toKeepGis.add(availableGis.get(rnd.nextInt(availableGis.size())));
     }
-    // find and remap wires
-    SequencedSet<Wire> wires = n.wires()
-        .stream()
-        .filter(w -> gis.contains(w.src().gateIndex()) && gis.contains(w.dst().gateIndex()))
-        .map(
-            w -> Wire.of(
-                gis.indexOf(w.src().gateIndex()),
-                w.src().portIndex(),
-                gis.indexOf(w.dst().gateIndex()),
-                w.dst().portIndex()
-            )
-        )
-        .collect(Collectors.toCollection(LinkedHashSet::new));
     return new Network(
-        gis.stream().map(gi -> n.gates().get(gi)).toList(),
-        wires
+        toKeepGis.stream().collect(Collectors.toMap(gi -> gi, gi -> n.gates().get(gi))),
+        n.wires()
+            .stream()
+            .filter(w -> toKeepGis.contains(w.src().gateIndex()) || toKeepGis.contains(w.dst().gateIndex()))
+            .collect(Collectors.toSet())
     );
   }
 
@@ -396,7 +392,7 @@ public class NetworkUtils {
             .toList();
         if (!suitableOEeps.isEmpty()) {
           EnrichedEndPoint oEep = Misc.pickRandomly(suitableOEeps, rnd);
-          return new Network.Addition(List.of(), Set.of(new Wire(oEep.endPoint, iEep.endPoint)));
+          return new Network.Addition(Map.of(), Set.of(new Wire(oEep.endPoint, iEep.endPoint)));
         }
       }
     }
