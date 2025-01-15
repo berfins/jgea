@@ -416,9 +416,10 @@ public final class Network implements Sized {
     return gates.entrySet()
         .stream()
         .map(
-            e -> "%3d: %s %s(%s)-->(%s)"
+            e -> "%3d%1.1s: %s %s(%s)-->(%s)"
                 .formatted(
                     e.getKey(),
+                    isDeadGate(e.getKey()) ? "*" : "",
                     e.getValue(),
                     (e.getValue().hasGenerics() && !gateConcreteTypes.get(e.getKey()).isEmpty()) ? "{with %s} "
                         .formatted(

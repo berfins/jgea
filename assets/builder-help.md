@@ -1910,12 +1910,12 @@ Produces <code><abbr title="java.util.Map$Entry">Map$Entry</abbr>&lt;K, V&gt;</c
 
 ### Builder `ea.misc.imgByName()`
 
-`ea.misc.imgByName(name; bgColor; w; h; marginRate)`
+`ea.misc.imgByName(name; gateBGColor; w; h; marginRate)`
 
 | Param | Type | Default | Java type |
 | --- | --- | --- | --- |
 | `name` | s |  | <code><abbr title="java.lang.String">String</abbr></code> |
-| `bgColor` | npm | `ea.misc.colorByName(name = black)` | <code><abbr title="java.awt.Color">Color</abbr></code> |
+| `gateBGColor` | npm | `ea.misc.colorByName(name = black)` | <code><abbr title="java.awt.Color">Color</abbr></code> |
 | `w` | i | `15` | <code>int</code> |
 | `h` | i | `15` | <code>int</code> |
 | `marginRate` | d | `0.1` | <code>double</code> |
@@ -1924,13 +1924,13 @@ Produces <code><abbr title="java.awt.image.BufferedImage">BufferedImage</abbr></
 
 ### Builder `ea.misc.imgFromString()`
 
-`ea.misc.imgFromString(s; fgColor; bgColor; w; h; marginRate)`
+`ea.misc.imgFromString(s; borderColor; gateBGColor; w; h; marginRate)`
 
 | Param | Type | Default | Java type |
 | --- | --- | --- | --- |
 | `s` | s |  | <code><abbr title="java.lang.String">String</abbr></code> |
-| `fgColor` | npm | `ea.misc.colorByName(name = white)` | <code><abbr title="java.awt.Color">Color</abbr></code> |
-| `bgColor` | npm | `ea.misc.colorByName(name = black)` | <code><abbr title="java.awt.Color">Color</abbr></code> |
+| `borderColor` | npm | `ea.misc.colorByName(name = white)` | <code><abbr title="java.awt.Color">Color</abbr></code> |
+| `gateBGColor` | npm | `ea.misc.colorByName(name = black)` | <code><abbr title="java.awt.Color">Color</abbr></code> |
 | `w` | i | `159` | <code>int</code> |
 | `h` | i | `15` | <code>int</code> |
 | `marginRate` | d | `0.1` | <code>double</code> |

@@ -233,8 +233,8 @@ public class TTPNMain {
         List.of(Base.REAL),
         new LinkedHashSet<>(StatsMain.ALL_GATES),
         32,
-        10,
-        true
+        0,
+        false
     );
     TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
     Network network = factory.build(rnd);

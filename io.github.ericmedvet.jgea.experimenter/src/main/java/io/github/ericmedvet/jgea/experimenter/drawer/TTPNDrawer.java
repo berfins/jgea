@@ -45,14 +45,16 @@ public class TTPNDrawer implements Drawer<Network> {
   }
 
   public record Configuration(
-      Color bgColor, Color fgColor, Map<Base, Color> baseTypeColors, Color otherTypeColor, double gateW, double wireW,
+      Color gateBGColor, Color deadGateBGColor, Color borderColor, Map<Base, Color> baseTypeColors,
+      Color otherTypeColor, double gateW, double wireW,
       double gateWHRatio, double portRadiusHRate, double gapWRate, double gapHRate, double marginWRate,
       double marginHRate, double gateOutputWRate, double gateOutputHRate, double ioGateOutputWRate,
       double ioGateOutputHRate, double textWMarginRate, double textHMarginRate,
-      boolean showGateIndex
+      boolean showGateIndex, boolean showDeadGate
   ) {
     public static Configuration DEFAULT = new Configuration(
         Color.LIGHT_GRAY,
+        Color.PINK,
         Color.BLACK,
         Map.ofEntries(
             Map.entry(Base.INT, Color.BLUE),
@@ -60,7 +62,7 @@ public class TTPNDrawer implements Drawer<Network> {
             Map.entry(Base.BOOLEAN, Color.RED),
             Map.entry(Base.STRING, Color.GREEN)
         ),
-        Color.GRAY,
+        Color.DARK_GRAY,
         100,
         5,
         1.5d,
@@ -75,6 +77,7 @@ public class TTPNDrawer implements Drawer<Network> {
         0.5d,
         0.05,
         0.05,
+        true,
         true
     );
   }
@@ -248,7 +251,7 @@ public class TTPNDrawer implements Drawer<Network> {
   private void drawWire(Graphics2D g, Metrics m, Wire w, Network network) {
     Path2D path = computeWirePath(m, w, network);
     Stroke stroke = g.getStroke();
-    g.setColor(configuration.fgColor);
+    g.setColor(configuration.borderColor);
     g.setStroke(
         new BasicStroke(
             (float) configuration.wireW,
@@ -257,7 +260,7 @@ public class TTPNDrawer implements Drawer<Network> {
         )
     );
     g.draw(path);
-    g.setColor(configuration.bgColor);
+    g.setColor(configuration.gateBGColor);
     g.setStroke(
         new BasicStroke(
             (float) configuration.wireW - 2f,
@@ -309,9 +312,13 @@ public class TTPNDrawer implements Drawer<Network> {
         yield p;
       }
     };
-    g.setColor(configuration.bgColor);
+    if (configuration.showDeadGate && network.isDeadGate(gi)) {
+      g.setColor(configuration.deadGateBGColor);
+    } else {
+      g.setColor(configuration.gateBGColor);
+    }
     g.fill(s);
-    g.setColor(configuration.fgColor);
+    g.setColor(configuration.borderColor);
     g.draw(s);
     // draw ports
     IntStream.range(0, gate.inputPorts().size())
@@ -341,7 +348,7 @@ public class TTPNDrawer implements Drawer<Network> {
             )
         );
     // write name
-    g.setColor(configuration.fgColor);
+    g.setColor(configuration.borderColor);
     Shape originalClip = g.getClip();
     g.setClip(s);
     String str = switch (gate) {
@@ -349,9 +356,6 @@ public class TTPNDrawer implements Drawer<Network> {
       case Gate.OutputGate outputGate -> "O-%d".formatted(indexOf(Gate.OutputGate.class, gi, network));
       default -> gate.operator().toString();
     };
-    if (configuration.showGateIndex) {
-      str = str + "[%d]".formatted(gi);
-    }
     Rectangle2D strR = ImageUtils.bounds(str, g.getFont(), g);
     float labelY = (float) (yR.min() + strR.getHeight() + yR.extent() * configuration.textHMarginRate);
     float labelX = switch (gate) {
@@ -361,6 +365,12 @@ public class TTPNDrawer implements Drawer<Network> {
       default -> (float) (xR.center() - strR.getWidth() / 2d);
     };
     g.drawString(str, labelX, labelY);
+    // write id
+    if (configuration.showGateIndex) {
+      str = "id:%d".formatted(gi);
+      strR = ImageUtils.bounds(str, g.getFont(), g);
+      g.drawString(str, (float) (xR.center() - strR.getWidth() / 2d), (float) (yR.center() + strR.getHeight() / 2d));
+    }
     // write generics
     if (gate.hasGenerics()) {
       str = network.concreteMapping(gi)
@@ -399,9 +409,9 @@ public class TTPNDrawer implements Drawer<Network> {
         2d * pR
     ) : new Rectangle2D.Double(xR.max() - 2d * pR, nThPos(pi, nPorts, yR) - pR, 2d * pR, 2d * pR);
     g.fill(s);
-    g.setColor(configuration.fgColor);
+    g.setColor(configuration.borderColor);
     g.draw(s);
-    g.setColor(configuration.fgColor);
+    g.setColor(configuration.borderColor);
     Rectangle2D strR = ImageUtils.bounds(label, g.getFont(), g);
     if (isInput) {
       g.drawString(label, (float) (xR.min() + 2.5d * pR), (float) (nThPos(pi, nPorts, yR) + 2d * pR + strR.getMinY()));

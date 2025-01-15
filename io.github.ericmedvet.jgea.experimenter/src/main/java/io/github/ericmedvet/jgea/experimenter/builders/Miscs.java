@@ -113,7 +113,7 @@ public class Miscs {
   @Cacheable
   public static BufferedImage imgByName(
       @Param("name") String name,
-      @Param(value = "bgColor", dNPM = "ea.misc.colorByName(name = black)") Color bgColor,
+      @Param(value = "gateBGColor", dNPM = "ea.misc.colorByName(name = black)") Color bgColor,
       @Param(value = "w", dI = 15) int w,
       @Param(value = "h", dI = 15) int h,
       @Param(value = "marginRate", dD = 0.1) double marginRate
@@ -126,8 +126,8 @@ public class Miscs {
   @Cacheable
   public static BufferedImage imgFromString(
       @Param("s") String s,
-      @Param(value = "fgColor", dNPM = "ea.misc.colorByName(name = white)") Color fgColor,
-      @Param(value = "bgColor", dNPM = "ea.misc.colorByName(name = black)") Color bgColor,
+      @Param(value = "borderColor", dNPM = "ea.misc.colorByName(name = white)") Color fgColor,
+      @Param(value = "gateBGColor", dNPM = "ea.misc.colorByName(name = black)") Color bgColor,
       @Param(value = "w", dI = 159) int w,
       @Param(value = "h", dI = 15) int h,
       @Param(value = "marginRate", dD = 0.1) double marginRate
