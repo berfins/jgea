@@ -189,12 +189,13 @@ public class StatsMain {
             .map(f -> f.format().formatted(map.get(f.name())))
             .collect(Collectors.joining(" "))
     );
-    WireReplacerMutation mutation = new WireReplacerMutation(
+    WireInserterMutation wiMutation = new WireInserterMutation(
         new LinkedHashSet<>(ALL_GATES),
         maxNumberOfGates,
         10,
         true
     );
+    GateRemoverMutation grMutation = new GateRemoverMutation(10, true);
     NetworkCrossover xover = new NetworkCrossover(maxNumberOfGates, XOVER_SUBNET_SIZE_RATE);
     // prepare map with stats
     List<Network> all = factory.build(nOfNetworks, rnd);
@@ -202,14 +203,23 @@ public class StatsMain {
     map.put("factory-all", all);
     map.put("factory-good", all.stream().filter(goodGatesPredicate).toList());
     map.put("factory-bad", all.stream().filter(goodGatesPredicate.negate()).toList());
-    map.put("mutated-all", all.stream().map(network -> mutation.mutate(network, rnd)).toList());
+    map.put("wi-mutated-all", all.stream().map(network -> wiMutation.mutate(network, rnd)).toList());
     map.put(
-        "mutated-good",
-        map.get("factory-good").stream().map(network -> mutation.mutate(network, rnd)).toList()
+        "wi-mutated-good",
+        map.get("factory-good").stream().map(network -> wiMutation.mutate(network, rnd)).toList()
     );
     map.put(
-        "mutated-bad",
-        map.get("factory-bad").stream().map(network -> mutation.mutate(network, rnd)).toList()
+        "wi-mutated-bad",
+        map.get("factory-bad").stream().map(network -> wiMutation.mutate(network, rnd)).toList()
+    );
+    map.put("gr-mutated-all", all.stream().map(network -> grMutation.mutate(network, rnd)).toList());
+    map.put(
+        "gr-mutated-good",
+        map.get("factory-good").stream().map(network -> grMutation.mutate(network, rnd)).toList()
+    );
+    map.put(
+        "gr-mutated-bad",
+        map.get("factory-bad").stream().map(network -> grMutation.mutate(network, rnd)).toList()
     );
     map.put(
         "xover-all",

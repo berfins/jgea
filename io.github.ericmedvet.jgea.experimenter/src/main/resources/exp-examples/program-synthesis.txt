@@ -12,7 +12,7 @@ ea.experiment(
     ]) * [ea.p.smoToSubsettedSmo(objectives = [avg_raw_dissimilarity])]) *
     (solver = (nEval = $nEvals) * [
       ea.s.ttpnGp(
-        crossoverP = 0.5;
+        crossoverP = 0.0;
         iComparators = [ea.comparator.pAscending(of = ea.f.ttpnDeadGatesRate(of = ea.f.genotype()))]
       )
     ]) * [

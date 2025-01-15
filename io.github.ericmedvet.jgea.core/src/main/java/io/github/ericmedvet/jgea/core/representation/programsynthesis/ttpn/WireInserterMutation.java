@@ -27,14 +27,13 @@ import java.util.SequencedSet;
 import java.util.Set;
 import java.util.random.RandomGenerator;
 
-// TODO add a wire changer mutation and a gate remover mutation; fix crossover
-public class WireReplacerMutation implements Mutation<Network> {
+public class WireInserterMutation implements Mutation<Network> {
   private final SequencedSet<Gate> gates;
   private final int maxNOfGates;
   private final int maxNOfAttempts;
   private final boolean avoidDeadGates;
 
-  public WireReplacerMutation(
+  public WireInserterMutation(
       SequencedSet<Gate> gates,
       int maxNOfGates,
       int maxNOfAttempts,
