@@ -21,6 +21,7 @@ package io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn;
 
 import io.github.ericmedvet.jgea.core.operator.Crossover;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
+
 import java.util.random.RandomGenerator;
 
 public class NetworkCrossover implements Crossover<Network> {
@@ -38,20 +39,12 @@ public class NetworkCrossover implements Crossover<Network> {
       int innerSize1 = (int) n1.gates()
           .values()
           .stream()
-          .filter(
-              g -> Gate.InputGate.class.isAssignableFrom(g.getClass()) || Gate.OutputGate.class.isAssignableFrom(
-                  g.getClass()
-              )
-          )
+          .filter(g -> !(g instanceof Gate.InputGate) && !(g instanceof Gate.OutputGate))
           .count();
       int innerSize2 = (int) n2.gates()
           .values()
           .stream()
-          .filter(
-              g -> Gate.InputGate.class.isAssignableFrom(g.getClass()) || Gate.OutputGate.class.isAssignableFrom(
-                  g.getClass()
-              )
-          )
+          .filter(g -> !(g instanceof Gate.InputGate) && !(g instanceof Gate.OutputGate))
           .count();
       Network hn1 = NetworkUtils.randomHoledNetwork(n1, rnd, (int) Math.max(1, innerSize1 * subnetSizeRate));
       Network sn2 = NetworkUtils.randomSubnetwork(

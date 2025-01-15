@@ -83,13 +83,13 @@ public class TTPNDrawer implements Drawer<Network> {
   }
 
   private record Metrics(
-      double w, double h, int iW, int iH, List<Point> gatePoints, Map<Integer, SequencedSet<Wire>> xGapWires,
+      double w, double h, int iW, int iH, Map<Integer, Point> gatePoints, Map<Integer, SequencedSet<Wire>> xGapWires,
       Map<Integer, SequencedSet<Wire>> yGapWires
   ) {
     public static Metrics of(double w, double h, Network network) {
-      List<Point> gatePoints = computeGatePoints(network);
-      int iW = gatePoints.stream().mapToInt(Point::x).max().orElseThrow() + 1;
-      int iH = gatePoints.stream().mapToInt(Point::y).max().orElseThrow() + 1;
+      Map<Integer, Point> gatePoints = computeGatePoints(network);
+      int iW = gatePoints.values().stream().mapToInt(Point::x).max().orElseThrow() + 1;
+      int iH = gatePoints.values().stream().mapToInt(Point::y).max().orElseThrow() + 1;
       Map<Integer, SequencedSet<Wire>> xGapWires = new LinkedHashMap<>();
       Map<Integer, SequencedSet<Wire>> yGapWires = new LinkedHashMap<>();
       network.wires()
@@ -110,7 +110,7 @@ public class TTPNDrawer implements Drawer<Network> {
 
   private record Point(int x, int y) {}
 
-  private static List<Point> computeGatePoints(Network network) {
+  private static Map<Integer, Point> computeGatePoints(Network network) {
     Map<Integer, Point> map = new TreeMap<>();
     network.gates()
         .keySet()
@@ -139,7 +139,7 @@ public class TTPNDrawer implements Drawer<Network> {
             )
         );
     map.putAll(outputsMap);
-    return map.values().stream().toList();
+    return map;
   }
 
   private static void fillGatesPoints(Network network, int gi, Point current, Map<Integer, Point> map) {

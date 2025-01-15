@@ -299,20 +299,12 @@ public final class Network implements Sized {
       return disjointSubnetwork;
     }
     disjointSubnetwork = new ArrayList<>();
-    for (List<Integer> integers : disjointSubnetworksGateIndexes()) {
+    for (List<Integer> subnetIndexes : disjointSubnetworksGateIndexes()) {
       Network network = new Network(
-          integers.stream().map(gates::get).toList(),
+          subnetIndexes.stream().collect(Collectors.toMap(gi -> gi, gi -> gates.get(gi))),
           wires()
               .stream()
-              .filter(w -> integers.contains(w.src().gateIndex()) && integers.contains(w.dst().gateIndex()))
-              .map(
-                  w -> Wire.of(
-                      integers.indexOf(w.src().gateIndex()),
-                      w.src().portIndex(),
-                      integers.indexOf(w.dst().gateIndex()),
-                      w.dst().portIndex()
-                  )
-              )
+              .filter(w -> subnetIndexes.contains(w.src().gateIndex()) && subnetIndexes.contains(w.dst().gateIndex()))
               .collect(Collectors.toCollection(LinkedHashSet::new))
       );
       disjointSubnetwork.add(network);

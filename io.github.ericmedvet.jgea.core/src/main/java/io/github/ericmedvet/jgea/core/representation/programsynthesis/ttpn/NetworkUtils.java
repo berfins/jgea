@@ -224,7 +224,7 @@ public class NetworkUtils {
             .distinct()
             .filter(gi -> !toRemoveGis.contains(gi))
             .filter(
-                gi -> !(n.gates().get(gi) instanceof Gate.InputGate || n.gates()
+                gi -> !(n.gates().get(gi) instanceof Gate.InputGate) && !(n.gates()
                     .get(gi) instanceof Gate.OutputGate)
             )
             .toList();
@@ -260,7 +260,7 @@ public class NetworkUtils {
     List<Integer> toKeepGis = new ArrayList<>();
     List<Integer> availableGis = IntStream.range(0, n.gates().size())
         .boxed()
-        .filter(gi -> !(n.gates().get(gi) instanceof Gate.InputGate || n.gates().get(gi) instanceof Gate.OutputGate))
+        .filter(gi -> !(n.gates().get(gi) instanceof Gate.InputGate) && !(n.gates().get(gi) instanceof Gate.OutputGate))
         .toList();
     while (toKeepGis.size() < targetNOfGates) {
       if (!toKeepGis.isEmpty()) {
@@ -288,7 +288,7 @@ public class NetworkUtils {
         toKeepGis.stream().collect(Collectors.toMap(gi -> gi, gi -> n.gates().get(gi))),
         n.wires()
             .stream()
-            .filter(w -> toKeepGis.contains(w.src().gateIndex()) || toKeepGis.contains(w.dst().gateIndex()))
+            .filter(w -> toKeepGis.contains(w.src().gateIndex()) && toKeepGis.contains(w.dst().gateIndex()))
             .collect(Collectors.toSet())
     );
   }
