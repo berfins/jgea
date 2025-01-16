@@ -22,8 +22,8 @@ package io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
 import io.github.ericmedvet.jgea.core.util.Misc;
+
 import java.util.*;
-import java.util.function.Function;
 import java.util.random.RandomGenerator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -52,39 +52,57 @@ public class NetworkUtils {
     return Comparator.comparingInt(network -> network.deadGates().size());
   }
 
-  public static Network grow(Network n, SequencedSet<Gate> gates, RandomGenerator rnd, int maxNOfGates) {
-    while (!n.freeInputEndPoints().isEmpty() || !n.freeOutputEndPoints().isEmpty()) {
-      SequencedSet<Type> oTypes = n.freeOutputEndPoints()
-          .stream()
-          .map(n::concreteOutputType)
-          .filter(Objects::nonNull)
-          .collect(Collectors.toCollection(LinkedHashSet::new));
-      SequencedSet<Type> iTypes = n.freeInputEndPoints()
-          .stream()
-          .map(n::inputType)
-          .filter(Objects::nonNull)
-          .collect(Collectors.toCollection(LinkedHashSet::new));
-      List<Gate> suitableGates = suitableGates(gates, oTypes, iTypes);
-      Gate gate = suitableGates.get(rnd.nextInt(suitableGates.size()));
-      try {
-        n = n.mergedWith(new Network(List.of(gate), Set.of()))
-            .wireFreeOutputEndPoints(ts -> rnd.nextInt(ts.size()))
-            .wireFreeInputEndPoints(ts -> rnd.nextInt(ts.size()));
-      } catch (NetworkStructureException | TypeException e) {
-        return n;
-      }
-      if (n.gates().size() > maxNOfGates) {
-        return n;
+  public static int freeGateIndex(Network network) {
+    return IntStream.range(0, network.gates().size() + 1)
+        .filter(gi -> !network.gates().containsKey(gi))
+        .min()
+        .orElseThrow();
+  }
+
+  public static List<Network.Addition> growBothAdditions(Network n, SequencedSet<Gate> gates) {
+    List<Network.Addition> additions = new ArrayList<>();
+    List<Wire.EndPoint> iEps = new ArrayList<>(n.freeInputEndPoints());
+    List<Wire.EndPoint> oEps = new ArrayList<>(n.freeOutputEndPoints());
+    int newGateIndex = freeGateIndex(n);
+    for (Wire.EndPoint iEp : iEps) {
+      for (Wire.EndPoint oEp : oEps) {
+        for (Gate gate : gates) {
+          for (int ipi = 0; ipi < gate.inputPorts().size(); ipi = ipi + 1) {
+            for (int opi = 0; opi < gate.outputTypes().size(); opi = opi + 1) {
+              try {
+                new Network(
+                    List.of(
+                        Gate.input(n.concreteOutputType(oEp)),
+                        Gate.output(n.concreteInputType(iEp)),
+                        gate
+                    ),
+                    Set.of(
+                        Wire.of(0, 0, 2, ipi),
+                        Wire.of(2, opi, 1, 0)
+                    )
+                );
+                additions.add(new Network.Addition(
+                    Map.of(newGateIndex, gate), Set.of(
+                    new Wire(oEp, new Wire.EndPoint(newGateIndex, ipi)),
+                    new Wire(new Wire.EndPoint(newGateIndex, opi), iEp)
+                )
+                ));
+              } catch (NetworkStructureException | TypeException e) {
+                // ignore
+              }
+            }
+          }
+        }
       }
     }
-    return n;
+    return additions;
   }
 
   public static Network.Addition growOnBoth(
       Network n,
       SequencedSet<Gate> gates,
       RandomGenerator rnd
-  ) throws NetworkStructureException, TypeException {
+  ) {
     List<Wire.EndPoint> iEps = new ArrayList<>(n.freeInputEndPoints());
     List<Wire.EndPoint> oEps = new ArrayList<>(n.freeOutputEndPoints());
     Collections.shuffle(iEps, rnd);
@@ -99,7 +117,6 @@ public class NetworkUtils {
     return Network.Addition.empty();
   }
 
-  // TODO modify to add more than one gates at once
   public static Network.Addition growOnEndPoints(
       Network network,
       Wire.EndPoint srcEndPoint,
@@ -135,18 +152,11 @@ public class NetworkUtils {
     return Network.Addition.empty();
   }
 
-  public static int freeGateIndex(Network network) {
-    return IntStream.range(0, network.gates().size() + 1)
-        .filter(gi -> !network.gates().containsKey(gi))
-        .min()
-        .orElseThrow();
-  }
-
   public static Network.Addition growOnInputs(
       Network network,
       SequencedSet<Gate> gates,
       RandomGenerator rnd
-  ) throws NetworkStructureException, TypeException {
+  ) {
     record WeightedEndPoint(Wire.EndPoint endPoint, int distance) {}
     Optional<Wire.EndPoint> oFreeEndPoint = network.freeInputEndPoints()
         .stream()
@@ -171,11 +181,11 @@ public class NetworkUtils {
     return new Network.Addition(Map.of(newGateIndex, newGate), Set.of(wire));
   }
 
-  protected static Network.Addition growOnOutputs(
+  public static Network.Addition growOnOutputs(
       Network network,
       SequencedSet<Gate> gates,
       RandomGenerator rnd
-  ) throws NetworkStructureException, TypeException {
+  ) {
     record WeightedEndPoint(Wire.EndPoint endPoint, int distance) {}
     Optional<Wire.EndPoint> oFreeEndPoint = network.freeOutputEndPoints()
         .stream()
@@ -258,9 +268,9 @@ public class NetworkUtils {
       int targetNOfGates
   ) throws NetworkStructureException, TypeException {
     List<Integer> toKeepGis = new ArrayList<>();
-    List<Integer> availableGis = IntStream.range(0, n.gates().size())
-        .boxed()
-        .filter(gi -> !(n.gates().get(gi) instanceof Gate.InputGate) && !(n.gates().get(gi) instanceof Gate.OutputGate))
+    List<Integer> availableGis = n.gates().keySet().stream()
+        .filter(gi -> !(n.gates().get(gi) instanceof Gate.InputGate) && !(n.gates()
+            .get(gi) instanceof Gate.OutputGate))
         .toList();
     while (toKeepGis.size() < targetNOfGates) {
       if (!toKeepGis.isEmpty()) {
@@ -330,76 +340,98 @@ public class NetworkUtils {
       Network n,
       boolean forceDifferentSubnets,
       RandomGenerator rnd
-  ) throws NetworkStructureException, TypeException {
-    enum IOType { I, O }
-    record EnrichedEndPoint(int subnetIndex, int nOfWires, Type type, IOType ioType, Wire.EndPoint endPoint) {}
-    List<EnrichedEndPoint> eeps = new ArrayList<>();
+  ) {
+    record EnrichedEndPoint(int subnetIndex, int nOfWires, Type type, Wire.EndPoint endPoint) {}
+    List<EnrichedEndPoint> oEeps = new ArrayList<>();
+    List<EnrichedEndPoint> iEeps = new ArrayList<>();
     List<List<Integer>> subnetsGis = n.disjointSubnetworksGateIndexes();
     for (int si = 0; si < subnetsGis.size(); si = si + 1) {
       for (int gi : subnetsGis.get(si)) {
         for (int pi = 0; pi < n.gates().get(gi).outputTypes().size(); pi = pi + 1) {
           Wire.EndPoint ep = new Wire.EndPoint(gi, pi);
-          eeps.add(
+          oEeps.add(
               new EnrichedEndPoint(
                   si,
                   n.wiresFrom(gi, pi).size(),
                   n.concreteOutputType(ep),
-                  IOType.O,
                   ep
               )
           );
         }
         for (int pi = 0; pi < n.gates().get(gi).inputPorts().size(); pi = pi + 1) {
           Wire.EndPoint ep = new Wire.EndPoint(gi, pi);
-          eeps.add(
-              new EnrichedEndPoint(
-                  si,
-                  n.wireTo(gi, pi).isEmpty() ? 0 : 1,
-                  n.concreteInputType(ep),
-                  IOType.I,
-                  ep
-              )
-          );
+          if (n.wireTo(gi, pi).isEmpty()) {
+            iEeps.add(
+                new EnrichedEndPoint(
+                    si,
+                    0,
+                    n.concreteInputType(ep),
+                    ep
+                )
+            );
+          }
         }
       }
     }
-    Map<Type, List<EnrichedEndPoint>> iEeps = eeps.stream()
-        .filter(eep -> eep.ioType == IOType.I && eep.nOfWires == 0)
-        .collect(
-            Collectors.groupingBy(
-                eep -> eep.type,
-                LinkedHashMap::new,
-                Collectors.mapping(Function.identity(), Collectors.toList())
-            )
-        );
-    Map<Type, List<EnrichedEndPoint>> oEeps = eeps.stream()
-        .filter(eep -> eep.ioType == IOType.O)
-        .collect(
-            Collectors.groupingBy(
-                eep -> eep.type,
-                LinkedHashMap::new,
-                Collectors.mapping(Function.identity(), Collectors.toList())
-            )
-        );
-    // get common types
-    Set<Type> types = Misc.intersection(iEeps.keySet(), oEeps.keySet());
-    if (types.isEmpty()) {
-      return Network.Addition.empty();
-    }
-    // wire one input
-    for (Type type : types) {
-      for (EnrichedEndPoint iEep : iEeps.get(type)) {
-        List<EnrichedEndPoint> suitableOEeps = oEeps.get(type)
-            .stream()
-            .filter(oEep -> !forceDifferentSubnets || oEep.subnetIndex != iEep.subnetIndex)
-            .toList();
-        if (!suitableOEeps.isEmpty()) {
-          EnrichedEndPoint oEep = Misc.pickRandomly(suitableOEeps, rnd);
-          return new Network.Addition(Map.of(), Set.of(new Wire(oEep.endPoint, iEep.endPoint)));
+    // shuffle
+    Collections.shuffle(oEeps, rnd);
+    Collections.shuffle(iEeps, rnd);
+    // iterate
+    for (EnrichedEndPoint oEep : oEeps) {
+      for (EnrichedEndPoint iEep : iEeps) {
+        if (iEep.type.canTakeValuesOf(oEep.type)) {
+          if (!forceDifferentSubnets || iEep.subnetIndex != oEep.subnetIndex) {
+            return new Network.Addition(Map.of(), Set.of(new Wire(oEep.endPoint, iEep.endPoint)));
+          }
         }
       }
     }
     return Network.Addition.empty();
+  }
+
+  public static Network wireAll(Network network, boolean avoidDeadGates, RandomGenerator rnd) {
+    while (true) {
+      List<Network.Addition> additions = wires(network);
+      Collections.shuffle(additions, rnd);
+      if (additions.isEmpty()) {
+        return network;
+      }
+      boolean added = false;
+      for (Network.Addition addition : additions) {
+        try {
+          Network newNetwork = addition.applyTo(network);
+          if (!avoidDeadGates || deadComparator().compare(newNetwork, network) < 0) {
+            System.out.println(addition);
+            added = true;
+            network = newNetwork;
+            break;
+          }
+        } catch (NetworkStructureException | TypeException e) {
+          // ignore
+        }
+      }
+      if (!added) {
+        break;
+      }
+    }
+    return network;
+  }
+
+  public static List<Network.Addition> wires(Network n) {
+    List<Network.Addition> additions = new ArrayList<>();
+    for (Wire.EndPoint iEp : n.freeInputEndPoints()) {
+      Type iType = n.concreteInputType(iEp);
+      for (int gi : n.gates().keySet()) {
+        for (int pi = 0; pi < n.gates().get(gi).outputTypes().size(); pi = pi + 1) {
+          Wire.EndPoint oEp = new Wire.EndPoint(gi, pi);
+          Type oType = n.concreteOutputType(oEp);
+          if (iType.canTakeValuesOf(oType)) {
+            additions.add(new Network.Addition(Map.of(), Set.of(new Wire(oEp, iEp))));
+          }
+        }
+      }
+    }
+    return additions;
   }
 
 }

@@ -25,6 +25,7 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import io.github.ericmedvet.jgea.core.util.Sized;
+
 import java.util.*;
 import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
@@ -301,7 +302,7 @@ public final class Network implements Sized {
     disjointSubnetwork = new ArrayList<>();
     for (List<Integer> subnetIndexes : disjointSubnetworksGateIndexes()) {
       Network network = new Network(
-          subnetIndexes.stream().collect(Collectors.toMap(gi -> gi, gi -> gates.get(gi))),
+          subnetIndexes.stream().collect(Collectors.toMap(gi -> gi, gates::get)),
           wires()
               .stream()
               .filter(w -> subnetIndexes.contains(w.src().gateIndex()) && subnetIndexes.contains(w.dst().gateIndex()))
@@ -539,24 +540,6 @@ public final class Network implements Sized {
           return gateIndexes.stream().anyMatch(localGi -> gates.get(localGi) instanceof Gate.OutputGate);
         }
     );
-  }
-
-  public Network mergedWith(Network other) throws NetworkStructureException, TypeException {
-    int maxGI = gates.keySet().stream().mapToInt(i -> i).max().orElse(0);
-    Map<Integer, Gate> newGates = new HashMap<>(gates);
-    Set<Wire> newWires = new LinkedHashSet<>(wires);
-    other.gates.forEach((gi, g) -> newGates.put(gi + maxGI + 1, g));
-    other.wires.forEach(
-        w -> newWires.add(
-            Wire.of(
-                w.src().gateIndex() + maxGI + 1,
-                w.src().portIndex(),
-                w.dst().gateIndex() + maxGI + 1,
-                w.dst().portIndex()
-            )
-        )
-    );
-    return new Network(newGates, newWires);
   }
 
   public int outputDistanceFrom(Class<? extends Gate> gateClass, int gi) {
@@ -877,8 +860,8 @@ public final class Network implements Sized {
     return wires.stream().filter(w -> w.src().equals(src)).toList();
   }
 
-  public List<Wire> wiresFrom(int gateIndex, int portIntex) {
-    return wiresFrom(new Wire.EndPoint(gateIndex, portIntex));
+  public List<Wire> wiresFrom(int gateIndex, int portIndex) {
+    return wiresFrom(new Wire.EndPoint(gateIndex, portIndex));
   }
 
   public Set<Wire> wiresTo(int gateIndex) {

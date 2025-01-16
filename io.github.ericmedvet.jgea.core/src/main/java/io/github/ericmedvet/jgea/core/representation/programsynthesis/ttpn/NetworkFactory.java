@@ -22,7 +22,10 @@ package io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn;
 import io.github.ericmedvet.jgea.core.IndependentFactory;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
-import java.util.*;
+
+import java.util.List;
+import java.util.SequencedSet;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.random.RandomGenerator;
 import java.util.stream.Stream;
@@ -57,71 +60,55 @@ public class NetworkFactory implements IndependentFactory<Network> {
   }
 
   public Network build(RandomGenerator rnd, Consumer<Network> consumer) {
-    enum GateAddition { GROW_IN, GROW_OUT, LINK_IO }
-    enum WireAddition { INTRA_SUBNETS, INTER_SUBNETS }
-    List<GateAddition> gateAdditions = new ArrayList<>(Arrays.stream(GateAddition.values()).toList());
-    List<WireAddition> wireAdditions = new ArrayList<>(Arrays.stream(WireAddition.values()).toList());
-    int nOfAttempts = 0;
+    Network network;
     try {
-      Network n = new Network(
+      network = new Network(
           Stream.concat(
               inputTypes.stream().map(type -> (Gate) Gate.input(type)),
               outputTypes.stream().map(Gate::output)
           ).toList(),
           Set.of()
       );
-      int targetNOfGates = rnd.nextInt(n.gates().size(), maxNOfGates);
-      while (true) {
-        try {
-          consumer.accept(n);
-          int nOfGates = n.gates().size();
-          if (n.gates().size() < targetNOfGates) {
-            Collections.shuffle(gateAdditions, rnd);
-            for (GateAddition gateAddition : gateAdditions) {
-              Network newN = switch (gateAddition) {
-                case GROW_IN -> NetworkUtils.growOnInputs(n, gates, rnd).applyTo(n);
-                case GROW_OUT -> NetworkUtils.growOnOutputs(n, gates, rnd).applyTo(n);
-                case LINK_IO -> NetworkUtils.growOnBoth(n, gates, rnd).applyTo(n);
-              };
-              if (!avoidDeadGates || NetworkUtils.deadComparator().compare(newN, n) <= 0) {
-                n = newN;
-              }
-              if (n.gates().size() != nOfGates) {
-                break;
-              }
-            }
-          }
-          int nOfWires = n.wires().size();
-          Collections.shuffle(wireAdditions, rnd);
-          for (WireAddition wireAddition : wireAdditions) {
-            Network newN = switch (wireAddition) {
-              case INTER_SUBNETS -> NetworkUtils.wire(n, true, rnd).applyTo(n);
-              case INTRA_SUBNETS -> NetworkUtils.wire(n, false, rnd).applyTo(n);
-            };
-            if (!avoidDeadGates || NetworkUtils.deadComparator().compare(newN, n) <= 0) {
-              n = newN;
-            }
-            if (n.wires().size() != nOfWires) {
-              break;
-            }
-          }
-          if (nOfGates == n.gates().size() && nOfWires == n.wires().size()) {
-            nOfAttempts = nOfAttempts + 1;
-            if (nOfAttempts > maxNOfAttempts) {
-              break;
-            }
-          }
-        } catch (NetworkStructureException | TypeException e) {
-          nOfAttempts = nOfAttempts + 1;
-          if (nOfAttempts > maxNOfAttempts) {
-            return n;
+    } catch (NetworkStructureException | TypeException e) {
+      throw new IllegalArgumentException("Cannot init network", e);
+    }
+    int targetNOfGates = rnd.nextInt(network.gates().size() + 1, maxNOfGates);
+    while (network.gates().size() < targetNOfGates) {
+
+    }
+    while (nOfAttempts < maxNOfAttempts && network.gates().size() < maxNOfGates) {
+      // add gate
+      Network.Addition addition;
+      if (network.gates().size() < targetNOfGates) {
+        addition = rnd.nextBoolean() ? NetworkUtils.growOnInputs(network, gates, rnd) : NetworkUtils.growOnOutputs(
+            network,
+            gates,
+            rnd
+        );
+      } else {
+        List<Network.Addition> additions = NetworkUtils.growBothAdditions(network, gates);
+        for (Network.Addition bAddition : additions) {
+          if (addition.isEmpty()) {
+            addition = rnd.nextBoolean() ? NetworkUtils.growOnInputs(network, gates, rnd) : NetworkUtils.growOnOutputs(
+                network,
+                gates,
+                rnd
+            );
           }
         }
       }
-      return n;
-    } catch (NetworkStructureException | TypeException e) {
-      throw new RuntimeException(e);
+      if (!addition.isEmpty()) {
+        try {
+          network = addition.applyTo(network);
+          consumer.accept(network);
+          System.out.println(addition);
+        } catch (NetworkStructureException | TypeException e) {
+          nOfAttempts = nOfAttempts + 1;
+        }
+      }
     }
+    // final wiring
+    return NetworkUtils.wireAll(network, avoidDeadGates, rnd);
   }
 
 }

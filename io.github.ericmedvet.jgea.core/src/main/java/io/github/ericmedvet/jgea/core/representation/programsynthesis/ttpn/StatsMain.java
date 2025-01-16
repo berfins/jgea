@@ -29,6 +29,7 @@ import io.github.ericmedvet.jgea.core.util.IntRange;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
 import io.github.ericmedvet.jnb.datastructure.FormattedNamedFunction;
+
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -196,7 +197,7 @@ public class StatsMain {
         true
     );
     GateRemoverMutation grMutation = new GateRemoverMutation(10, true);
-    NetworkCrossover xover = new NetworkCrossover(maxNumberOfGates, XOVER_SUBNET_SIZE_RATE);
+    NetworkCrossover xover = new NetworkCrossover(maxNumberOfGates, XOVER_SUBNET_SIZE_RATE, 10, true);
     // prepare map with stats
     List<Network> all = factory.build(nOfNetworks, rnd);
     SequencedMap<String, List<Network>> map = new LinkedHashMap<>();
@@ -250,7 +251,7 @@ public class StatsMain {
         List.of(Composed.sequence(Base.REAL), Composed.sequence(Base.REAL)),
         List.of(Base.REAL),
         100,
-        64,
+        20,
         10,
         new Random(1)
     );

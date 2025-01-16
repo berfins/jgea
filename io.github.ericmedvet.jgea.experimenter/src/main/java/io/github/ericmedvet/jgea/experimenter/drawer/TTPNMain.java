@@ -25,7 +25,6 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.Instrument
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.Program;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.ProgramExecutionException;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.*;
-import io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.DataFactory;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Base;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Composed;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.StringParser;
@@ -36,7 +35,11 @@ import io.github.ericmedvet.jgea.problem.programsynthesis.Problems;
 import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisProblem;
 import io.github.ericmedvet.jgea.problem.programsynthesis.synthetic.PrecomputedSyntheticPSProblem;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
-import java.util.*;
+
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
 import java.util.random.RandomGenerator;
 
 public class TTPNMain {
@@ -186,8 +189,6 @@ public class TTPNMain {
         )
     );
     System.out.println("===\n" + pn);
-    Network mn = n.mergedWith(pn).wireFreeInputEndPoints(ts -> 0).wireFreeOutputEndPoints(ts -> 0);
-    System.out.println("===\n" + mn);
 
     RandomGenerator rnd = new Random();
     TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
@@ -227,14 +228,14 @@ public class TTPNMain {
   }
 
   private static void factory() {
-    RandomGenerator rnd = new Random();
+    RandomGenerator rnd = new Random(1);
     NetworkFactory factory = new NetworkFactory(
         List.of(Composed.sequence(Base.REAL), Composed.sequence(Base.REAL)),
         List.of(Base.REAL),
         new LinkedHashSet<>(StatsMain.ALL_GATES),
-        32,
-        0,
-        false
+        8,
+        10,
+        true
     );
     TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
     Network network = factory.build(rnd);
@@ -264,10 +265,10 @@ public class TTPNMain {
       String[] args
   ) throws NetworkStructureException, ProgramExecutionException, NoSuchMethodException, TypeException {
     //weirdOne();
-    //factory();
+    factory();
     //doComputationStuff();
     //comparator();
-    xover();
+    //xover();
   }
 
   private static void weirdOne() throws NetworkStructureException, TypeException {
@@ -286,21 +287,25 @@ public class TTPNMain {
   }
 
   private static void xover() {
-    RandomGenerator rnd = new Random();
+    RandomGenerator rnd = new Random(1);
     NetworkFactory factory = new NetworkFactory(
         List.of(Composed.sequence(Base.REAL), Composed.sequence(Base.REAL)),
         List.of(Base.REAL),
         new LinkedHashSet<>(StatsMain.ALL_GATES),
+        16,
         10,
-        0,
-        false
+        true
     );
     TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
     Network n1 = factory.build(rnd);
     Network n2 = factory.build(rnd);
-    Network xovered = new NetworkCrossover(10, .5).recombine(n1, n2, rnd);
+    System.out.println(n1);
+    System.out.println("===");
+    System.out.println(n2);
+    Network xovered = new NetworkCrossover(10, .5, 10, true).recombine(n1, n2, rnd);
     drawer.show(n1);
     drawer.show(n2);
+    System.out.println("===");
     System.out.println(xovered);
     drawer.show(xovered);
   }

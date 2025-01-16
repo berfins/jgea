@@ -45,6 +45,7 @@ import io.github.ericmedvet.jnb.core.Cacheable;
 import io.github.ericmedvet.jnb.core.Discoverable;
 import io.github.ericmedvet.jnb.core.Param;
 import io.github.ericmedvet.jnb.datastructure.Pair;
+
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.SequencedSet;
@@ -241,7 +242,7 @@ public class Representations {
             new WireInserterMutation(actualGates, maxNOfGates, maxNOfAttempts, avoidDeadGates),
             new GateRemoverMutation(maxNOfAttempts, avoidDeadGates)
         ),
-        List.of(new NetworkCrossover(maxNOfGates, subnetSizeRate))
+        List.of(new NetworkCrossover(maxNOfGates, subnetSizeRate, maxNOfAttempts, avoidDeadGates))
     );
   }
 }

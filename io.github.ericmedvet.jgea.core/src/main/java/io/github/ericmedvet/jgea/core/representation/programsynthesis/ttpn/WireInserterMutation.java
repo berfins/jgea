@@ -22,6 +22,7 @@ package io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn;
 import io.github.ericmedvet.jgea.core.operator.Mutation;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
 import io.github.ericmedvet.jgea.core.util.Misc;
+
 import java.util.HashSet;
 import java.util.SequencedSet;
 import java.util.Set;
@@ -52,6 +53,7 @@ public class WireInserterMutation implements Mutation<Network> {
     }
     int nOfAttempts = 0;
     while (nOfAttempts < maxNOfAttempts) {
+      nOfAttempts = nOfAttempts + 1;
       // cut one wire
       Wire toRemoveWire = Misc.pickRandomly(n.wires(), rnd);
       Set<Wire> newWires = new HashSet<>(n.wires());
@@ -70,9 +72,8 @@ public class WireInserterMutation implements Mutation<Network> {
         if (!avoidDeadGates || NetworkUtils.deadComparator().compare(newN, n) <= 0) {
           return newN;
         }
-        nOfAttempts = nOfAttempts + 1;
       } catch (NetworkStructureException | TypeException e) {
-        nOfAttempts = nOfAttempts + 1;
+        // ignore
       }
     }
     return n;

@@ -28,11 +28,11 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.problem.image.ImageUtils;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
 import io.github.ericmedvet.jviz.core.drawer.Drawer;
+
 import java.awt.*;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
 import java.util.*;
-import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -248,30 +248,6 @@ public class TTPNDrawer implements Drawer<Network> {
     network.wires().forEach(w -> drawWire(g, m, w, network));
   }
 
-  private void drawWire(Graphics2D g, Metrics m, Wire w, Network network) {
-    Path2D path = computeWirePath(m, w, network);
-    Stroke stroke = g.getStroke();
-    g.setColor(configuration.borderColor);
-    g.setStroke(
-        new BasicStroke(
-            (float) configuration.wireW,
-            BasicStroke.CAP_BUTT,
-            BasicStroke.JOIN_BEVEL
-        )
-    );
-    g.draw(path);
-    g.setColor(configuration.gateBGColor);
-    g.setStroke(
-        new BasicStroke(
-            (float) configuration.wireW - 2f,
-            BasicStroke.CAP_BUTT,
-            BasicStroke.JOIN_BEVEL
-        )
-    );
-    g.draw(path);
-    g.setStroke(stroke);
-  }
-
   private void drawGate(Graphics2D g, Metrics m, int gi, Network network) {
     DoubleRange xR = gateXRange(m.gatePoints.get(gi).x, m);
     DoubleRange yR = gateYRange(m.gatePoints.get(gi).y, m);
@@ -367,7 +343,7 @@ public class TTPNDrawer implements Drawer<Network> {
     g.drawString(str, labelX, labelY);
     // write id
     if (configuration.showGateIndex) {
-      str = "id:%d".formatted(gi);
+      str = "%d".formatted(gi);
       strR = ImageUtils.bounds(str, g.getFont(), g);
       g.drawString(str, (float) (xR.center() - strR.getWidth() / 2d), (float) (yR.center() + strR.getHeight() / 2d));
     }
@@ -422,6 +398,30 @@ public class TTPNDrawer implements Drawer<Network> {
           (float) (nThPos(pi, nPorts, yR) + 2d * pR + strR.getMinY())
       );
     }
+  }
+
+  private void drawWire(Graphics2D g, Metrics m, Wire w, Network network) {
+    Path2D path = computeWirePath(m, w, network);
+    Stroke stroke = g.getStroke();
+    g.setColor(configuration.borderColor);
+    g.setStroke(
+        new BasicStroke(
+            (float) configuration.wireW,
+            BasicStroke.CAP_BUTT,
+            BasicStroke.JOIN_BEVEL
+        )
+    );
+    g.draw(path);
+    g.setColor(configuration.gateBGColor);
+    g.setStroke(
+        new BasicStroke(
+            (float) configuration.wireW - 2f,
+            BasicStroke.CAP_BUTT,
+            BasicStroke.JOIN_BEVEL
+        )
+    );
+    g.draw(path);
+    g.setStroke(stroke);
   }
 
   private DoubleRange gapXRange(int x, Metrics m) {
