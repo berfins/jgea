@@ -22,7 +22,6 @@ package io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn;
 import io.github.ericmedvet.jgea.core.operator.Mutation;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
 import io.github.ericmedvet.jgea.core.util.Misc;
-
 import java.util.HashSet;
 import java.util.SequencedSet;
 import java.util.Set;

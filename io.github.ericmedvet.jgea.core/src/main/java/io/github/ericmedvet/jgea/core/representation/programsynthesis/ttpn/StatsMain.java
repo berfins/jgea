@@ -29,7 +29,6 @@ import io.github.ericmedvet.jgea.core.util.IntRange;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
 import io.github.ericmedvet.jnb.datastructure.FormattedNamedFunction;
-
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -109,13 +108,12 @@ public class StatsMain {
       int nOfCases,
       RandomGenerator rnd
   ) throws ProgramExecutionException {
-    NetworkFactory factory = new NetworkFactory(
+    GreedyNetworkFactory factory = new GreedyNetworkFactory(
         inputTypes,
         outputTypes,
         new LinkedHashSet<>(ALL_GATES),
         maxNumberOfGates,
-        10,
-        true
+        1000
     );
     Runner runner = new Runner(MAX_N_OF_STEPS, MAX_N_OF_TOKENS, false);
     List<List<Object>> cases = IntStream.range(0, nOfCases)

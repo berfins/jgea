@@ -22,7 +22,7 @@ package io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn;
 import io.github.ericmedvet.jgea.core.IndependentFactory;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
-
+import java.util.Collections;
 import java.util.List;
 import java.util.SequencedSet;
 import java.util.Set;
@@ -72,41 +72,55 @@ public class NetworkFactory implements IndependentFactory<Network> {
     } catch (NetworkStructureException | TypeException e) {
       throw new IllegalArgumentException("Cannot init network", e);
     }
+    // grow inputs or outputs
     int targetNOfGates = rnd.nextInt(network.gates().size() + 1, maxNOfGates);
     while (network.gates().size() < targetNOfGates) {
-
-    }
-    while (nOfAttempts < maxNOfAttempts && network.gates().size() < maxNOfGates) {
-      // add gate
       Network.Addition addition;
-      if (network.gates().size() < targetNOfGates) {
-        addition = rnd.nextBoolean() ? NetworkUtils.growOnInputs(network, gates, rnd) : NetworkUtils.growOnOutputs(
-            network,
-            gates,
-            rnd
-        );
+      if (rnd.nextBoolean()) {
+        addition = NetworkUtils.growOnInputs(network, gates, rnd);
       } else {
-        List<Network.Addition> additions = NetworkUtils.growBothAdditions(network, gates);
-        for (Network.Addition bAddition : additions) {
-          if (addition.isEmpty()) {
-            addition = rnd.nextBoolean() ? NetworkUtils.growOnInputs(network, gates, rnd) : NetworkUtils.growOnOutputs(
-                network,
-                gates,
-                rnd
-            );
+        addition = NetworkUtils.growOnOutputs(network, gates, rnd);
+      }
+      if (addition.isEmpty()) {
+        break;
+      }
+      try {
+        network = addition.applyTo(network);
+      } catch (NetworkStructureException | TypeException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    // try to fill
+    int nOfAttempts = 0;
+    while (nOfAttempts < maxNOfAttempts) {
+      network = NetworkUtils.wireAll(network, avoidDeadGates, rnd);
+      consumer.accept(network);
+      List<Network.Addition> additions = NetworkUtils.growBothAdditions(network, gates);
+      System.out.println(additions.size());
+      if (additions.isEmpty()) {
+        try {
+          network = NetworkUtils.growOnInputs(network, gates, rnd).applyTo(network);
+        } catch (NetworkStructureException | TypeException e) {
+          throw new RuntimeException(e);
+        }
+        nOfAttempts = nOfAttempts + 1;
+      }
+      Collections.shuffle(additions, rnd);
+      for (Network.Addition addition : additions) {
+        if (!addition.isEmpty()) {
+          try {
+            network = addition.applyTo(network);
+            consumer.accept(network);
+            break;
+          } catch (NetworkStructureException | TypeException e) {
+            throw new RuntimeException(e);
           }
         }
       }
-      if (!addition.isEmpty()) {
-        try {
-          network = addition.applyTo(network);
-          consumer.accept(network);
-          System.out.println(addition);
-        } catch (NetworkStructureException | TypeException e) {
-          nOfAttempts = nOfAttempts + 1;
-        }
-      }
     }
+
+    System.out.println("====");
+
     // final wiring
     return NetworkUtils.wireAll(network, avoidDeadGates, rnd);
   }

@@ -28,7 +28,6 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.problem.image.ImageUtils;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
 import io.github.ericmedvet.jviz.core.drawer.Drawer;
-
 import java.awt.*;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
@@ -120,7 +119,7 @@ public class TTPNDrawer implements Drawer<Network> {
             gi -> fillGatesPoints(
                 network,
                 gi,
-                new Point(0, map.values().stream().mapToInt(p -> p.y + 1).max().orElse(0)),
+                new Point(0, 0),
                 map
             )
         );
@@ -147,12 +146,11 @@ public class TTPNDrawer implements Drawer<Network> {
     if (map.containsKey(gi)) {
       return;
     }
-    if (network.wiresTo(gi).isEmpty()) {
-      current = new Point(0, map.values().stream().mapToInt(Point::y).max().orElse(-1) + 1);
+    while (map.containsValue(current)) {
+      current = new Point(current.x, current.y + 1);
     }
     map.put(gi, current);
-    int currentX = current.x;
-    int currentY = current.y;
+    Point next = new Point(current.x + 1, current.y);
     IntStream.range(0, gate.outputTypes().size())
         .forEach(
             pi -> network.wiresFrom(gi, pi)
@@ -160,16 +158,7 @@ public class TTPNDrawer implements Drawer<Network> {
                     w -> fillGatesPoints(
                         network,
                         w.dst().gateIndex(),
-                        new Point(
-                            currentX + 1,
-                            map.values()
-                                .stream()
-                                .filter(p -> p.x == currentX + 1)
-                                .filter(p -> p.y >= currentY)
-                                .mapToInt(Point::y)
-                                .min()
-                                .orElse(currentY - 1) + 1
-                        ),
+                        next,
                         map
                     )
                 )

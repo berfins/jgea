@@ -21,7 +21,6 @@ package io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn;
 
 import io.github.ericmedvet.jgea.core.operator.Crossover;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
-
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -65,16 +64,17 @@ public class NetworkCrossover implements Crossover<Network> {
         Map<Integer, Gate> newGates = new HashMap<>(hn1.gates());
         Set<Wire> newWires = new LinkedHashSet<>(hn1.wires());
         sn2.gates().forEach((gi, g) -> newGates.put(gi + maxGI + 1, g));
-        sn2.wires().forEach(
-            w -> newWires.add(
-                Wire.of(
-                    w.src().gateIndex() + maxGI + 1,
-                    w.src().portIndex(),
-                    w.dst().gateIndex() + maxGI + 1,
-                    w.dst().portIndex()
+        sn2.wires()
+            .forEach(
+                w -> newWires.add(
+                    Wire.of(
+                        w.src().gateIndex() + maxGI + 1,
+                        w.src().portIndex(),
+                        w.dst().gateIndex() + maxGI + 1,
+                        w.dst().portIndex()
+                    )
                 )
-            )
-        );
+            );
         Network newN = new Network(newGates, newWires);
         // wire everything
         while (true) {

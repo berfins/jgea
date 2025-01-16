@@ -35,7 +35,6 @@ import io.github.ericmedvet.jgea.problem.programsynthesis.Problems;
 import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisProblem;
 import io.github.ericmedvet.jgea.problem.programsynthesis.synthetic.PrecomputedSyntheticPSProblem;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
-
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Random;
@@ -228,14 +227,13 @@ public class TTPNMain {
   }
 
   private static void factory() {
-    RandomGenerator rnd = new Random(1);
-    NetworkFactory factory = new NetworkFactory(
+    RandomGenerator rnd = new Random();
+    GreedyNetworkFactory factory = new GreedyNetworkFactory(
         List.of(Composed.sequence(Base.REAL), Composed.sequence(Base.REAL)),
         List.of(Base.REAL),
         new LinkedHashSet<>(StatsMain.ALL_GATES),
-        8,
-        10,
-        true
+        32,
+        1000
     );
     TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
     Network network = factory.build(rnd);

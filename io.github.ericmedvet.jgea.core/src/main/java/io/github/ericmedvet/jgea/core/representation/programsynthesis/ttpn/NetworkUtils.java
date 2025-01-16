@@ -22,7 +22,6 @@ package io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
 import io.github.ericmedvet.jgea.core.util.Misc;
-
 import java.util.*;
 import java.util.random.RandomGenerator;
 import java.util.stream.Collectors;
@@ -81,12 +80,15 @@ public class NetworkUtils {
                         Wire.of(2, opi, 1, 0)
                     )
                 );
-                additions.add(new Network.Addition(
-                    Map.of(newGateIndex, gate), Set.of(
-                    new Wire(oEp, new Wire.EndPoint(newGateIndex, ipi)),
-                    new Wire(new Wire.EndPoint(newGateIndex, opi), iEp)
-                )
-                ));
+                additions.add(
+                    new Network.Addition(
+                        Map.of(newGateIndex, gate),
+                        Set.of(
+                            new Wire(oEp, new Wire.EndPoint(newGateIndex, ipi)),
+                            new Wire(new Wire.EndPoint(newGateIndex, opi), iEp)
+                        )
+                    )
+                );
               } catch (NetworkStructureException | TypeException e) {
                 // ignore
               }
@@ -268,9 +270,13 @@ public class NetworkUtils {
       int targetNOfGates
   ) throws NetworkStructureException, TypeException {
     List<Integer> toKeepGis = new ArrayList<>();
-    List<Integer> availableGis = n.gates().keySet().stream()
-        .filter(gi -> !(n.gates().get(gi) instanceof Gate.InputGate) && !(n.gates()
-            .get(gi) instanceof Gate.OutputGate))
+    List<Integer> availableGis = n.gates()
+        .keySet()
+        .stream()
+        .filter(
+            gi -> !(n.gates().get(gi) instanceof Gate.InputGate) && !(n.gates()
+                .get(gi) instanceof Gate.OutputGate)
+        )
         .toList();
     while (toKeepGis.size() < targetNOfGates) {
       if (!toKeepGis.isEmpty()) {
@@ -401,7 +407,6 @@ public class NetworkUtils {
         try {
           Network newNetwork = addition.applyTo(network);
           if (!avoidDeadGates || deadComparator().compare(newNetwork, network) < 0) {
-            System.out.println(addition);
             added = true;
             network = newNetwork;
             break;
