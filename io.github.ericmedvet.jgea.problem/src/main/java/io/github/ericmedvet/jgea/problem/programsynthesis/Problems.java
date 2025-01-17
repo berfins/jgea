@@ -62,4 +62,12 @@ public class Problems {
     return IntStream.range(0, v1.size()).mapToDouble(i -> v1.get(i) * v2.get(i)).sum();
   }
 
+  @Typed("[R]")
+  public static List<Double> vVectProduct(@Typed("[R]") List<Double> v1, @Typed("[R]") List<Double> v2) {
+    if (v1.size() != v2.size()) {
+      throw new IllegalArgumentException("Input sizes are different: %d and %d".formatted(v1.size(), v2.size()));
+    }
+    return IntStream.range(0, v1.size()).mapToDouble(i -> v1.get(i) * v2.get(i)).boxed().toList();
+  }
+
 }

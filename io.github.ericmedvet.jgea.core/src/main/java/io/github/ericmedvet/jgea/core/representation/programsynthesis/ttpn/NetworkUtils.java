@@ -21,7 +21,6 @@ package io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn;
 
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.TypeException;
-import io.github.ericmedvet.jgea.core.util.Misc;
 import java.util.*;
 import java.util.random.RandomGenerator;
 import java.util.stream.Collectors;
@@ -100,117 +99,6 @@ public class NetworkUtils {
     return additions;
   }
 
-  public static Network.Addition growOnBoth(
-      Network n,
-      SequencedSet<Gate> gates,
-      RandomGenerator rnd
-  ) {
-    List<Wire.EndPoint> iEps = new ArrayList<>(n.freeInputEndPoints());
-    List<Wire.EndPoint> oEps = new ArrayList<>(n.freeOutputEndPoints());
-    Collections.shuffle(iEps, rnd);
-    Collections.shuffle(oEps, rnd);
-    for (Wire.EndPoint iEp : iEps) {
-      for (Wire.EndPoint oEp : oEps) {
-        Network.Addition addition = growOnEndPoints(n, oEp, iEp, gates, rnd);
-        if (!addition.isEmpty())
-          return addition;
-      }
-    }
-    return Network.Addition.empty();
-  }
-
-  public static Network.Addition growOnEndPoints(
-      Network network,
-      Wire.EndPoint srcEndPoint,
-      Wire.EndPoint dstEndPoint,
-      SequencedSet<Gate> gates,
-      RandomGenerator rnd
-  ) {
-    List<Gate> shuffledGates = new ArrayList<>(gates);
-    Collections.shuffle(shuffledGates, rnd);
-    Type dstType = network.concreteInputType(dstEndPoint);
-    Type srcType = network.concreteOutputType(srcEndPoint);
-    for (Gate gate : shuffledGates) {
-      List<Integer> suitableIps = IntStream.range(0, gate.inputPorts().size())
-          .filter(
-              pi -> gate.inputPorts()
-                  .get(pi)
-                  .type()
-                  .canTakeValuesOf(srcType)
-          )
-          .boxed()
-          .toList();
-      List<Integer> suitableOps = IntStream.range(0, gate.outputTypes().size())
-          .filter(pi -> dstType.canTakeValuesOf(gate.outputTypes().get(pi)))
-          .boxed()
-          .toList();
-      if (!suitableIps.isEmpty() && !suitableOps.isEmpty()) {
-        int newGateIndex = freeGateIndex(network);
-        Wire inWire = new Wire(srcEndPoint, new Wire.EndPoint(newGateIndex, Misc.pickRandomly(suitableIps, rnd)));
-        Wire outWire = new Wire(new Wire.EndPoint(newGateIndex, Misc.pickRandomly(suitableOps, rnd)), dstEndPoint);
-        return new Network.Addition(Map.of(newGateIndex, gate), Set.of(inWire, outWire));
-      }
-    }
-    return Network.Addition.empty();
-  }
-
-  public static Network.Addition growOnInputs(
-      Network network,
-      SequencedSet<Gate> gates,
-      RandomGenerator rnd
-  ) {
-    record WeightedEndPoint(Wire.EndPoint endPoint, int distance) {}
-    Optional<Wire.EndPoint> oFreeEndPoint = network.freeInputEndPoints()
-        .stream()
-        .map(ep -> new WeightedEndPoint(ep, network.outputDistanceFrom(Gate.OutputGate.class, ep.gateIndex())))
-        .min(Comparator.comparingInt(WeightedEndPoint::distance))
-        .map(WeightedEndPoint::endPoint);
-    if (oFreeEndPoint.isEmpty()) {
-      return Network.Addition.empty();
-    }
-    Wire.EndPoint freeEndPoint = oFreeEndPoint.get();
-    Type type = network.concreteInputType(freeEndPoint);
-    List<Gate> suitableGates = gates.stream()
-        .filter(g -> !NetworkUtils.compatibleOutputPorts(g, type).isEmpty())
-        .toList();
-    if (suitableGates.isEmpty()) {
-      return Network.Addition.empty();
-    }
-    Gate newGate = suitableGates.get(rnd.nextInt(suitableGates.size()));
-    int newGateIndex = freeGateIndex(network);
-    List<Integer> pis = NetworkUtils.compatibleOutputPorts(newGate, type);
-    Wire wire = new Wire(new Wire.EndPoint(newGateIndex, pis.get(rnd.nextInt(pis.size()))), freeEndPoint);
-    return new Network.Addition(Map.of(newGateIndex, newGate), Set.of(wire));
-  }
-
-  public static Network.Addition growOnOutputs(
-      Network network,
-      SequencedSet<Gate> gates,
-      RandomGenerator rnd
-  ) {
-    record WeightedEndPoint(Wire.EndPoint endPoint, int distance) {}
-    Optional<Wire.EndPoint> oFreeEndPoint = network.freeOutputEndPoints()
-        .stream()
-        .map(ep -> new WeightedEndPoint(ep, network.inputDistanceFrom(Gate.InputGate.class, ep.gateIndex())))
-        .min(Comparator.comparingInt(WeightedEndPoint::distance))
-        .map(WeightedEndPoint::endPoint);
-    if (oFreeEndPoint.isEmpty()) {
-      return Network.Addition.empty();
-    }
-    Wire.EndPoint freeEndPoint = oFreeEndPoint.get();
-    Type type = network.concreteOutputType(freeEndPoint);
-    List<Gate> suitableGates = gates.stream()
-        .filter(g -> !NetworkUtils.compatibleInputPorts(g, type).isEmpty())
-        .toList();
-    if (suitableGates.isEmpty()) {
-      return Network.Addition.empty();
-    }
-    Gate newGate = suitableGates.get(rnd.nextInt(suitableGates.size()));
-    int newGateIndex = network.gates().size();
-    List<Integer> pis = NetworkUtils.compatibleInputPorts(newGate, type);
-    Wire wire = new Wire(freeEndPoint, new Wire.EndPoint(network.gates().size(), pis.get(rnd.nextInt(pis.size()))));
-    return new Network.Addition(Map.of(newGateIndex, newGate), Set.of(wire));
-  }
 
   public static Network randomHoledNetwork(
       Network n,

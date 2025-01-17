@@ -19,6 +19,7 @@
  */
 package io.github.ericmedvet.jgea.experimenter.drawer;
 
+import io.github.ericmedvet.jgea.core.operator.Mutation;
 import io.github.ericmedvet.jgea.core.order.ParetoDominance;
 import io.github.ericmedvet.jgea.core.order.PartialComparator;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.InstrumentedProgram;
@@ -59,6 +60,32 @@ public class TTPNMain {
     System.out.println(
         ParetoDominance.compare(List.of(2d, 1d, 4d), List.of(4d, 3d, 4d), List.of(extendedBasePC, addedPC))
     );
+  }
+
+  private static void iArraySum() throws NoSuchMethodException, NetworkStructureException, TypeException {
+    Program target = Program.from(Problems.class.getMethod("iArraySum", List.class));
+    Network n = new Network(
+        List.of(
+            Gate.input(Composed.sequence(Base.INT)),
+            Gates.splitter(),
+            Gates.iSPSum(),
+            Gate.output(Base.INT)
+        ),
+        Set.of(
+            Wire.of(0, 0, 1, 0),
+            Wire.of(1, 0, 2, 0),
+            Wire.of(2, 0, 3, 0),
+            Wire.of(2, 0, 2, 1)
+        )
+    );
+    TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
+    drawer.show(n);
+    InstrumentedProgram ttpnProgram = new Runner(1000, 1000, false).asInstrumentedProgram(n);
+    System.out.printf("target: %s%n", target.safelyRun(List.of(List.of(1, 2, 4))));
+    System.out.printf("ttpn:   %s%n", ttpnProgram.safelyRun(List.of(List.of(1, 2, 4))));
+    RandomGenerator rnd = new Random(3);
+    Mutation<Network> mutation = new GateInserterMutation(new LinkedHashSet<>(StatsMain.ALL_GATES), 10, 10, true);
+    drawer.show(mutation.mutate(n, rnd));
   }
 
   private static void doComputationStuff() throws NoSuchMethodException, ProgramExecutionException, NetworkStructureException, TypeException {
@@ -262,10 +289,11 @@ public class TTPNMain {
       String[] args
   ) throws NetworkStructureException, ProgramExecutionException, NoSuchMethodException, TypeException {
     //weirdOne();
-    factory();
+    //factory();
     //doComputationStuff();
     //comparator();
     //xover();
+    iArraySum();
   }
 
   private static void weirdOne() throws NetworkStructureException, TypeException {

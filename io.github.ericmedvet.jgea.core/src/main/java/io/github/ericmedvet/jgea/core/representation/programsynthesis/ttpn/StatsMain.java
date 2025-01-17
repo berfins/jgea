@@ -188,13 +188,14 @@ public class StatsMain {
             .map(f -> f.format().formatted(map.get(f.name())))
             .collect(Collectors.joining(" "))
     );
-    WireInserterMutation wiMutation = new WireInserterMutation(
+    GateInserterMutation wiMutation = new GateInserterMutation(
         new LinkedHashSet<>(ALL_GATES),
         maxNumberOfGates,
         10,
         true
     );
     GateRemoverMutation grMutation = new GateRemoverMutation(10, true);
+    WireSwapperMutation wsMutation = new WireSwapperMutation(10, true);
     NetworkCrossover xover = new NetworkCrossover(maxNumberOfGates, XOVER_SUBNET_SIZE_RATE, 10, true);
     // prepare map with stats
     List<Network> all = factory.build(nOfNetworks, rnd);
@@ -202,40 +203,31 @@ public class StatsMain {
     map.put("factory-all", all);
     map.put("factory-good", all.stream().filter(goodGatesPredicate).toList());
     map.put("factory-bad", all.stream().filter(goodGatesPredicate.negate()).toList());
-    map.put("wi-mutated-all", all.stream().map(network -> wiMutation.mutate(network, rnd)).toList());
-    map.put(
-        "wi-mutated-good",
-        map.get("factory-good").stream().map(network -> wiMutation.mutate(network, rnd)).toList()
-    );
-    map.put(
-        "wi-mutated-bad",
-        map.get("factory-bad").stream().map(network -> wiMutation.mutate(network, rnd)).toList()
-    );
-    map.put("gr-mutated-all", all.stream().map(network -> grMutation.mutate(network, rnd)).toList());
-    map.put(
-        "gr-mutated-good",
-        map.get("factory-good").stream().map(network -> grMutation.mutate(network, rnd)).toList()
-    );
-    map.put(
-        "gr-mutated-bad",
-        map.get("factory-bad").stream().map(network -> grMutation.mutate(network, rnd)).toList()
-    );
+    map.put("gi-mutated-all", all.stream().map(n -> wiMutation.mutate(n, rnd)).toList());
+    map.put("gi-mutated-good", map.get("factory-good").stream().map(n -> wiMutation.mutate(n, rnd)).toList());
+    map.put("gi-mutated-bad", map.get("factory-bad").stream().map(n -> wiMutation.mutate(n, rnd)).toList());
+    map.put("gr-mutated-all", all.stream().map(n -> grMutation.mutate(n, rnd)).toList());
+    map.put("gr-mutated-good", map.get("factory-good").stream().map(n -> grMutation.mutate(n, rnd)).toList());
+    map.put("gr-mutated-bad", map.get("factory-bad").stream().map(n -> grMutation.mutate(n, rnd)).toList());
+    map.put("ws-mutated-all", all.stream().map(n -> wsMutation.mutate(n, rnd)).toList());
+    map.put("ws-mutated-good", map.get("factory-good").stream().map(n -> wsMutation.mutate(n, rnd)).toList());
+    map.put("ws-mutated-bad", map.get("factory-bad").stream().map(n -> wsMutation.mutate(n, rnd)).toList());
     map.put(
         "xover-all",
-        all.stream().map(network -> xover.recombine(network, Misc.pickRandomly(all, rnd), rnd)).toList()
+        all.stream().map(n -> xover.recombine(n, Misc.pickRandomly(all, rnd), rnd)).toList()
     );
     map.put(
         "xover-good",
         map.get("factory-good")
             .stream()
-            .map(network -> xover.recombine(network, Misc.pickRandomly(map.get("factory-good"), rnd), rnd))
+            .map(n -> xover.recombine(n, Misc.pickRandomly(map.get("factory-good"), rnd), rnd))
             .toList()
     );
     map.put(
         "xover-bad",
         map.get("factory-bad")
             .stream()
-            .map(network -> xover.recombine(network, Misc.pickRandomly(map.get("factory-bad"), rnd), rnd))
+            .map(n -> xover.recombine(n, Misc.pickRandomly(map.get("factory-bad"), rnd), rnd))
             .toList()
     );
     // print table

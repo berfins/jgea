@@ -126,8 +126,8 @@ public class BackTracingNetworkFactory implements IndependentFactory<Network> {
                   Type ngoType = newGate.outputTypes().get(opi).concrete(generics);
                   if (dstType.canTakeValuesOf(ngoType)) {
                     Pair<Multiset<AugmentedType>, Multiset<Type>> key = key(newGate, ipi, opi, generics);
-                    groupedAdditions.computeIfAbsent(key, k -> new LinkedHashSet<>());
-                    groupedAdditions.get(key)
+                    groupedAdditions
+                        .computeIfAbsent(key, k -> new LinkedHashSet<>())
                         .add(
                             new Network.Addition(
                                 Map.of(newGateIndex, newGate),
@@ -182,8 +182,8 @@ public class BackTracingNetworkFactory implements IndependentFactory<Network> {
           Type ngoType = newGate.outputTypes().get(gpi);
           if (dstType.canTakeValuesOf(ngoType)) {
             Pair<Multiset<AugmentedType>, Multiset<Type>> key = key(newGate, -1, gpi, safelyResolve(dstType, ngoType));
-            groupedAdditions.computeIfAbsent(key, k -> new LinkedHashSet<>());
-            groupedAdditions.get(key)
+            groupedAdditions
+                .computeIfAbsent(key, k -> new LinkedHashSet<>())
                 .add(
                     new Network.Addition(
                         Map.of(newGateIndex, newGate),
@@ -215,8 +215,8 @@ public class BackTracingNetworkFactory implements IndependentFactory<Network> {
                   -1,
                   safelyResolve(srcType, ngiType)
               );
-              groupedAdditions.computeIfAbsent(key, k -> new LinkedHashSet<>());
-              groupedAdditions.get(key)
+              groupedAdditions
+                  .computeIfAbsent(key, k -> new LinkedHashSet<>())
                   .add(
                       new Network.Addition(
                           Map.of(newGateIndex, newGate),
@@ -237,7 +237,7 @@ public class BackTracingNetworkFactory implements IndependentFactory<Network> {
     return Arrays.stream(ts).collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
-  private static Map<Generic, Type> safelyResolve(Type concrete, Type type) {
+  public static Map<Generic, Type> safelyResolve(Type concrete, Type type) {
     try {
       return type.resolveGenerics(concrete);
     } catch (TypeException e) {
