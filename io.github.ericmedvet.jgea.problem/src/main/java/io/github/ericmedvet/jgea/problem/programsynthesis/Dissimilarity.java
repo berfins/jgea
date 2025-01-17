@@ -53,9 +53,12 @@ public class Dissimilarity implements Distance<List<Object>> {
           )
       );
     }
-    return IntStream.range(0, types.size())
-        .mapToDouble(i -> types.get(i).dissimilarity(os1.get(i), os2.get(i)))
-        .average()
-        .orElse(0d);
+    return Math.min(
+        maxDissimilarity,
+        IntStream.range(0, types.size())
+            .mapToDouble(i -> types.get(i).dissimilarity(os1.get(i), os2.get(i)))
+            .average()
+            .orElse(0d)
+    );
   }
 }

@@ -108,7 +108,7 @@ public class StatsMain {
       int nOfCases,
       RandomGenerator rnd
   ) throws ProgramExecutionException {
-    GreedyNetworkFactory factory = new GreedyNetworkFactory(
+    BackTracingNetworkFactory factory = new BackTracingNetworkFactory(
         inputTypes,
         outputTypes,
         new LinkedHashSet<>(ALL_GATES),

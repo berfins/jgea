@@ -34,7 +34,11 @@ public enum Base implements Type {
   ), INT(
       Integer.class,
       o -> 1,
-      (o1, o2) -> Math.abs((Integer) o1 - (Integer) o2)
+      (o1, o2) -> {
+        double i1 = ((Integer) o1).doubleValue();
+        double i2 = ((Integer) o2).doubleValue();
+        return Math.abs(i1 - i2);
+      }
   ), REAL(
       Double.class,
       o -> 1,

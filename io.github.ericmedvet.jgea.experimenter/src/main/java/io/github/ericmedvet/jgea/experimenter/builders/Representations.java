@@ -229,13 +229,12 @@ public class Representations {
         .filter(g -> !forbiddenGates.contains(g))
         .collect(Collectors.toCollection(LinkedHashSet::new));
     return ttpn -> new Representation<>(
-        new NetworkFactory(
+        new BackTracingNetworkFactory(
             ttpn.inputTypes(),
             ttpn.outputTypes(),
             actualGates,
             maxNOfGates,
-            maxNOfAttempts,
-            avoidDeadGates
+            maxNOfAttempts
         ),
         List.of(
             new WireInserterMutation(actualGates, maxNOfGates, maxNOfAttempts, avoidDeadGates),

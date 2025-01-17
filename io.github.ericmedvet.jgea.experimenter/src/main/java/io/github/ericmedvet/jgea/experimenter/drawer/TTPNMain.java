@@ -196,13 +196,12 @@ public class TTPNMain {
     //drawer.show(mn);
     //drawer.show(new ImageBuilder.ImageInfo(600, 300), n);
 
-    NetworkFactory nf = new NetworkFactory(
+    BackTracingNetworkFactory nf = new BackTracingNetworkFactory(
         List.of(Composed.sequence(Base.REAL), Composed.sequence(Base.REAL)),
         List.of(Base.REAL),
         new LinkedHashSet<>(StatsMain.ALL_GATES),
         20,
-        10,
-        true
+        10
     );
     Network newN = nf.build(rnd);
     //drawer.show(newN);
@@ -228,11 +227,11 @@ public class TTPNMain {
 
   private static void factory() {
     RandomGenerator rnd = new Random();
-    GreedyNetworkFactory factory = new GreedyNetworkFactory(
+    BackTracingNetworkFactory factory = new BackTracingNetworkFactory(
         List.of(Composed.sequence(Base.REAL), Composed.sequence(Base.REAL)),
         List.of(Base.REAL),
         new LinkedHashSet<>(StatsMain.ALL_GATES),
-        32,
+        16,
         1000
     );
     TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
@@ -286,13 +285,12 @@ public class TTPNMain {
 
   private static void xover() {
     RandomGenerator rnd = new Random(1);
-    NetworkFactory factory = new NetworkFactory(
+    BackTracingNetworkFactory factory = new BackTracingNetworkFactory(
         List.of(Composed.sequence(Base.REAL), Composed.sequence(Base.REAL)),
         List.of(Base.REAL),
         new LinkedHashSet<>(StatsMain.ALL_GATES),
         16,
-        10,
-        true
+        1000
     );
     TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
     Network n1 = factory.build(rnd);

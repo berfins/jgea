@@ -127,4 +127,17 @@ public class LinkedHashMultiset<E> implements Multiset<E> {
   public Set<E> elementSet() {
     return map.keySet();
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (o == null || getClass() != o.getClass())
+      return false;
+    LinkedHashMultiset<?> that = (LinkedHashMultiset<?>) o;
+    return Objects.equals(map, that.map);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(map);
+  }
 }
