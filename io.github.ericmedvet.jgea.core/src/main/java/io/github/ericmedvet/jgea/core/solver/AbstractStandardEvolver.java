@@ -122,7 +122,11 @@ public abstract class AbstractStandardEvolver<T extends POCPopulationState<I, G,
     AtomicLong counter = new AtomicLong(0);
     List<? extends G> genotypes;
     if (genotypeFactory instanceof IndependentFactory<? extends G> independentGenotypeFactory) {
-      genotypes = getAll(IntStream.range(0, populationSize).mapToObj(i -> executor.submit(() -> independentGenotypeFactory.build(random))).toList()).stream().toList();
+      genotypes = getAll(
+          IntStream.range(0, populationSize)
+              .mapToObj(i -> executor.submit(() -> independentGenotypeFactory.build(random)))
+              .toList()
+      ).stream().toList();
     } else {
       genotypes = genotypeFactory.build(populationSize, random);
     }

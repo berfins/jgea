@@ -1230,6 +1230,17 @@ Produces <code><abbr title="io.github.ericmedvet.jnb.datastructure.FormattedName
 
 Produces <code><abbr title="io.github.ericmedvet.jnb.datastructure.FormattedNamedFunction">FormattedNamedFunction</abbr>&lt;X, <abbr title="java.lang.Double">Double</abbr>&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.Functions.ttpnDeadOrIUnwiredOutputGatesRate()` by jgea-experimenter:2.7.1-SNAPSHOT
 
+### Builder `ea.function.ttpnNOfTypes()`
+
+`ea.f.ttpnNOfTypes(of; format)`
+
+| Param | Type | Default | Java type |
+| --- | --- | --- | --- |
+| `of` | npm | `f.identity()` | <code><abbr title="java.util.function.Function">Function</abbr>&lt;X, <abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Network">Network</abbr>&gt;</code> |
+| `format` | s | `%5.3f` | <code><abbr title="java.lang.String">String</abbr></code> |
+
+Produces <code><abbr title="io.github.ericmedvet.jnb.datastructure.FormattedNamedFunction">FormattedNamedFunction</abbr>&lt;X, <abbr title="java.lang.Integer">Integer</abbr>&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.Functions.ttpnNOfTypes()` by jgea-experimenter:2.7.1-SNAPSHOT
+
 ### Builder `ea.function.validationQuality()`
 
 `ea.f.validationQuality(of; individual; format)`

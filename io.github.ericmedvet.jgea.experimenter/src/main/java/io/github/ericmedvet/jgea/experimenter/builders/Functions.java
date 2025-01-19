@@ -819,6 +819,20 @@ public class Functions {
 
   @SuppressWarnings("unused")
   @Cacheable
+  public static <X> FormattedNamedFunction<X, Integer> ttpnNOfTypes(
+      @Param(value = "of", dNPM = "f.identity()") Function<X, Network> beforeF,
+      @Param(value = "format", dS = "%5.3f") String format
+  ) {
+    Function<Network, Integer> f = n -> (int) n.wires()
+        .stream()
+        .map(w -> n.concreteOutputType(w.src()))
+        .distinct()
+        .count();
+    return FormattedNamedFunction.from(f, format, "ttpn.n.types").compose(beforeF);
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
   public static <X> FormattedNamedFunction<X, Double> ttpnDeadOrIUnwiredOutputGatesRate(
       @Param(value = "of", dNPM = "f.identity()") Function<X, Network> beforeF,
       @Param(value = "format", dS = "%5.3f") String format

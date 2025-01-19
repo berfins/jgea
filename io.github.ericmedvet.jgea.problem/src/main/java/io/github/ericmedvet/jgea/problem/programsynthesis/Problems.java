@@ -44,6 +44,16 @@ public class Problems {
     return is.stream().reduce(Integer::sum).orElse(0);
   }
 
+  @Typed("I")
+  public static Integer iBiMax(@Typed("I") Integer v1, @Typed("I") Integer v2) {
+    return Math.max(v1, v2);
+  }
+
+  @Typed("I")
+  public static Integer iTriMax(@Typed("I") Integer v1, @Typed("I") Integer v2, @Typed("I") Integer v3) {
+    return Math.max(v1, Math.max(v2, v3));
+  }
+
   @Typed("[<S,I>]")
   public static List<List<Object>> sLengther(@Typed("[S]") List<String> strings) {
     return strings.stream().map(s -> List.<Object>of(s, s.length())).toList();
@@ -60,14 +70,6 @@ public class Problems {
       throw new IllegalArgumentException("Input sizes are different: %d and %d".formatted(v1.size(), v2.size()));
     }
     return IntStream.range(0, v1.size()).mapToDouble(i -> v1.get(i) * v2.get(i)).sum();
-  }
-
-  @Typed("[R]")
-  public static List<Double> vVectProduct(@Typed("[R]") List<Double> v1, @Typed("[R]") List<Double> v2) {
-    if (v1.size() != v2.size()) {
-      throw new IllegalArgumentException("Input sizes are different: %d and %d".formatted(v1.size(), v2.size()));
-    }
-    return IntStream.range(0, v1.size()).mapToDouble(i -> v1.get(i) * v2.get(i)).boxed().toList();
   }
 
 }
