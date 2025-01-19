@@ -23,10 +23,7 @@ import io.github.ericmedvet.jgea.core.representation.programsynthesis.Instrument
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.ProgramExecutionException;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.RunProfile;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.type.Type;
-import io.github.ericmedvet.jnb.datastructure.NamedFunction;
-import io.github.ericmedvet.jsdynsym.core.composed.Composed;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -35,11 +32,21 @@ public class Runner {
 
   private final int maxNOfSteps;
   private final int maxNOfTokens;
+  private final int maxTokensSize;
+  private final int maxSingleTokenSize;
   private final boolean skipExecutionOfBlockedNetworks;
 
-  public Runner(int maxNOfSteps, int maxNOfTokens, boolean skipExecutionOfBlockedNetworks) {
+  public Runner(
+      int maxNOfSteps,
+      int maxNOfTokens,
+      int maxTokensSize,
+      int maxSingleTokenSize,
+      boolean skipExecutionOfBlockedNetworks
+  ) {
     this.maxNOfSteps = maxNOfSteps;
     this.maxNOfTokens = maxNOfTokens;
+    this.maxTokensSize = maxTokensSize;
+    this.maxSingleTokenSize = maxSingleTokenSize;
     this.skipExecutionOfBlockedNetworks = skipExecutionOfBlockedNetworks;
   }
 
@@ -65,57 +72,53 @@ public class Runner {
   }
 
   public InstrumentedProgram asInstrumentedProgram(Network network) {
-    record ComposedNamedFunction(
-        String name,
-        Network inner,
-        Function<List<Object>, InstrumentedProgram.Outcome> function
-    ) implements NamedFunction<List<Object>, InstrumentedProgram.Outcome>, Composed<Network> {
+    Runner thisRunner = this;
+    return new InstrumentedProgram() {
       @Override
-      public InstrumentedProgram.Outcome apply(List<Object> objects) {
-        return function.apply(objects);
+      public InstrumentedOutcome runInstrumented(List<Object> inputs) {
+        return thisRunner.run(network, inputs);
+      }
+
+      @Override
+      public List<Type> inputTypes() {
+        return network.inputGates().values().stream().toList();
+      }
+
+      @Override
+      public List<Type> outputTypes() {
+        return network.outputGates().values().stream().toList();
       }
 
       @Override
       public String toString() {
-        return name;
+        return "ttpn[g=%d,w=%d]".formatted(network.gates().size(), network.wires().size());
       }
-    }
-    return InstrumentedProgram.from(
-        new ComposedNamedFunction(
-            "ttpn[g=%d,w=%d]".formatted(network.gates().size(), network.wires().size()),
-            network,
-            inputs -> {
-              try {
-                return run(network, inputs);
-              } catch (ProgramExecutionException e) {
-                throw new RuntimeException(e);
-              }
-            }
-        ),
-        network.inputGates().values().stream().toList(),
-        network.outputGates().values().stream().toList()
-    );
+    };
   }
 
-  public InstrumentedProgram.Outcome run(Network network, List<Object> inputs) throws ProgramExecutionException {
+  public InstrumentedProgram.InstrumentedOutcome run(Network network, List<Object> inputs) {
     // check validity
-    List<Type> inputTypes = network.inputTypes();
+    List<Type> inputTypes = network.inputGates().values().stream().toList();
     SortedMap<Integer, Type> outputTypes = network.outputGates();
     if (inputs.size() != inputTypes.size()) {
-      throw new ProgramExecutionException(
-          "Wrong number of inputs: %d expected, %d found".formatted(
-              inputTypes.size(),
-              inputs.size()
+      return InstrumentedProgram.InstrumentedOutcome.from(
+          new ProgramExecutionException(
+              "Wrong number of inputs: %d expected, %d found".formatted(
+                  inputTypes.size(),
+                  inputs.size()
+              )
           )
       );
     }
     for (int i = 0; i < inputTypes.size(); i++) {
       if (!inputTypes.get(i).matches(inputs.get(i))) {
-        throw new ProgramExecutionException(
-            "Invalid input type for input %d of type %s: %s".formatted(
-                i,
-                inputTypes.get(i),
-                inputs.get(i).getClass()
+        return InstrumentedProgram.InstrumentedOutcome.from(
+            new ProgramExecutionException(
+                "Invalid input type for input %d of type %s: %s".formatted(
+                    i,
+                    inputTypes.get(i),
+                    inputs.get(i).getClass()
+                )
             )
         );
       }
@@ -128,8 +131,10 @@ public class Runner {
           .filter(gi -> network.isDeadGate(gi) || !network.isWiredToInput(gi))
           .count();
       if (nOfBlockedOutputs > 0) {
-        throw new ProgramExecutionException(
-            "Blocked/unwired output gates: %d on %d".formatted(nOfBlockedOutputs, network.outputGates().size())
+        return InstrumentedProgram.InstrumentedOutcome.from(
+            new ProgramExecutionException(
+                "Blocked/unwired output gates: %d on %d".formatted(nOfBlockedOutputs, network.outputGates().size())
+            )
         );
       }
     }
@@ -138,26 +143,32 @@ public class Runner {
     network.wires().forEach(w -> current.put(w, new ArrayDeque<>()));
     Map<Wire, List<Object>> next = new HashMap<>();
     Map<Wire, Type> actualTypes = new HashMap<>();
+    Map<Integer, Object> inputsMap = new HashMap<>();
+    int ii = 0;
+    for (Integer inputGI : network.inputGates().keySet()) {
+      inputsMap.put(inputGI, inputs.get(ii));
+    }
     for (Wire w : network.wires()) {
       Type type = network.concreteOutputType(w.src());
       if (type == null) {
-        throw new ProgramExecutionException("No concrete type at output port %s".formatted(w.src()));
+        return InstrumentedProgram.InstrumentedOutcome.from(
+            new ProgramExecutionException("No concrete type at output port %s".formatted(w.src()))
+        );
       }
       actualTypes.put(w, type);
     }
     // prepare state, counter, and output map
     int k = 0;
     List<RunProfile.State> states = new ArrayList<>();
-    Queue<Object> networkInputsQueue = new ArrayDeque<>(inputs);
     SortedMap<Integer, Object> outputs = new TreeMap<>();
     // iterate
     while (k < maxNOfSteps) {
-      for (int i = 0; i < network.gates().size(); i++) {
-        int gi = i;
-        Gate g = network.gates().get(gi);
+      for (Map.Entry<Integer, Gate> gateEntry : network.gates().entrySet()) {
+        int gi = gateEntry.getKey();
+        Gate g = gateEntry.getValue();
         if (g instanceof Gate.InputGate) {
-          if (!networkInputsQueue.isEmpty()) {
-            network.wiresFrom(gi, 0).forEach(w -> next.put(w, List.of(networkInputsQueue.remove())));
+          if (k == 0) {
+            network.wiresFrom(gi, 0).forEach(w -> next.put(w, List.of(inputsMap.get(gi))));
           }
         } else if (g instanceof Gate.OutputGate) {
           network.wireTo(gi, 0).flatMap(w -> takeOne(current.get(w))).ifPresent(token -> outputs.put(gi, token));
@@ -188,15 +199,40 @@ public class Runner {
                     .toList()
             );
             try {
-              Gate.Data localOut = g.operator().apply(localIn);              // check number of outputs
+              Gate.Data localOut = g.operator().apply(localIn);
+              // check number of outputs
               if (localOut.lines().size() != g.outputTypes().size()) {
-                throw new ProgramExecutionException(
-                    "Unexpected wrong number of outputs: %d expected, %d found".formatted(
-                        g.outputTypes()
-                            .size(),
-                        localOut.lines().size()
-                    )
+                return InstrumentedProgram.InstrumentedOutcome.from(
+                    new ProgramExecutionException(
+                        "Unexpected wrong number of outputs: %d expected, %d found".formatted(
+                            g.outputTypes()
+                                .size(),
+                            localOut.lines().size()
+                        )
+                    ),
+                    new RunProfile(states)
                 );
+              }
+              // check output size
+              for (int pi = 0; pi < g.outputTypes().size(); pi++) {
+                Type type = network.concreteOutputType(new Wire.EndPoint(gi, pi));
+                if (type != null && !type.isGeneric()) {
+                  for (Object token : localOut.all(pi)) {
+                    if (type.sizeOf(token) > maxSingleTokenSize) {
+                      return InstrumentedProgram.InstrumentedOutcome.from(
+                          new ProgramExecutionException(
+                              "Exceeded size of token of type %s on gate %s: %d > %d".formatted(
+                                  type,
+                                  g,
+                                  type.sizeOf(token),
+                                  maxSingleTokenSize
+                              )
+                          ),
+                          new RunProfile(states)
+                      );
+                    }
+                  }
+                }
               }
               // put outputs
               IntStream.range(0, localOut.lines().size())
@@ -205,7 +241,10 @@ public class Runner {
                           .forEach(w -> next.put(w, localOut.lines().get(pi)))
                   );
             } catch (RuntimeException e) {
-              throw new ProgramExecutionException("Cannot run %s on %s".formatted(g, localIn), e);
+              return InstrumentedProgram.InstrumentedOutcome.from(
+                  new ProgramExecutionException("Cannot run %s on %s due to %s".formatted(g, localIn, e.toString()), e),
+                  new RunProfile(states)
+              );
             }
           }
         }
@@ -230,8 +269,19 @@ public class Runner {
               )
       );
       if (state.count() > maxNOfTokens) {
-        throw new ProgramExecutionException(
-            "Exceeded number of tokens: %d > %d".formatted(state.count(), maxNOfTokens)
+        return InstrumentedProgram.InstrumentedOutcome.from(
+            new ProgramExecutionException(
+                "Exceeded number of tokens: %d > %d".formatted(state.count(), maxNOfTokens)
+            ),
+            new RunProfile(states)
+        );
+      }
+      if (state.size() > maxTokensSize) {
+        return InstrumentedProgram.InstrumentedOutcome.from(
+            new ProgramExecutionException(
+                "Exceeded size of tokens: %d > %d".formatted(state.size(), maxTokensSize)
+            ),
+            new RunProfile(states)
         );
       }
       states.add(state);
@@ -240,30 +290,36 @@ public class Runner {
     }
     // check output
     if (!outputTypes.keySet().equals(outputs.keySet())) {
-      throw new ProgramExecutionException(
-          "Missing outputs on gates: %s".formatted(
-              outputTypes.keySet()
-                  .stream()
-                  .filter(gi -> !outputs.containsKey(gi))
-                  .map(gi -> Integer.toString(gi))
-                  .collect(
-                      Collectors.joining(",")
-                  )
-          )
+      return InstrumentedProgram.InstrumentedOutcome.from(
+          new ProgramExecutionException(
+              "Missing outputs on gates: %s".formatted(
+                  outputTypes.keySet()
+                      .stream()
+                      .filter(gi -> !outputs.containsKey(gi))
+                      .map(gi -> Integer.toString(gi))
+                      .collect(
+                          Collectors.joining(",")
+                      )
+              )
+          ),
+          new RunProfile(states)
       );
     }
     for (int gi : outputTypes.keySet()) {
       if (!outputTypes.get(gi).matches(outputs.get(gi))) {
-        throw new ProgramExecutionException(
-            "Invalid output type for input %d of type %s: %s".formatted(
-                gi,
-                outputTypes.get(gi),
-                outputs.get(gi).getClass()
-            )
+        return InstrumentedProgram.InstrumentedOutcome.from(
+            new ProgramExecutionException(
+                "Invalid output type for input %d of type %s: %s".formatted(
+                    gi,
+                    outputTypes.get(gi),
+                    outputs.get(gi).getClass()
+                )
+            ),
+            new RunProfile(states)
         );
       }
     }
-    return new InstrumentedProgram.Outcome(
+    return InstrumentedProgram.InstrumentedOutcome.from(
         outputs.values().stream().toList(),
         new RunProfile(states)
     );

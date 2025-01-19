@@ -40,6 +40,9 @@ public class StatsMain {
 
   public static final int MAX_N_OF_STEPS = 100;
   public static final int MAX_N_OF_TOKENS = 1000;
+  public static final int MAX_TOKENS_SIZE = 2000;
+  public static final int MAX_SINGLE_TOKEN_SIZE = 100;
+
   public static final double XOVER_SUBNET_SIZE_RATE = 0.5;
   public static final List<Gate> ALL_GATES = List.of(
       Gates.rPMathOperator(Element.Operator.MULTIPLICATION),
@@ -115,7 +118,7 @@ public class StatsMain {
         maxNumberOfGates,
         1000
     );
-    Runner runner = new Runner(MAX_N_OF_STEPS, MAX_N_OF_TOKENS, false);
+    Runner runner = new Runner(MAX_N_OF_STEPS, MAX_N_OF_TOKENS, MAX_TOKENS_SIZE, MAX_SINGLE_TOKEN_SIZE, false);
     List<List<Object>> cases = IntStream.range(0, nOfCases)
         .mapToObj(
             i -> inputTypes.stream()

@@ -1836,13 +1836,15 @@ Produces <code><abbr title="io.github.ericmedvet.jgea.core.InvertibleMapper">Inv
 
 ### Builder `ea.mapper.ttpnToProgram()`
 
-`ea.m.ttpnToProgram(of; maxNOfSteps; maxNOfTokens; skipBlocked)`
+`ea.m.ttpnToProgram(of; maxNOfSteps; maxNOfTokens; maxTokensSize; maxSingleTokenSize; skipBlocked)`
 
 | Param | Type | Default | Java type |
 | --- | --- | --- | --- |
 | `of` | npm | `ea.m.identity()` | <code><abbr title="io.github.ericmedvet.jgea.core.InvertibleMapper">InvertibleMapper</abbr>&lt;X, <abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Network">Network</abbr>&gt;</code> |
 | `maxNOfSteps` | i | `128` | <code>int</code> |
 | `maxNOfTokens` | i | `256` | <code>int</code> |
+| `maxTokensSize` | i | `1024` | <code>int</code> |
+| `maxSingleTokenSize` | i | `128` | <code>int</code> |
 | `skipBlocked` | b | `true` | <code>boolean</code> |
 
 Produces <code><abbr title="io.github.ericmedvet.jgea.core.InvertibleMapper">InvertibleMapper</abbr>&lt;X, <abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.Program">Program</abbr>&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.Mappers.ttpnToProgram()` by jgea-experimenter:2.7.1-SNAPSHOT

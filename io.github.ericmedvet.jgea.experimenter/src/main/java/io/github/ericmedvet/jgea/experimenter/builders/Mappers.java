@@ -752,9 +752,11 @@ public class Mappers {
       @Param(value = "of", dNPM = "ea.m.identity()") InvertibleMapper<X, Network> beforeM,
       @Param(value = "maxNOfSteps", dI = 128) int maxNOfSteps,
       @Param(value = "maxNOfTokens", dI = 256) int maxNOfTokens,
+      @Param(value = "maxTokensSize", dI = 1024) int maxTokensSize,
+      @Param(value = "maxSingleTokenSize", dI = 128) int maxSingleTokenSize,
       @Param(value = "skipBlocked", dB = true) boolean skipBlocked
   ) {
-    Runner runner = new Runner(maxNOfSteps, maxNOfTokens, skipBlocked);
+    Runner runner = new Runner(maxNOfSteps, maxNOfTokens, maxTokensSize, maxSingleTokenSize, skipBlocked);
     return beforeM.andThen(
         InvertibleMapper.from(
             (eProgram, ttpn) -> runner.asInstrumentedProgram(ttpn),

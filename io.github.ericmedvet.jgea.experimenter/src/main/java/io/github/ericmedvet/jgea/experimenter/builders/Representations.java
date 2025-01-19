@@ -230,8 +230,8 @@ public class Representations {
         .collect(Collectors.toCollection(LinkedHashSet::new));
     return ttpn -> new Representation<>(
         new BackTracingNetworkFactory(
-            ttpn.inputTypes(),
-            ttpn.outputTypes(),
+            ttpn.inputGates().values().stream().toList(),
+            ttpn.outputGates().values().stream().toList(),
             actualGates,
             maxNOfGates,
             100 * maxNOfAttempts

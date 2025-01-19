@@ -39,11 +39,34 @@ public interface Program {
 
   List<Object> run(List<Object> inputs) throws ProgramExecutionException;
 
-  default List<Object> safelyRun(List<Object> inputs) {
+  interface Outcome {
+    List<Object> outputs();
+
+    ProgramExecutionException exception();
+
+    static Outcome from(List<Object> outputs, ProgramExecutionException exception) {
+      record HardOutcome(List<Object> outputs, ProgramExecutionException exception) implements Outcome {}
+      return new HardOutcome(outputs, exception);
+    }
+
+    static Outcome from(List<Object> outputs) {
+      return from(outputs, null);
+    }
+
+    static Outcome from(ProgramExecutionException exception) {
+      return from(null, exception);
+    }
+
+    default boolean hasException() {
+      return exception() != null;
+    }
+  }
+
+  default Outcome safelyRun(List<Object> inputs) {
     try {
-      return run(inputs);
+      return Outcome.from(run(inputs));
     } catch (ProgramExecutionException e) {
-      return null;
+      return Outcome.from(e);
     }
   }
 

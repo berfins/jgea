@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.SequencedMap;
 import java.util.random.RandomGenerator;
 
-public class PrecomputedSyntheticPSProblem extends PrecomputedTargetEBProblem<Program, List<Object>, InstrumentedProgram.Outcome, ProgramSynthesisProblem.Outcome, SequencedMap<String, Double>> implements SyntheticPSProblem {
+public class PrecomputedSyntheticPSProblem extends PrecomputedTargetEBProblem<Program, List<Object>, InstrumentedProgram.InstrumentedOutcome, ProgramSynthesisProblem.Outcome, SequencedMap<String, Double>> implements SyntheticPSProblem {
 
   private final List<Metric> metrics;
   private final List<Type> inputTypes;
@@ -83,7 +83,7 @@ public class PrecomputedSyntheticPSProblem extends PrecomputedTargetEBProblem<Pr
     List<List<Object>> cases = new ArrayList<>();
     while (cases.size() < (n * (1d - maxExceptionRate))) {
       List<Object> inputs = program.inputTypes().stream().map(t -> dataFactory.apply(t, rnd)).toList();
-      if (program.safelyRun(inputs) != null) {
+      if (!program.safelyRun(inputs).hasException()) {
         cases.add(inputs);
       }
     }

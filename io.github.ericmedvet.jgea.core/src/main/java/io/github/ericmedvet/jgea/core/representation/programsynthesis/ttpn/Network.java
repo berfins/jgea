@@ -484,10 +484,6 @@ public final class Network implements Sized {
     return gates.get(endPoint.gateIndex()).inputPorts().get(endPoint.portIndex()).type();
   }
 
-  public List<Type> inputTypes() {
-    return inputGates().values().stream().toList();
-  }
-
   public synchronized boolean isDeadGate(int igi) {
     Boolean b = deadMap.get(igi);
     if (b != null) {
@@ -588,15 +584,6 @@ public final class Network implements Sized {
 
   public Type outputType(Wire.EndPoint endPoint) {
     return gates.get(endPoint.gateIndex()).outputTypes().get(endPoint.portIndex());
-  }
-
-  public List<Type> outputTypes() {
-    return gates()
-        .values()
-        .stream()
-        .filter(g -> g instanceof Gate.OutputGate)
-        .map(g -> ((Gate.OutputGate) g).type())
-        .toList();
   }
 
   @Override

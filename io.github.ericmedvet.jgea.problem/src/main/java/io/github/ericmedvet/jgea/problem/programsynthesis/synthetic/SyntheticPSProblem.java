@@ -26,5 +26,5 @@ import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisProble
 import java.util.List;
 import java.util.SequencedMap;
 
-public interface SyntheticPSProblem extends ProgramSynthesisProblem, TargetEBProblem<Program, List<Object>, InstrumentedProgram.Outcome, ProgramSynthesisProblem.Outcome, SequencedMap<String, Double>> {
+public interface SyntheticPSProblem extends ProgramSynthesisProblem, TargetEBProblem<Program, List<Object>, InstrumentedProgram.InstrumentedOutcome, ProgramSynthesisProblem.Outcome, SequencedMap<String, Double>> {
 }

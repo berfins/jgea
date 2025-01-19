@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.random.RandomGenerator;
+import java.util.stream.IntStream;
 
 public class TTPNMain {
 
@@ -62,7 +63,7 @@ public class TTPNMain {
     );
   }
 
-  private static void iArraySum() throws NoSuchMethodException, NetworkStructureException, TypeException {
+  private static void iArraySum() throws NoSuchMethodException, NetworkStructureException, TypeException, ProgramExecutionException {
     Program target = Program.from(Problems.class.getMethod("iArraySum", List.class));
     Network n = new Network(
         List.of(
@@ -80,12 +81,21 @@ public class TTPNMain {
     );
     TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
     drawer.show(n);
-    InstrumentedProgram ttpnProgram = new Runner(1000, 1000, false).asInstrumentedProgram(n);
-    System.out.printf("target: %s%n", target.safelyRun(List.of(List.of(1, 2, 4))));
-    System.out.printf("ttpn:   %s%n", ttpnProgram.safelyRun(List.of(List.of(1, 2, 4))));
+    Runner runner = new Runner(1000, 1000, 1000, 100, false);
+    InstrumentedProgram ttpnProgram = runner.asInstrumentedProgram(n);
+    List<Object> sampleInputs = List.of(List.of(1, 2, 4));
+    System.out.printf("target:  %s%n", target.safelyRun(sampleInputs));
+    System.out.printf("ttpn:    %s%n", ttpnProgram.safelyRun(sampleInputs));
+    System.out.printf("ttpn:    %s%n", ttpnProgram.safelyRun(sampleInputs));
     RandomGenerator rnd = new Random(3);
-    Mutation<Network> mutation = new GateInserterMutation(new LinkedHashSet<>(StatsMain.ALL_GATES), 10, 10, true);
-    drawer.show(mutation.mutate(n, rnd));
+    Mutation<Network> giMutation = new GateInserterMutation(new LinkedHashSet<>(StatsMain.ALL_GATES), 10, 10, true);
+    Mutation<Network> grMutation = new GateRemoverMutation(10, true);
+    Network mutated = giMutation.mutate(n, rnd);
+    drawer.show(mutated);
+    System.out.printf("mutated: %s%n", runner.run(mutated, sampleInputs));
+    IntStream.range(0, 100).forEach(i -> {
+      System.out.printf("%3d -> %s%n", i, runner.run(grMutation.mutate(mutated, rnd), sampleInputs));
+    });
   }
 
   private static void doComputationStuff() throws NoSuchMethodException, ProgramExecutionException, NetworkStructureException, TypeException {
@@ -123,7 +133,7 @@ public class TTPNMain {
 
     Program tProgram = Program.from(Problems.class.getMethod("vProduct", List.class, List.class));
     System.out.println(tProgram);
-    InstrumentedProgram ttpnProgram = new Runner(1000, 1000, false).asInstrumentedProgram(n);
+    InstrumentedProgram ttpnProgram = new Runner(1000, 1000, 1000, 100, false).asInstrumentedProgram(n);
     List<Object> inputs = List.of(List.of(1d, 2d), List.of(3d, 4d));
     System.out.println(tProgram.run(inputs));
     InstrumentedProgram.Outcome o = ttpnProgram.runInstrumented(inputs);

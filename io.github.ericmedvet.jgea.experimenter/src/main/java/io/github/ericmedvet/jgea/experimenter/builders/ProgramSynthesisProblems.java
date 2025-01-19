@@ -72,7 +72,7 @@ public class ProgramSynthesisProblems {
         new IntRange((int) stringLengthRange.min(), (int) stringLengthRange.max()),
         new IntRange((int) sequenceSizeRange.min(), (int) sequenceSizeRange.max())
     );
-    return new PrecomputedSyntheticPSProblem(
+    PrecomputedSyntheticPSProblem p = new PrecomputedSyntheticPSProblem(
         tProgram,
         metrics,
         maxDissimilarity,
@@ -82,6 +82,7 @@ public class ProgramSynthesisProblems {
         nOfValidationCases,
         maxExceptionRate
     );
+    return p;
   }
 
 }

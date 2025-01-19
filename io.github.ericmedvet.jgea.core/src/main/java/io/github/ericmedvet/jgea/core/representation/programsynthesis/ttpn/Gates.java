@@ -140,7 +140,7 @@ public class Gates {
         List.of(Gate.Port.single(Base.INT), Gate.Port.single(Base.INT)),
         List.of(Base.BOOLEAN),
         NamedFunction.from(
-            in -> Gate.Data.singleOne(in.one(0, Double.class).compareTo(in.one(1, Double.class)) < 0),
+            in -> Gate.Data.singleOne(in.one(0, Integer.class).compareTo(in.one(1, Integer.class)) < 0),
             "iBefore"
         )
     );

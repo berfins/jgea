@@ -34,9 +34,9 @@ import java.util.Objects;
 import java.util.SequencedMap;
 import java.util.function.BiFunction;
 
-public interface ProgramSynthesisProblem extends SimpleEBMOProblem<Program, List<Object>, InstrumentedProgram.Outcome, ProgramSynthesisProblem.Outcome, Double>, ProblemWithExampleSolution<Program> {
+public interface ProgramSynthesisProblem extends SimpleEBMOProblem<Program, List<Object>, InstrumentedProgram.InstrumentedOutcome, ProgramSynthesisProblem.Outcome, Double>, ProblemWithExampleSolution<Program> {
 
-  record Outcome(List<Object> actual, InstrumentedProgram.Outcome executionOutcome) {}
+  record Outcome(List<Object> actual, InstrumentedProgram.InstrumentedOutcome executionOutcome) {}
 
   enum Metric implements BiFunction<List<Outcome>, Distance<List<Object>>, Double> {
     FAIL_RATE(
@@ -50,7 +50,7 @@ public interface ProgramSynthesisProblem extends SimpleEBMOProblem<Program, List
             .orElseThrow()
     ), EXCEPTION_ERROR_RATE(
         (outcomes, d) -> (double) outcomes.stream()
-            .filter(outcome -> !Objects.equals(outcome.actual == null, outcome.executionOutcome.outputs() == null))
+            .filter(outcome -> !Objects.equals(outcome.actual == null, outcome.executionOutcome.hasException()))
             .count() / (double) outcomes.size()
     ), PROFILE_AVG_STEPS(
         (outcomes, d) -> outcomes.stream()
@@ -102,7 +102,7 @@ public interface ProgramSynthesisProblem extends SimpleEBMOProblem<Program, List
   }
 
   @Override
-  default TriFunction<List<Object>, InstrumentedProgram.Outcome, InstrumentedProgram.Outcome, Outcome> errorFunction() {
+  default TriFunction<List<Object>, InstrumentedProgram.InstrumentedOutcome, InstrumentedProgram.InstrumentedOutcome, Outcome> errorFunction() {
     return (inputs, actualExecutionOutcome, executionOutcome) -> new Outcome(
         actualExecutionOutcome.outputs(),
         executionOutcome
@@ -110,7 +110,7 @@ public interface ProgramSynthesisProblem extends SimpleEBMOProblem<Program, List
   }
 
   @Override
-  default BiFunction<Program, List<Object>, InstrumentedProgram.Outcome> predictFunction() {
+  default BiFunction<Program, List<Object>, InstrumentedProgram.InstrumentedOutcome> predictFunction() {
     return (ProgramSynthesisProblem::safelyExecute);
   }
 
@@ -119,18 +119,14 @@ public interface ProgramSynthesisProblem extends SimpleEBMOProblem<Program, List
     return Program.from(inputs -> List.of(), inputTypes(), outputTypes());
   }
 
-  static InstrumentedProgram.Outcome safelyExecute(Program program, List<Object> inputs) {
+  static InstrumentedProgram.InstrumentedOutcome safelyExecute(Program program, List<Object> inputs) {
     if (program instanceof InstrumentedProgram instrumentedProgram) {
-      try {
-        return instrumentedProgram.runInstrumented(inputs);
-      } catch (ProgramExecutionException e) {
-        return new InstrumentedProgram.Outcome(null, new RunProfile(List.of()));
-      }
+      return instrumentedProgram.runInstrumented(inputs);
     }
     try {
-      return new InstrumentedProgram.Outcome(program.run(inputs), new RunProfile(List.of()));
+      return InstrumentedProgram.InstrumentedOutcome.from(program.run(inputs), new RunProfile(List.of()));
     } catch (ProgramExecutionException e) {
-      return new InstrumentedProgram.Outcome(null, new RunProfile(List.of()));
+      return InstrumentedProgram.InstrumentedOutcome.from(e);
     }
   }
 }
