@@ -20,6 +20,7 @@
 package io.github.ericmedvet.jgea.core.solver;
 
 import io.github.ericmedvet.jgea.core.Factory;
+import io.github.ericmedvet.jgea.core.IndependentFactory;
 import io.github.ericmedvet.jgea.core.operator.GeneticOperator;
 import io.github.ericmedvet.jgea.core.order.DAGPartiallyOrderedCollection;
 import io.github.ericmedvet.jgea.core.order.PartialComparator;
@@ -34,6 +35,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.random.RandomGenerator;
+import java.util.stream.IntStream;
 
 public abstract class AbstractStandardEvolver<T extends POCPopulationState<I, G, S, Q, P>, P extends QualityBasedProblem<S, Q>, I extends Individual<G, S, Q>, G, S, Q> extends AbstractPopulationBasedIterativeSolver<T, P, I, G, S, Q> {
 
@@ -118,7 +120,12 @@ public abstract class AbstractStandardEvolver<T extends POCPopulationState<I, G,
   public T init(P problem, RandomGenerator random, ExecutorService executor) throws SolverException {
     T newState = init(problem);
     AtomicLong counter = new AtomicLong(0);
-    List<? extends G> genotypes = genotypeFactory.build(populationSize, random);
+    List<? extends G> genotypes;
+    if (genotypeFactory instanceof IndependentFactory<? extends G> independentGenotypeFactory) {
+      genotypes = getAll(IntStream.range(0, populationSize).mapToObj(i -> executor.submit(() -> independentGenotypeFactory.build(random))).toList()).stream().toList();
+    } else {
+      genotypes = genotypeFactory.build(populationSize, random);
+    }
     return update(
         newState,
         getAll(
