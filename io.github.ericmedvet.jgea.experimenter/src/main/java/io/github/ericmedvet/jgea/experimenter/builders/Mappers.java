@@ -196,7 +196,7 @@ public class Mappers {
               );
             },
             g -> Collections.nCopies(g.w() * g.h(), 0d),
-            "dsToThresholdedGrid[rate=%.2f]".formatted(rate)
+            "dsToFixedGrid[rate=%.2f]".formatted(rate)
         )
     );
   }
