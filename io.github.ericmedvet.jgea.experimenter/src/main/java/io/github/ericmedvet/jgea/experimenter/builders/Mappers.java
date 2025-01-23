@@ -50,7 +50,9 @@ import io.github.ericmedvet.jnb.datastructure.Pair;
 import io.github.ericmedvet.jsdynsym.buildable.builders.NumericalDynamicalSystems;
 import io.github.ericmedvet.jsdynsym.core.composed.Stepped;
 import io.github.ericmedvet.jsdynsym.core.numerical.*;
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.function.DoubleUnaryOperator;
 import java.util.function.Function;
 import java.util.random.RandomGenerator;
@@ -163,7 +165,7 @@ public class Mappers {
                   .toList());
         },
         g -> Collections.nCopies(g.w() * g.h(), 0d),
-        "dsToThresholdedGrid[rate=%.2f]".formatted(rate)));
+        "dsToFixedGrid[rate=%.2f]".formatted(rate)));
   }
 
   @SuppressWarnings("unused")
