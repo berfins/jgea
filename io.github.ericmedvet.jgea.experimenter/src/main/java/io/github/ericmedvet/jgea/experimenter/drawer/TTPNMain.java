@@ -349,7 +349,6 @@ public class TTPNMain {
   private static void iBiMax() throws NetworkStructureException, TypeException {
     NamedBuilder<?> nb = NamedBuilder.fromDiscovery();
     ProgramSynthesisProblem psb = (ProgramSynthesisProblem) nb.build("ea.p.ps.synthetic(name = \"iBiMax\")");
-    psb.caseProvider().stream().forEach(System.out::println);
     // good solution
     Network goodNetwork = new Network(
         List.of(
@@ -371,7 +370,17 @@ public class TTPNMain {
     TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
     drawer.show(goodNetwork);
     Runner runner = new Runner(100, 100, 100, 100, false);
-    System.out.println(runner.run(goodNetwork, List.of(8, 30)));
+    // check
+    psb.caseProvider()
+        .stream()
+        .forEach(
+            e -> System.out.printf(
+                "in=%s\tactualOut=%s\tpredOut=%s%n",
+                e.input(),
+                e.output().outputs(),
+                runner.run(goodNetwork, e.input()).outputs()
+            )
+        );
   }
 
 }
