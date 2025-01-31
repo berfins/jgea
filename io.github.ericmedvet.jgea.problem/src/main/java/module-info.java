@@ -32,8 +32,10 @@ module io.github.ericmedvet.jgea.problem {
   exports io.github.ericmedvet.jgea.problem.regression.univariate.synthetic;
   exports io.github.ericmedvet.jgea.problem.grid;
   exports io.github.ericmedvet.jgea.problem.ca;
-  exports io.github.ericmedvet.jgea.problem;
   exports io.github.ericmedvet.jgea.problem.synthetic.numerical;
+  exports io.github.ericmedvet.jgea.problem.programsynthesis;
+  exports io.github.ericmedvet.jgea.problem.booleanfunction.synthetic;
+  exports io.github.ericmedvet.jgea.problem.programsynthesis.synthetic;
 
   requires io.github.ericmedvet.jgea.core;
   requires io.github.ericmedvet.jnb.datastructure;

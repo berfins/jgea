@@ -54,11 +54,21 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <jdk.version>21</jdk.version>
-    <revision>2.7.0</revision>
-    <jnb.version>1.4.0</jnb.version>
-    <jsdynsym.version>1.1.0</jsdynsym.version>
-    <jviz.version>1.0.0</jviz.version>
+    <revision>2.7.1-SNAPSHOT</revision>
+    <jnb.version>1.4.1-SNAPSHOT</jnb.version>
+    <jsdynsym.version>1.1.1-SNAPSHOT</jsdynsym.version>
+    <jviz.version>1.0.1-SNAPSHOT</jviz.version>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.github.ericmedvet</groupId>
+        <artifactId>jnb.buildable</artifactId>
+        <version>${jnb.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies/>
 
@@ -182,19 +192,11 @@
             <importOrder/>
             <trimTrailingWhitespace/>
             <removeUnusedImports/>
-            <palantirJavaFormat>
-              <version>2.39.0</version>
-              <formatJavadoc>true</formatJavadoc>
-            </palantirJavaFormat>
+            <eclipse>
+              <version>4.26</version>
+              <file>${maven.multiModuleProjectDirectory}/code-style.xml</file>
+            </eclipse>
             <formatAnnotations/>
-            <indent>
-              <tabs>true</tabs>
-              <spacesPerTab>4</spacesPerTab>
-            </indent>
-            <indent>
-              <spaces>true</spaces>
-              <spacesPerTab>2</spacesPerTab>
-            </indent>
           </java>
           <pom>
             <sortPom>

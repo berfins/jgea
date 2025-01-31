@@ -23,8 +23,7 @@ import io.github.ericmedvet.jgea.core.problem.QualityBasedProblem;
 import io.github.ericmedvet.jsdynsym.control.Simulation;
 import java.util.function.Function;
 
-public interface SimulationBasedProblem<S, B, O extends Simulation.Outcome<B>, Q>
-    extends QualityBasedProblem<S, SimulationBasedProblem.QualityOutcome<B, O, Q>> {
+public interface SimulationBasedProblem<S, B, O extends Simulation.Outcome<B>, Q> extends QualityBasedProblem<S, SimulationBasedProblem.QualityOutcome<B, O, Q>> {
   record QualityOutcome<B, O extends Simulation.Outcome<B>, Q>(O outcome, Q quality) {}
 
   Function<O, Q> outcomeQualityFunction();

@@ -31,6 +31,7 @@ import java.util.logging.Logger;
 import java.util.random.RandomGenerator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -39,7 +40,8 @@ public class Misc {
 
   private static final Logger L = Logger.getLogger(Misc.class.getName());
 
-  private Misc() {}
+  private Misc() {
+  }
 
   private record Point(double x, double y) {}
 
@@ -53,10 +55,13 @@ public class Misc {
 
   private static <T> List<List<T>> cartesian(List<List<T>> tss, List<List<T>> lists) {
     if (tss.size() == 1) {
-      return tss.getFirst().stream()
-          .map(t -> lists.stream()
-              .map(l -> Stream.concat(l.stream(), Stream.of(t)).toList())
-              .toList())
+      return tss.getFirst()
+          .stream()
+          .map(
+              t -> lists.stream()
+                  .map(l -> Stream.concat(l.stream(), Stream.of(t)).toList())
+                  .toList()
+          )
           .flatMap(List::stream)
           .toList();
     }
@@ -68,7 +73,11 @@ public class Misc {
   }
 
   public static void doOrLog(
-      Runnable runnable, Logger logger, Level level, Function<Throwable, String> messageFunction) {
+      Runnable runnable,
+      Logger logger,
+      Level level,
+      Function<Throwable, String> messageFunction
+  ) {
     try {
       runnable.run();
     } catch (Throwable t) {
@@ -83,6 +92,17 @@ public class Misc {
     return ts.iterator().next();
   }
 
+  public static <E> List<E> fold(List<E> items, int fold, int n) {
+    return folds(items, List.of(fold), n);
+  }
+
+  public static <E> List<E> folds(List<E> items, List<Integer> folds, int n) {
+    return IntStream.range(0, items.size())
+        .filter(i -> folds.contains(i % n))
+        .mapToObj(items::get)
+        .toList();
+  }
+
   public static double hypervolume2D(Collection<List<Double>> points, List<Double> reference) {
     Point min = new Point(reference.get(0), reference.get(1));
     List<Point> ps = points.stream()
@@ -95,21 +115,27 @@ public class Misc {
   }
 
   public static double hypervolume2D(
-      Collection<List<Double>> points, List<Double> minReference, List<Double> maxReference) {
+      Collection<List<Double>> points,
+      List<Double> minReference,
+      List<Double> maxReference
+  ) {
     return hypervolume2D(
         Stream.concat(
-                Stream.of(
-                    List.of(minReference.get(0), maxReference.get(1)),
-                    List.of(minReference.get(1), maxReference.get(0))),
-                points.stream())
+            Stream.of(
+                List.of(minReference.get(0), maxReference.get(1)),
+                List.of(minReference.get(1), maxReference.get(0))
+            ),
+            points.stream()
+        )
             .toList(),
-        maxReference);
+        maxReference
+    );
   }
 
   public static <T> Set<T> intersection(Set<T> set1, Set<T> set2) {
     return union(set1, set2).stream()
         .filter(t -> set1.contains(t) && set2.contains(t))
-        .collect(Collectors.toSet());
+        .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
   public static double median(double... values) {
@@ -130,6 +156,24 @@ public class Misc {
     return all.get(all.size() / 2);
   }
 
+  public static <K, V> Map<K, Set<V>> merge(Collection<? extends Map<K, V>> maps) {
+    return maps.stream()
+        .map(Map::entrySet)
+        .flatMap(Set::stream)
+        .map(e -> Map.entry(e.getKey(), Set.of(e.getValue())))
+        .collect(
+            Collectors.toMap(
+                Map.Entry::getKey,
+                Map.Entry::getValue,
+                Misc::union
+            )
+        );
+  }
+
+  public static <E> List<E> negatedFold(List<E> items, int fold, int n) {
+    return folds(items, IntStream.range(0, n).filter(j -> j != fold).boxed().toList(), n);
+  }
+
   public static <K> K percentile(Collection<K> ks, Comparator<? super K> comparator, double p) {
     List<K> collection = ks.stream().sorted(comparator).toList();
     int i = (int) Math.max(Math.min(((double) collection.size()) * p, collection.size() - 1), 0);
@@ -148,16 +192,27 @@ public class Misc {
     return first(options.keySet());
   }
 
-  @SuppressWarnings("unchecked")
   public static <T> T pickRandomly(Collection<T> ts, RandomGenerator random) {
-    return (T) ts.toArray()[random.nextInt(ts.size())];
+    if (ts instanceof List<T> list) {
+      return list.get(random.nextInt(ts.size()));
+    }
+    int chosenI = random.nextInt(ts.size());
+    int i = 0;
+    for (T t : ts) {
+      if (i == chosenI) {
+        return t;
+      }
+      i = i + 1;
+    }
+    throw new IllegalArgumentException("Empty collection");
   }
 
-  public static File robustGetFile(String pathName) throws IOException {
+  public static File robustGetFile(String pathName, boolean overwrite) throws IOException {
     // create directory
     Path path = Path.of(pathName);
     Path filePath = path.getFileName();
     Path dirsPath;
+    boolean exist = false;
     if (path.getNameCount() > 1) {
       // create directories
       dirsPath = path.subpath(0, path.getNameCount() - 1);
@@ -165,38 +220,45 @@ public class Misc {
     } else {
       dirsPath = Path.of(".");
     }
-    // check file existence
-    while (dirsPath.resolve(filePath).toFile().exists()) {
-      String newName = null;
-      Matcher mNum = Pattern.compile("\\((?<n>[0-9]+)\\)\\.\\w+$").matcher(filePath.toString());
-      if (mNum.find()) {
-        int n = Integer.parseInt(mNum.group("n"));
-        newName = new StringBuilder(filePath.toString())
-            .replace(mNum.start("n"), mNum.end("n"), Integer.toString(n + 1))
-            .toString();
+    if (!overwrite) {
+      // check file existence
+      while (dirsPath.resolve(filePath).toFile().exists()) {
+        exist = true;
+        String newName = null;
+        Matcher mNum = Pattern.compile("\\((?<n>[0-9]+)\\)\\.\\w+$").matcher(filePath.toString());
+        if (mNum.find()) {
+          int n = Integer.parseInt(mNum.group("n"));
+          newName = new StringBuilder(filePath.toString())
+              .replace(mNum.start("n"), mNum.end("n"), Integer.toString(n + 1))
+              .toString();
+        }
+        Matcher mExtension = Pattern.compile("\\.\\w+$").matcher(filePath.toString());
+        if (newName == null && mExtension.find()) {
+          newName = new StringBuilder(filePath.toString())
+              .replace(mExtension.start(), mExtension.end(), ".(1)" + mExtension.group())
+              .toString();
+        }
+        if (newName == null) {
+          newName = filePath + ".newer";
+        }
+        filePath = Path.of(newName);
       }
-      Matcher mExtension = Pattern.compile("\\.\\w+$").matcher(filePath.toString());
-      if (newName == null && mExtension.find()) {
-        newName = new StringBuilder(filePath.toString())
-            .replace(mExtension.start(), mExtension.end(), ".(1)" + mExtension.group())
-            .toString();
+      if (exist) {
+        L.log(
+            Level.WARNING,
+            String.format(
+                "Given file path '%s' exists; will write on '%s'",
+                dirsPath.resolve(path),
+                dirsPath.resolve(filePath)
+            )
+        );
       }
-      if (newName == null) {
-        newName = filePath + ".newer";
-      }
-      filePath = Path.of(newName);
-    }
-    if (!path.equals(dirsPath.resolve(filePath))) {
-      L.log(
-          Level.WARNING,
-          String.format("Given file path '%s' exists; will write on '%s'", path, dirsPath.resolve(filePath)));
     }
     return dirsPath.resolve(filePath).toFile();
   }
 
   public static <K> List<K> shuffle(List<K> list, RandomGenerator random) {
-    List<Integer> indexes =
-        new ArrayList<>(IntStream.range(0, list.size()).boxed().toList());
+    List<Integer> indexes = new ArrayList<>(IntStream.range(0, list.size()).boxed().toList());
     List<Integer> shuffledIndexes = new ArrayList<>(indexes.size());
     while (!indexes.isEmpty()) {
       int indexOfIndex = indexes.size() == 1 ? 0 : random.nextInt(indexes.size());
@@ -248,7 +310,51 @@ public class Misc {
     return ranges;
   }
 
+  public static <T, K, U> Collector<T, ?, SequencedMap<K, U>> toSequencedMap(
+      Function<? super T, ? extends K> keyMapper,
+      Function<? super T, ? extends U> valueMapper
+  ) {
+    return Collectors.toMap(
+        keyMapper,
+        valueMapper,
+        (u1, u2) -> u1,
+        LinkedHashMap::new
+    );
+  }
+
+  public static <T, U> Collector<T, ?, SequencedMap<T, U>> toSequencedMap(
+      Function<? super T, ? extends U> valueMapper
+  ) {
+    return toSequencedMap(Function.identity(), valueMapper);
+  }
+
+  public static <K, V, U> Map<K, U> transformValues(Map<K, V> map, Function<? super V, ? extends U> transformer) {
+    return map.entrySet()
+        .stream()
+        .collect(
+            Collectors.toMap(
+                Map.Entry::getKey,
+                e -> transformer.apply(e.getValue())
+            )
+        );
+  }
+
+  public static <K, V, U> SequencedMap<K, U> sequencedTransformValues(
+      SequencedMap<K, V> map,
+      Function<? super V, ? extends U> transformer
+  ) {
+    return map.entrySet()
+        .stream()
+        .collect(
+            Misc.toSequencedMap(
+                Map.Entry::getKey,
+                e -> transformer.apply(e.getValue())
+            )
+        );
+  }
+
   public static <T> Set<T> union(Set<T> set1, Set<T> set2) {
     return Stream.of(set1, set2).flatMap(Set::stream).collect(Collectors.toSet());
   }
+
 }
