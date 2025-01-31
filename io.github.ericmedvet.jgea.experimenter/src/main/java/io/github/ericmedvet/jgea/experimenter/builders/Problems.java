@@ -20,7 +20,6 @@
 
 package io.github.ericmedvet.jgea.experimenter.builders;
 
-import io.github.ericmedvet.jgea.core.order.PartialComparator;
 import io.github.ericmedvet.jgea.core.problem.*;
 import io.github.ericmedvet.jgea.problem.simulation.SimulationBasedProblem;
 import io.github.ericmedvet.jgea.problem.simulation.SimulationBasedTotalOrderProblem;
@@ -35,6 +34,7 @@ import io.github.ericmedvet.jsdynsym.core.numerical.NumericalStatelessSystem;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -47,71 +47,6 @@ public class Problems {
 
   public enum OptimizationType {
     @SuppressWarnings("unused") MINIMIZE, MAXIMIZE
-  }
-
-  private interface SimulationBasedProblemWithExample<S, B, O extends Simulation.Outcome<B>, Q> extends SimulationBasedProblem<S, B, O, Q>, ProblemWithExampleSolution<S> {
-    static <S, B, O extends Simulation.Outcome<B>, Q> SimulationBasedProblemWithExample<S, B, O, Q> from(
-        Function<O, Q> behaviorQualityFunction,
-        Simulation<S, B, O> simulation,
-        PartialComparator<QualityOutcome<B, O, Q>> qualityComparator,
-        S example
-    ) {
-      return new SimulationBasedProblemWithExample<>() {
-        @Override
-        public S example() {
-          return example;
-        }
-
-        @Override
-        public Function<O, Q> outcomeQualityFunction() {
-          return behaviorQualityFunction;
-        }
-
-        @Override
-        public Simulation<S, B, O> simulation() {
-          return simulation;
-        }
-
-        @Override
-        public PartialComparator<QualityOutcome<B, O, Q>> qualityComparator() {
-          return qualityComparator;
-        }
-      };
-    }
-  }
-
-  private interface SimulationBasedTotalOrderProblemWithExample<S, B, O extends Simulation.Outcome<B>, Q extends Comparable<Q>> extends SimulationBasedTotalOrderProblem<S, B, O, Q>, ProblemWithExampleSolution<S> {
-    static <S, B, O extends Simulation.Outcome<B>, Q extends Comparable<Q>> SimulationBasedTotalOrderProblemWithExample<S, B, O, Q> from(
-        Function<O, Q> behaviorQualityFunction,
-        Simulation<S, B, O> simulation,
-        S example,
-        OptimizationType type
-    ) {
-      return new SimulationBasedTotalOrderProblemWithExample<>() {
-        @Override
-        public S example() {
-          return example;
-        }
-
-        @Override
-        public Function<O, Q> outcomeQualityFunction() {
-          return behaviorQualityFunction;
-        }
-
-        @Override
-        public Simulation<S, B, O> simulation() {
-          return simulation;
-        }
-
-        @Override
-        public Comparator<QualityOutcome<B, O, Q>> totalOrderComparator() {
-          return switch (type) {
-            case MINIMIZE -> Comparator.comparing(QualityOutcome::quality);
-            case MAXIMIZE -> ((o1, o2) -> o2.quality().compareTo(o1.quality()));
-          };
-        }
-      };
-    }
   }
 
   @SuppressWarnings("unused")
@@ -150,12 +85,39 @@ public class Problems {
     int nOfInputs = environment.step(0, environment.defaultAgentAction()).length;
     @SuppressWarnings("unchecked") Supplier<Environment<double[], double[], B>> envSupplier = () -> (Environment<double[], double[], B>) nb
         .build((NamedParamMap) map.value("environment", ParamMap.Type.NAMED_PARAM_MAP));
-    return SimulationBasedTotalOrderProblemWithExample.from(
-        outcomeQualityFunction,
-        SingleAgentTask.fromEnvironment(envSupplier, stopCondition, new DoubleRange(initialT, finalT), dT),
-        NumericalStatelessSystem.from(nOfInputs, nOfOutputs, (t, in) -> new double[nOfOutputs]),
-        type
-    );
+    return new SimulationBasedTotalOrderProblem<NumericalDynamicalSystem<?>, SingleAgentTask.Step<double[], double[], B>, Simulation.Outcome<SingleAgentTask.Step<double[], double[], B>>, Q>() {
+      @Override
+      public Function<Simulation.Outcome<SingleAgentTask.Step<double[], double[], B>>, Q> outcomeQualityFunction() {
+        return outcomeQualityFunction;
+      }
+
+      @Override
+      public Simulation<NumericalDynamicalSystem<?>, SingleAgentTask.Step<double[], double[], B>, Simulation.Outcome<SingleAgentTask.Step<double[], double[], B>>> simulation() {
+        return SingleAgentTask.fromEnvironment(envSupplier, stopCondition, new DoubleRange(initialT, finalT), dT);
+      }
+
+      @Override
+      public Comparator<QualityOutcome<SingleAgentTask.Step<double[], double[], B>, Simulation.Outcome<SingleAgentTask.Step<double[], double[], B>>, Q>> totalOrderComparator() {
+        return switch (type) {
+          case MINIMIZE ->
+            Comparator.comparing(
+                (
+                    QualityOutcome<SingleAgentTask.Step<double[], double[], B>, Simulation.Outcome<SingleAgentTask.Step<double[], double[], B>>, Q> q
+                ) -> q.quality()
+            );
+          case MAXIMIZE -> Comparator.comparing(
+              (
+                  QualityOutcome<SingleAgentTask.Step<double[], double[], B>, Simulation.Outcome<SingleAgentTask.Step<double[], double[], B>>, Q> q
+              ) -> q.quality()
+          ).reversed();
+        };
+      }
+
+      @Override
+      public Optional<NumericalDynamicalSystem<?>> example() {
+        return Optional.of(NumericalStatelessSystem.from(nOfInputs, nOfOutputs, (t, in) -> new double[nOfOutputs]));
+      }
+    };
   }
 
   @SuppressWarnings("unused")
@@ -171,29 +133,6 @@ public class Problems {
       );
       case MAXIMIZE -> (qo1, qo2) -> qo2.quality().compareTo(qo1.quality());
     };
-    if (simulation instanceof SimulationWithExample<S, B, O> simulationWithExample) {
-      return new SimulationBasedTotalOrderProblemWithExample<>() {
-        @Override
-        public S example() {
-          return simulationWithExample.example();
-        }
-
-        @Override
-        public Function<O, Q> outcomeQualityFunction() {
-          return outcomeQualityFunction;
-        }
-
-        @Override
-        public Simulation<S, B, O> simulation() {
-          return simulation;
-        }
-
-        @Override
-        public Comparator<QualityOutcome<B, O, Q>> totalOrderComparator() {
-          return comparator;
-        }
-      };
-    }
     return new SimulationBasedTotalOrderProblem<>() {
       @Override
       public Function<O, Q> outcomeQualityFunction() {
@@ -208,6 +147,14 @@ public class Problems {
       @Override
       public Comparator<QualityOutcome<B, O, Q>> totalOrderComparator() {
         return comparator;
+      }
+
+      @Override
+      public Optional<S> example() {
+        if (simulation instanceof SimulationWithExample<S, B, O> simulationWithExample) {
+          return Optional.of(simulationWithExample.example());
+        }
+        return Optional.empty();
       }
     };
   }
@@ -235,7 +182,7 @@ public class Problems {
         null,
         type.equals(OptimizationType.MAXIMIZE) ? Comparator.comparing(comparableFunction)
             .reversed() : Comparator.comparing(comparableFunction),
-        null
+        Optional.empty()
     );
   }
 

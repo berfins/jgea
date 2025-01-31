@@ -20,7 +20,7 @@
 
 package io.github.ericmedvet.jgea.experimenter.builders;
 
-import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
+import io.github.ericmedvet.jgea.core.problem.Problem;
 import io.github.ericmedvet.jgea.core.representation.NamedUnivariateRealFunction;
 import io.github.ericmedvet.jgea.core.representation.grammar.grid.GridGrammar;
 import io.github.ericmedvet.jgea.core.representation.grammar.string.GrammarBasedProblem;
@@ -63,8 +63,8 @@ public class Grammars {
           value = "constants", dDs = {0.1, 1, 10}) List<Double> constants,
       @Param(
           value = "operators", dSs = {"addition", "subtraction", "multiplication", "prot_division", "prot_log"}) List<Element.Operator> operators,
-      @Param("problem") ProblemWithExampleSolution<NamedUnivariateRealFunction> problem
+      @Param("problem") Problem<NamedUnivariateRealFunction> problem
   ) {
-    return new SymbolicRegressionGrammar(operators, problem.example().xVarNames(), constants);
+    return new SymbolicRegressionGrammar(operators, problem.example().orElseThrow().xVarNames(), constants);
   }
 }

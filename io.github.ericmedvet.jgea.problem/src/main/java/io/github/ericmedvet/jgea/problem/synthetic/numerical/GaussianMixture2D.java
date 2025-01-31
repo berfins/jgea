@@ -19,17 +19,17 @@
  */
 package io.github.ericmedvet.jgea.problem.synthetic.numerical;
 
-import io.github.ericmedvet.jgea.core.problem.ComparableQualityBasedProblem;
-import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
+import io.github.ericmedvet.jgea.core.problem.TotalOrderQualityBasedProblem;
 import io.github.ericmedvet.jgea.core.util.VectorUtils;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class GaussianMixture2D implements ProblemWithExampleSolution<List<Double>>, ComparableQualityBasedProblem<List<Double>, Double> {
+public class GaussianMixture2D implements TotalOrderQualityBasedProblem<List<Double>, Double> {
 
   private final List<Double> example;
   private final Function<List<Double>, Double> qualityFunction;
@@ -52,8 +52,8 @@ public class GaussianMixture2D implements ProblemWithExampleSolution<List<Double
   }
 
   @Override
-  public List<Double> example() {
-    return example;
+  public Optional<List<Double>> example() {
+    return Optional.of(example);
   }
 
   @Override

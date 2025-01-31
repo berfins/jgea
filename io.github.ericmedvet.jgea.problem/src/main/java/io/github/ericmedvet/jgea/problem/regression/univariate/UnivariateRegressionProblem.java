@@ -19,7 +19,6 @@
  */
 package io.github.ericmedvet.jgea.problem.regression.univariate;
 
-import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
 import io.github.ericmedvet.jgea.core.problem.SimpleEBMOProblem;
 import io.github.ericmedvet.jgea.core.representation.NamedUnivariateRealFunction;
 import io.github.ericmedvet.jgea.core.util.IndexedProvider;
@@ -28,11 +27,12 @@ import io.github.ericmedvet.jnb.datastructure.TriFunction;
 import io.github.ericmedvet.jsdynsym.core.numerical.UnivariateRealFunction;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.SequencedMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-public interface UnivariateRegressionProblem extends SimpleEBMOProblem<NamedUnivariateRealFunction, Map<String, Double>, Double, UnivariateRegressionProblem.Outcome, Double>, ProblemWithExampleSolution<NamedUnivariateRealFunction> {
+public interface UnivariateRegressionProblem extends SimpleEBMOProblem<NamedUnivariateRealFunction, Map<String, Double>, Double, UnivariateRegressionProblem.Outcome, Double> {
   record Outcome(double actual, double predicted) {}
 
   enum Metric implements Function<List<Outcome>, Double> {
@@ -103,12 +103,14 @@ public interface UnivariateRegressionProblem extends SimpleEBMOProblem<NamedUniv
   }
 
   @Override
-  default NamedUnivariateRealFunction example() {
+  default Optional<NamedUnivariateRealFunction> example() {
     Example<Map<String, Double>, Double> example = caseProvider().first();
-    return NamedUnivariateRealFunction.from(
-        UnivariateRealFunction.from(inputs -> 0d, example.input().size()),
-        example.input().keySet().stream().sorted().toList(),
-        yVarName()
+    return Optional.of(
+        NamedUnivariateRealFunction.from(
+            UnivariateRealFunction.from(inputs -> 0d, example.input().size()),
+            example.input().keySet().stream().sorted().toList(),
+            yVarName()
+        )
     );
   }
 

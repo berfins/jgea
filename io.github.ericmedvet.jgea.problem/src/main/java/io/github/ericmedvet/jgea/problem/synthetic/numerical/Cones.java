@@ -20,7 +20,6 @@
 
 package io.github.ericmedvet.jgea.problem.synthetic.numerical;
 
-import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
 import io.github.ericmedvet.jgea.core.problem.SimpleMOProblem;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import java.util.*;
@@ -30,8 +29,8 @@ import java.util.stream.Stream;
 public record Cones(
     SequencedMap<String, Comparator<Double>> comparators,
     Function<List<Double>, SequencedMap<String, Double>> qualityFunction,
-    List<Double> example
-) implements SimpleMOProblem<List<Double>, Double>, ProblemWithExampleSolution<List<Double>> {
+    Optional<List<Double>> example
+) implements SimpleMOProblem<List<Double>, Double> {
 
   private static final SequencedMap<String, Comparator<Double>> COMPARATORS = Stream.of(
       Map.entry("lateralSurface", (Comparator<Double>) Double::compareTo),
@@ -61,7 +60,7 @@ public record Cones(
               Map.entry("volume", volume)
           ).collect(Misc.toSequencedMap(Map.Entry::getKey, Map.Entry::getValue));
         },
-        List.of(0d, 0d)
+        Optional.of(List.of(0d, 0d))
     );
   }
 }

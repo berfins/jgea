@@ -21,7 +21,6 @@
 package io.github.ericmedvet.jgea.problem.grid;
 
 import io.github.ericmedvet.jgea.core.problem.ComparableQualityBasedProblem;
-import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
 import io.github.ericmedvet.jnb.datastructure.Grid;
 import io.github.ericmedvet.jnb.datastructure.GridUtils;
 import java.io.BufferedReader;
@@ -29,9 +28,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 
-public class CharShapeApproximation implements ComparableQualityBasedProblem<Grid<Character>, Double>, ProblemWithExampleSolution<Grid<Character>> {
+public class CharShapeApproximation implements ComparableQualityBasedProblem<Grid<Character>, Double> {
 
   private final Grid<Character> target;
   private final Grid<Boolean> smoothedTarget;
@@ -83,15 +83,17 @@ public class CharShapeApproximation implements ComparableQualityBasedProblem<Gri
   }
 
   @Override
-  public Grid<Character> example() {
-    return Grid.create(
-        1,
-        1,
-        target.values()
-            .stream()
-            .filter(Objects::nonNull)
-            .findAny()
-            .orElseThrow(() -> new IllegalArgumentException("Empty target grid"))
+  public Optional<Grid<Character>> example() {
+    return Optional.of(
+        Grid.create(
+            1,
+            1,
+            target.values()
+                .stream()
+                .filter(Objects::nonNull)
+                .findAny()
+                .orElseThrow(() -> new IllegalArgumentException("Empty target grid"))
+        )
     );
   }
 

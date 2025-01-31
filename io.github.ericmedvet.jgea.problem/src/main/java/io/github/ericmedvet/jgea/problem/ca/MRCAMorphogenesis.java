@@ -21,7 +21,6 @@ package io.github.ericmedvet.jgea.problem.ca;
 
 import io.github.ericmedvet.jgea.core.distance.Distance;
 import io.github.ericmedvet.jgea.core.problem.ComparableQualityBasedProblem;
-import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
 import io.github.ericmedvet.jgea.core.representation.NamedMultivariateRealFunction;
 import io.github.ericmedvet.jgea.core.util.IntRange;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
@@ -29,10 +28,11 @@ import io.github.ericmedvet.jnb.datastructure.Grid;
 import io.github.ericmedvet.jsdynsym.core.numerical.MultivariateRealFunction;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class MRCAMorphogenesis implements ComparableQualityBasedProblem<MultivariateRealGridCellularAutomaton, Double>, ProblemWithExampleSolution<MultivariateRealGridCellularAutomaton> {
+public class MRCAMorphogenesis implements ComparableQualityBasedProblem<MultivariateRealGridCellularAutomaton, Double> {
 
   private static final DoubleRange STATE_RANGE = DoubleRange.SYMMETRIC_UNIT;
 
@@ -90,20 +90,22 @@ public class MRCAMorphogenesis implements ComparableQualityBasedProblem<Multivar
   }
 
   @Override
-  public MultivariateRealGridCellularAutomaton example() {
+  public Optional<MultivariateRealGridCellularAutomaton> example() {
     int stateSize = targetGrid.get(0, 0).length;
-    return new MultivariateRealGridCellularAutomaton(
-        Grid.create(targetGrid.w(), targetGrid.h(), new double[stateSize]),
-        DoubleRange.SYMMETRIC_UNIT,
-        MultivariateRealGridCellularAutomaton.Kernel.SUM.get(),
-        NamedMultivariateRealFunction.from(
-            MultivariateRealFunction.from(vs -> new double[stateSize], stateSize, stateSize),
-            MultivariateRealFunction.varNames("c", stateSize),
-            MultivariateRealFunction.varNames("c", stateSize)
-        ),
-        1,
-        0d,
-        true
+    return Optional.of(
+        new MultivariateRealGridCellularAutomaton(
+            Grid.create(targetGrid.w(), targetGrid.h(), new double[stateSize]),
+            DoubleRange.SYMMETRIC_UNIT,
+            MultivariateRealGridCellularAutomaton.Kernel.SUM.get(),
+            NamedMultivariateRealFunction.from(
+                MultivariateRealFunction.from(vs -> new double[stateSize], stateSize, stateSize),
+                MultivariateRealFunction.varNames("c", stateSize),
+                MultivariateRealFunction.varNames("c", stateSize)
+            ),
+            1,
+            0d,
+            true
+        )
     );
   }
 
