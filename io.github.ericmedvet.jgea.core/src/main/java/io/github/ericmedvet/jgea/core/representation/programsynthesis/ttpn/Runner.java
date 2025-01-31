@@ -147,6 +147,7 @@ public class Runner {
     int ii = 0;
     for (Integer inputGI : network.inputGates().keySet()) {
       inputsMap.put(inputGI, inputs.get(ii));
+      ii = ii + 1;
     }
     for (Wire w : network.wires()) {
       Type type = network.concreteOutputType(w.src());
