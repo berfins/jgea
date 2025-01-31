@@ -3378,16 +3378,6 @@ Produces <code><abbr title="io.github.ericmedvet.jgea.core.representation.progra
 
 Produces <code><abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Gate">Gate</abbr></code>; built from `io.github.ericmedvet.jgea.experimenter.builders.NetworkGates.concat()` by jgea-experimenter:2.7.1-SNAPSHOT
 
-### Builder `ea.ttpn.gate.dConst()`
-
-`ea.ttpn.gate.dConst(value)`
-
-| Param | Type | Default | Java type |
-| --- | --- | --- | --- |
-| `value` | d |  | <code>double</code> |
-
-Produces <code><abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Gate">Gate</abbr></code>; built from `io.github.ericmedvet.jgea.experimenter.builders.NetworkGates.dConst()` by jgea-experimenter:2.7.1-SNAPSHOT
-
 ### Builder `ea.ttpn.gate.equal()`
 
 `ea.ttpn.gate.equal()`
@@ -3491,6 +3481,16 @@ Produces <code><abbr title="io.github.ericmedvet.jgea.core.representation.progra
 `ea.ttpn.gate.rBefore()`
 
 Produces <code><abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Gate">Gate</abbr></code>; built from `io.github.ericmedvet.jgea.experimenter.builders.NetworkGates.rBefore()` by jgea-experimenter:2.7.1-SNAPSHOT
+
+### Builder `ea.ttpn.gate.rConst()`
+
+`ea.ttpn.gate.rConst(value)`
+
+| Param | Type | Default | Java type |
+| --- | --- | --- | --- |
+| `value` | d |  | <code>double</code> |
+
+Produces <code><abbr title="io.github.ericmedvet.jgea.core.representation.programsynthesis.ttpn.Gate">Gate</abbr></code>; built from `io.github.ericmedvet.jgea.experimenter.builders.NetworkGates.rConst()` by jgea-experimenter:2.7.1-SNAPSHOT
 
 ### Builder `ea.ttpn.gate.rPMathOperator()`
 
