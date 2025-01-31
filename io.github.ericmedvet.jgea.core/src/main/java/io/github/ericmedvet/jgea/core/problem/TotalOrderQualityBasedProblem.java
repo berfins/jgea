@@ -45,10 +45,7 @@ public interface TotalOrderQualityBasedProblem<S, Q> extends QualityBasedProblem
       QualityBasedProblem<S, Q> qbProblem,
       Comparator<Q> comparator
   ) {
-    if (qbProblem instanceof ProblemWithValidation<S, Q> pwv) {
-      return from(qbProblem.qualityFunction(), pwv.validationQualityFunction(), comparator, qbProblem.example());
-    }
-    return from(qbProblem.qualityFunction(), null, comparator, qbProblem.example());
+    return from(qbProblem.qualityFunction(), qbProblem.validationQualityFunction(), comparator, qbProblem.example());
   }
 
   static <S, Q> TotalOrderQualityBasedProblem<S, Q> from(
@@ -57,20 +54,12 @@ public interface TotalOrderQualityBasedProblem<S, Q> extends QualityBasedProblem
       Comparator<Q> totalOrderComparator,
       @SuppressWarnings("OptionalUsedAsFieldOrParameterType") Optional<S> example
   ) {
-    record HardTOQVProblem<S, Q>(
+    record HardTOQProblem<S, Q>(
         Function<S, Q> qualityFunction,
         Function<S, Q> validationQualityFunction,
         Comparator<Q> totalOrderComparator,
         Optional<S> example
-    ) implements TotalOrderQualityBasedProblem<S, Q>, ProblemWithValidation<S, Q> {}
-    record HardTOQProblem<S, Q>(
-        Function<S, Q> qualityFunction,
-        Comparator<Q> totalOrderComparator,
-        Optional<S> example
     ) implements TotalOrderQualityBasedProblem<S, Q> {}
-    if (validationQualityFunction != null) {
-      return new HardTOQVProblem<>(qualityFunction, validationQualityFunction, totalOrderComparator, example);
-    }
-    return new HardTOQProblem<>(qualityFunction, totalOrderComparator, example);
+    return new HardTOQProblem<>(qualityFunction, validationQualityFunction, totalOrderComparator, example);
   }
 }

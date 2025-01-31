@@ -36,23 +36,10 @@ public interface SimpleMOProblem<S, O> extends MultiObjectiveProblem<S, Sequence
     record HardSMOProblem<S, O>(
         SequencedMap<String, Comparator<O>> comparators,
         Function<S, SequencedMap<String, O>> qualityFunction,
-        Optional<S> example
-    ) implements SimpleMOProblem<S, O> {}
-    record HardSMOVProblem<S, O>(
-        SequencedMap<String, Comparator<O>> comparators,
-        Function<S, SequencedMap<String, O>> qualityFunction,
         Function<S, SequencedMap<String, O>> validationQualityFunction,
         Optional<S> example
-    ) implements SimpleMOProblem<S, O>, ProblemWithValidation<S, SequencedMap<String, O>> {}
-    if (validationQualityFunction != null) {
-      return new HardSMOVProblem<>(
-          comparators,
-          qualityFunction,
-          validationQualityFunction,
-          example
-      );
-    }
-    return new HardSMOProblem<>(comparators, qualityFunction, example);
+    ) implements SimpleMOProblem<S, O> {}
+    return new HardSMOProblem<>(comparators, qualityFunction, qualityFunction, example);
   }
 
   @Override
@@ -75,16 +62,6 @@ public interface SimpleMOProblem<S, O> extends MultiObjectiveProblem<S, Sequence
         .stream()
         .filter(objectiveNames::contains)
         .collect(Misc.toSequencedMap(cn -> comparators().get(cn)));
-    if (this instanceof ProblemWithValidation<?, ?> pwv) {
-      //noinspection unchecked
-      return from(
-          reducedComparators,
-          qualityFunction(),
-          (Function<S, SequencedMap<String, O>>) pwv.validationQualityFunction(),
-          example()
-      );
-    } else {
-      return from(reducedComparators, qualityFunction(), null, example());
-    }
+    return from(reducedComparators, qualityFunction(), validationQualityFunction(), example());
   }
 }
