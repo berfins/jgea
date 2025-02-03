@@ -70,12 +70,6 @@ public class NetworkGates {
 
   @SuppressWarnings("unused")
   @Cacheable
-  public static Gate dConst(@Param("value") double value) {
-    return Gates.dConst(value);
-  }
-
-  @SuppressWarnings("unused")
-  @Cacheable
   public static Gate equal() {
     return Gates.equal();
   }
@@ -168,6 +162,12 @@ public class NetworkGates {
   @Cacheable
   public static Gate rBefore() {
     return Gates.rBefore();
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  public static Gate rConst(@Param("value") double value) {
+    return Gates.rConst(value);
   }
 
   @SuppressWarnings("unused")

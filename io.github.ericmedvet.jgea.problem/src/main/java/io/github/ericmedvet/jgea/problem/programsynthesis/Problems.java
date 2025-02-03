@@ -35,7 +35,7 @@ public class Problems {
   }
 
   @Typed("I")
-  public static Integer dIntSum(@Typed("R") Double v1, @Typed("R") Double v2) {
+  public static Integer rIntSum(@Typed("R") Double v1, @Typed("R") Double v2) {
     return (int) (v1 + v2);
   }
 

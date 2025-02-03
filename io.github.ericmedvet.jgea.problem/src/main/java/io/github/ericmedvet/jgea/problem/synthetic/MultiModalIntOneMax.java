@@ -23,14 +23,14 @@ package io.github.ericmedvet.jgea.problem.synthetic;
 import io.github.ericmedvet.jgea.core.distance.Distance;
 import io.github.ericmedvet.jgea.core.distance.Hamming;
 import io.github.ericmedvet.jgea.core.problem.MultiTargetProblem;
-import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
 import io.github.ericmedvet.jgea.core.representation.sequence.integer.IntString;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
-public class MultiModalIntOneMax implements MultiTargetProblem<IntString>, ProblemWithExampleSolution<IntString> {
+public class MultiModalIntOneMax implements MultiTargetProblem<IntString> {
   private final int p;
   private final int upperBound;
   private final Distance<IntString> distance;
@@ -67,7 +67,7 @@ public class MultiModalIntOneMax implements MultiTargetProblem<IntString>, Probl
   }
 
   @Override
-  public IntString example() {
-    return new IntString(Collections.nCopies(p, 0), 0, upperBound);
+  public Optional<IntString> example() {
+    return Optional.of(new IntString(Collections.nCopies(p, 0), 0, upperBound));
   }
 }

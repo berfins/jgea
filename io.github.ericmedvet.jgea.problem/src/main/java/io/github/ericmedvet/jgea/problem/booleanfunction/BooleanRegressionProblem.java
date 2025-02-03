@@ -19,18 +19,18 @@
  */
 package io.github.ericmedvet.jgea.problem.booleanfunction;
 
-import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
 import io.github.ericmedvet.jgea.core.problem.SimpleEBMOProblem;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import io.github.ericmedvet.jnb.datastructure.TriFunction;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.SequencedMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
-public interface BooleanRegressionProblem extends SimpleEBMOProblem<BooleanFunction, boolean[], boolean[], BooleanRegressionProblem.Outcome, Double>, ProblemWithExampleSolution<BooleanFunction> {
+public interface BooleanRegressionProblem extends SimpleEBMOProblem<BooleanFunction, boolean[], boolean[], BooleanRegressionProblem.Outcome, Double> {
   record Outcome(boolean[] actual, boolean[] predicted) {}
 
   enum Metric implements Function<List<Outcome>, Double> {
@@ -91,12 +91,14 @@ public interface BooleanRegressionProblem extends SimpleEBMOProblem<BooleanFunct
   }
 
   @Override
-  default BooleanFunction example() {
+  default Optional<BooleanFunction> example() {
     Example<boolean[], boolean[]> example = caseProvider().first();
-    return BooleanFunction.from(
-        inputs -> new boolean[example.output().length],
-        example.input().length,
-        example.output().length
+    return Optional.of(
+        BooleanFunction.from(
+            inputs -> new boolean[example.output().length],
+            example.input().length,
+            example.output().length
+        )
     );
   }
 

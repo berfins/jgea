@@ -20,10 +20,7 @@
 package io.github.ericmedvet.jgea.core.problem;
 
 import io.github.ericmedvet.jgea.core.util.Misc;
-import java.util.Comparator;
-import java.util.Map;
-import java.util.SequencedMap;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 
 public interface SimpleMOProblem<S, O> extends MultiObjectiveProblem<S, SequencedMap<String, O>, O> {
@@ -34,41 +31,15 @@ public interface SimpleMOProblem<S, O> extends MultiObjectiveProblem<S, Sequence
       SequencedMap<String, Comparator<O>> comparators,
       Function<S, SequencedMap<String, O>> qualityFunction,
       Function<S, SequencedMap<String, O>> validationQualityFunction,
-      S example
+      @SuppressWarnings("OptionalUsedAsFieldOrParameterType") Optional<S> example
   ) {
-    record HardSMOEProblem<S, O>(
-        SequencedMap<String, Comparator<O>> comparators,
-        Function<S, SequencedMap<String, O>> qualityFunction,
-        S example
-    ) implements SimpleMOProblem<S, O>, ProblemWithExampleSolution<S> {}
-
     record HardSMOProblem<S, O>(
-        SequencedMap<String, Comparator<O>> comparators,
-        Function<S, SequencedMap<String, O>> qualityFunction
-    ) implements SimpleMOProblem<S, O> {}
-
-    record HardSMOVEProblem<S, O>(
         SequencedMap<String, Comparator<O>> comparators,
         Function<S, SequencedMap<String, O>> qualityFunction,
         Function<S, SequencedMap<String, O>> validationQualityFunction,
-        S example
-    ) implements SimpleMOProblem<S, O>, ProblemWithValidation<S, SequencedMap<String, O>>, ProblemWithExampleSolution<S> {}
-
-    record HardSMOVProblem<S, O>(
-        SequencedMap<String, Comparator<O>> comparators,
-        Function<S, SequencedMap<String, O>> qualityFunction,
-        Function<S, SequencedMap<String, O>> validationQualityFunction
-    ) implements SimpleMOProblem<S, O>, ProblemWithValidation<S, SequencedMap<String, O>> {}
-    if (example != null && validationQualityFunction != null) {
-      return new HardSMOVEProblem<>(comparators, qualityFunction, validationQualityFunction, example);
-    }
-    if (example != null) {
-      return new HardSMOEProblem<>(comparators, qualityFunction, example);
-    }
-    if (validationQualityFunction != null) {
-      return new HardSMOVProblem<>(comparators, qualityFunction, validationQualityFunction);
-    }
-    return new HardSMOProblem<>(comparators, qualityFunction);
+        Optional<S> example
+    ) implements SimpleMOProblem<S, O> {}
+    return new HardSMOProblem<>(comparators, qualityFunction, qualityFunction, example);
   }
 
   @Override
@@ -91,31 +62,6 @@ public interface SimpleMOProblem<S, O> extends MultiObjectiveProblem<S, Sequence
         .stream()
         .filter(objectiveNames::contains)
         .collect(Misc.toSequencedMap(cn -> comparators().get(cn)));
-    if (this instanceof ProblemWithExampleSolution<?> pwes) {
-      if (this instanceof ProblemWithValidation<?, ?> pwv) {
-        //noinspection unchecked
-        return from(
-            reducedComparators,
-            qualityFunction(),
-            (Function<S, SequencedMap<String, O>>) pwv.validationQualityFunction(),
-            (S) pwes.example()
-        );
-      } else {
-        //noinspection unchecked
-        return from(reducedComparators, qualityFunction(), null, (S) pwes.example());
-      }
-    } else {
-      if (this instanceof ProblemWithValidation<?, ?> pwv) {
-        //noinspection unchecked
-        return from(
-            reducedComparators,
-            qualityFunction(),
-            (Function<S, SequencedMap<String, O>>) pwv.validationQualityFunction(),
-            null
-        );
-      } else {
-        return from(reducedComparators, qualityFunction(), null, null);
-      }
-    }
+    return from(reducedComparators, qualityFunction(), validationQualityFunction(), example());
   }
 }

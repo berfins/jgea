@@ -113,17 +113,6 @@ public class Gates {
     );
   }
 
-  public static Gate dConst(double value) {
-    return Gate.of(
-        List.of(Gate.Port.single(Generic.of("t"))),
-        List.of(Base.REAL),
-        NamedFunction.from(
-            in -> Gate.Data.singleOne(value),
-            "const[%.1f]".formatted(value)
-        )
-    );
-  }
-
   public static Gate equal() {
     return Gate.of(
         List.of(Gate.Port.single(Generic.of("t")), Gate.Port.single(Generic.of("t"))),
@@ -343,6 +332,17 @@ public class Gates {
         NamedFunction.from(
             in -> Gate.Data.singleOne(in.one(0, Double.class).compareTo(in.one(1, Double.class)) < 0),
             "rBefore"
+        )
+    );
+  }
+
+  public static Gate rConst(double value) {
+    return Gate.of(
+        List.of(Gate.Port.single(Generic.of("t"))),
+        List.of(Base.REAL),
+        NamedFunction.from(
+            in -> Gate.Data.singleOne(value),
+            "const[%.1f]".formatted(value)
         )
     );
   }

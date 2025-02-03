@@ -19,7 +19,6 @@
  */
 package io.github.ericmedvet.jgea.problem.synthetic;
 
-import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
 import io.github.ericmedvet.jgea.core.problem.SimpleMOProblem;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import java.util.*;
@@ -29,8 +28,8 @@ import java.util.stream.Collectors;
 public record LettersMax(
     Function<String, SequencedMap<String, Double>> qualityFunction,
     SequencedMap<String, Comparator<Double>> comparators,
-    String example
-) implements SimpleMOProblem<String, Double>, ProblemWithExampleSolution<String> {
+    Optional<String> example
+) implements SimpleMOProblem<String, Double> {
 
   public LettersMax(
       SequencedSet<String> letters,
@@ -44,7 +43,7 @@ public record LettersMax(
                     letter -> ((Comparator<Double>) Double::compareTo).reversed()
                 )
             ),
-        String.join("", Collections.nCopies(l, "."))
+        Optional.of(String.join("", Collections.nCopies(l, ".")))
     );
   }
 

@@ -21,7 +21,7 @@ package io.github.ericmedvet.jgea.problem.mapper;
 
 import io.github.ericmedvet.jgea.core.order.ParetoDominance;
 import io.github.ericmedvet.jgea.core.order.PartialComparator;
-import io.github.ericmedvet.jgea.core.problem.ProblemWithValidation;
+import io.github.ericmedvet.jgea.core.problem.QualityBasedProblem;
 import io.github.ericmedvet.jgea.core.representation.grammar.string.GrammarBasedProblem;
 import io.github.ericmedvet.jgea.core.representation.grammar.string.StringGrammar;
 import io.github.ericmedvet.jgea.core.representation.tree.Tree;
@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.function.Function;
 
 @SuppressWarnings("rawtypes")
-public class MapperGeneration implements GrammarBasedProblem<String, Pair<Tree<Element>, Tree<Element>>>, ProblemWithValidation<Pair<Tree<Element>, Tree<Element>>, List<Double>> {
+public class MapperGeneration implements GrammarBasedProblem<String, Pair<Tree<Element>, Tree<Element>>>, QualityBasedProblem<Pair<Tree<Element>, Tree<Element>>, List<Double>> {
 
   private final StringGrammar<String> grammar;
   private final FitnessFunction learningFitnessFunction;

@@ -35,6 +35,7 @@ import io.github.ericmedvet.jgea.core.util.IntRange;
 import io.github.ericmedvet.jgea.problem.programsynthesis.Problems;
 import io.github.ericmedvet.jgea.problem.programsynthesis.ProgramSynthesisProblem;
 import io.github.ericmedvet.jgea.problem.programsynthesis.synthetic.PrecomputedSyntheticPSProblem;
+import io.github.ericmedvet.jnb.core.NamedBuilder;
 import io.github.ericmedvet.jnb.datastructure.DoubleRange;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -303,7 +304,8 @@ public class TTPNMain {
     //doComputationStuff();
     //comparator();
     //xover();
-    iArraySum();
+    //iArraySum();
+    iBiMax();
   }
 
   private static void weirdOne() throws NetworkStructureException, TypeException {
@@ -342,6 +344,43 @@ public class TTPNMain {
     System.out.println("===");
     System.out.println(xovered);
     drawer.show(xovered);
+  }
+
+  private static void iBiMax() throws NetworkStructureException, TypeException {
+    NamedBuilder<?> nb = NamedBuilder.fromDiscovery();
+    ProgramSynthesisProblem psb = (ProgramSynthesisProblem) nb.build("ea.p.ps.synthetic(name = \"iBiMax\")");
+    // good solution
+    Network goodNetwork = new Network(
+        List.of(
+            Gate.input(Base.INT),
+            Gate.input(Base.INT),
+            Gate.output(Base.INT),
+            Gates.iBefore(),
+            Gates.select()
+        ),
+        Set.of(
+            Wire.of(0, 0, 3, 0),
+            Wire.of(1, 0, 3, 1),
+            Wire.of(0, 0, 4, 1),
+            Wire.of(1, 0, 4, 0),
+            Wire.of(3, 0, 4, 2),
+            Wire.of(4, 0, 2, 0)
+        )
+    );
+    TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
+    drawer.show(goodNetwork);
+    Runner runner = new Runner(100, 100, 100, 100, false);
+    // check
+    psb.caseProvider()
+        .stream()
+        .forEach(
+            e -> System.out.printf(
+                "in=%s\tactualOut=%s\tpredOut=%s%n",
+                e.input(),
+                e.output().outputs(),
+                runner.run(goodNetwork, e.input()).outputs()
+            )
+        );
   }
 
 }

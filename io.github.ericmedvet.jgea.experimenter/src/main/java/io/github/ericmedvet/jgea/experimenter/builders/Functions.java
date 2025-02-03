@@ -843,7 +843,7 @@ public class Functions {
 
   @SuppressWarnings("unused")
   @Cacheable
-  public static <X, I extends Individual<?, S, Q>, S, Q, P extends ProblemWithValidation<S, Q>> FormattedNamedFunction<X, Q> validationQuality(
+  public static <X, I extends Individual<?, S, Q>, S, Q, P extends QualityBasedProblem<S, Q>> FormattedNamedFunction<X, Q> validationQuality(
       @Param(value = "of", dNPM = "f.identity()") Function<X, POCPopulationState<?, ?, S, Q, P>> beforeF,
       @Param(value = "individual", dNPM = "ea.f.best()") Function<POCPopulationState<?, ?, S, Q, P>, Individual<?, S, Q>> individualF,
       @Param(value = "format", dS = "%s") String format

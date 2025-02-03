@@ -20,7 +20,6 @@
 
 package io.github.ericmedvet.jgea.problem.synthetic;
 
-import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
 import io.github.ericmedvet.jgea.core.problem.SimpleMOProblem;
 import io.github.ericmedvet.jgea.core.representation.sequence.integer.IntString;
 import io.github.ericmedvet.jgea.core.util.Misc;
@@ -31,8 +30,8 @@ import java.util.stream.IntStream;
 public record MultiObjectiveIntOneMax(
     SequencedMap<String, Comparator<Double>> comparators,
     Function<IntString, SequencedMap<String, Double>> qualityFunction,
-    IntString example
-) implements SimpleMOProblem<IntString, Double>, ProblemWithExampleSolution<IntString> {
+    Optional<IntString> example
+) implements SimpleMOProblem<IntString, Double> {
 
   public MultiObjectiveIntOneMax(int p, int upperBound) {
     this(
@@ -55,7 +54,7 @@ public record MultiObjectiveIntOneMax(
                         .count() / (double) is.size()
                 )
             ),
-        new IntString(Collections.nCopies(p, 0), 0, upperBound)
+        Optional.of(new IntString(Collections.nCopies(p, 0), 0, upperBound))
     );
   }
 
