@@ -306,6 +306,7 @@ public class TTPNMain {
     //xover();
     //iArraySum();
     iBiMax();
+
   }
 
   private static void weirdOne() throws NetworkStructureException, TypeException {

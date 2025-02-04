@@ -508,7 +508,7 @@ public class Gates {
         List.of(Gate.Port.single(Base.STRING)),
         List.of(Composed.sequence(Base.STRING)),
         NamedFunction.from(
-            in -> Gate.Data.single(
+            in -> Gate.Data.singleOne(
                 Arrays.stream(in.one(0, String.class).split(""))
                     .map(s -> (Object) s)
                     .toList()

@@ -164,6 +164,10 @@ public class Runner {
     SortedMap<Integer, Object> outputs = new TreeMap<>();
     // iterate
     while (k < maxNOfSteps) {
+
+      //System.out.printf("k=%d%n", k);
+      //current.forEach((w,q)-> System.out.printf("  %s -> %s%n", w, q));
+
       for (Map.Entry<Integer, Gate> gateEntry : network.gates().entrySet()) {
         int gi = gateEntry.getKey();
         Gate g = gateEntry.getValue();
