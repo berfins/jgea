@@ -4200,6 +4200,16 @@ Produces <code><abbr title="io.github.ericmedvet.jnb.datastructure.Grid">Grid</a
 
 Produces <code><abbr title="io.github.ericmedvet.jnb.datastructure.DoubleRange">DoubleRange</abbr></code>; built from `io.github.ericmedvet.jnb.buildable.Miscs.range()` by jgea-experimenter:2.7.1-SNAPSHOT
 
+### Builder `misc.sharedRG()`
+
+`m.sharedRG(seed)`
+
+| Param | Type | Default | Java type |
+| --- | --- | --- | --- |
+| `seed` | i | `0` | <code>int</code> |
+
+Produces <code><abbr title="java.util.random.RandomGenerator">RandomGenerator</abbr></code>; built from `io.github.ericmedvet.jnb.buildable.Miscs.sharedRG()` by jgea-experimenter:2.7.1-SNAPSHOT
+
 ### Builder `misc.supplier()`
 
 `m.supplier(of)`
