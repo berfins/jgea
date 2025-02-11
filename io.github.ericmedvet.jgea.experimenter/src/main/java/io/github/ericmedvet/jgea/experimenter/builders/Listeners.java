@@ -284,7 +284,8 @@ public class Listeners {
               @Param(value = "deferred") boolean deferred,
               @Param(value = "onlyLast") boolean onlyLast,
               @Param(value = "condition", dNPM = "predicate.always()")
-                  Predicate<Run<?, G, S, Q>> predicate) {
+                  Predicate<Run<?, G, S, Q>> predicate,
+              @Param("logExceptions") boolean logExceptions) {
     return (experiment, executorService) -> new ListenerFactoryAndMonitor<>(
         new TabularPrinter<>(
             Stream.of(defaultStateFunctions, stateFunctions)
@@ -292,7 +293,8 @@ public class Listeners {
                 .toList(),
             Stream.concat(defaultRunFunctions.stream(), runFunctions.stream())
                 .map(f -> reformatToFit(f, experiment.runs()))
-                .toList()),
+                .toList(),
+            logExceptions),
         predicate,
         deferred ? executorService : null,
         onlyLast);

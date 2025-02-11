@@ -23,10 +23,12 @@ package io.github.ericmedvet.jgea.core.listener;
 import io.github.ericmedvet.jgea.core.util.Misc;
 import io.github.ericmedvet.jgea.core.util.StringUtils;
 import io.github.ericmedvet.jnb.datastructure.FormattedNamedFunction;
+import io.github.ericmedvet.jnb.datastructure.NamedFunction;
 import io.github.ericmedvet.jnb.datastructure.Pair;
 import java.io.PrintStream;
 import java.util.List;
 import java.util.function.Function;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -44,6 +46,8 @@ public class TabularPrinter<E, K> implements ListenerFactory<E, K> {
   private static final String COMPUTE_ERROR_STRING = "cErr";
   private static final String FORMAT_ERROR_STRING = "fErr";
 
+  private static final Logger L = Logger.getLogger(TabularPrinter.class.getName());
+
   private final List<Pair<? extends FormattedNamedFunction<? super E, ?>, Integer>> ePairs;
   private final List<Pair<? extends FormattedNamedFunction<? super K, ?>, Integer>> kPairs;
   private final PrintStream ps;
@@ -52,6 +56,7 @@ public class TabularPrinter<E, K> implements ListenerFactory<E, K> {
   private final boolean showLegend;
   private final boolean showVariation;
   private final boolean useColors;
+  private final boolean logExceptions;
 
   private final String header;
   private final String legend;
@@ -59,8 +64,10 @@ public class TabularPrinter<E, K> implements ListenerFactory<E, K> {
   private int lineCounter = 0;
 
   public TabularPrinter(
-      List<? extends Function<? super E, ?>> eFunctions, List<? extends Function<? super K, ?>> kFunctions) {
-    this(eFunctions, kFunctions, System.out, 25, 100, true, true, true);
+      List<? extends Function<? super E, ?>> eFunctions,
+      List<? extends Function<? super K, ?>> kFunctions,
+      boolean logExceptions) {
+    this(eFunctions, kFunctions, System.out, 25, 100, true, true, true, logExceptions);
   }
 
   public TabularPrinter(
@@ -71,7 +78,8 @@ public class TabularPrinter<E, K> implements ListenerFactory<E, K> {
       int legendInterval,
       boolean showLegend,
       boolean showVariation,
-      boolean useColors) {
+      boolean useColors,
+      boolean logExceptions) {
     ePairs = eFunctions.stream()
         .map(FormattedNamedFunction::from)
         .map(f -> new Pair<>(
@@ -88,6 +96,7 @@ public class TabularPrinter<E, K> implements ListenerFactory<E, K> {
     this.showLegend = showLegend;
     this.showVariation = showVariation;
     this.useColors = useColors;
+    this.logExceptions = logExceptions;
     List<String> kHeaders = kPairs.stream()
         .map(p -> StringUtils.justify(StringUtils.collapse(p.first().name()), p.second()))
         .toList();
@@ -134,12 +143,17 @@ public class TabularPrinter<E, K> implements ListenerFactory<E, K> {
               try {
                 return p.first().apply(e);
               } catch (Exception ex) {
+                if (logExceptions) {
+                  L.warning("%s raised computing exception %s"
+                      .formatted(NamedFunction.name(p.first()), ex));
+                }
                 return ex;
               }
             })
             .toList();
         String s = IntStream.range(0, ePairs.size())
             .mapToObj(i -> format(
+                NamedFunction.name(ePairs.get(i).first()),
                 values.get(i),
                 lastValues[i],
                 secondLastValues[i],
@@ -176,7 +190,8 @@ public class TabularPrinter<E, K> implements ListenerFactory<E, K> {
     };
   }
 
-  private String format(Object currentValue, Object lastValue, Object secondLastValue, String format, int l) {
+  private String format(
+      String fName, Object currentValue, Object lastValue, Object secondLastValue, String format, int l) {
     if (currentValue instanceof Exception) {
       if (useColors) {
         return COLOR_ERR + StringUtils.justify(COMPUTE_ERROR_STRING, l + (showVariation ? 1 : 0)) + COLOR_RESET;
@@ -207,6 +222,9 @@ public class TabularPrinter<E, K> implements ListenerFactory<E, K> {
       }
       return s;
     } catch (Exception ex) {
+      if (logExceptions) {
+        L.warning("%s raised format exception %s".formatted(fName, ex));
+      }
       if (useColors) {
         return COLOR_ERR + StringUtils.justify(FORMAT_ERROR_STRING, l + (showVariation ? 1 : 0)) + COLOR_RESET;
       }
