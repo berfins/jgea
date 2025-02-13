@@ -641,6 +641,48 @@ Produces <code><abbr title="io.github.ericmedvet.jgea.core.listener.AccumulatorF
 
 Produces <code><abbr title="io.github.ericmedvet.jgea.core.listener.AccumulatorFactory">AccumulatorFactory</abbr>&lt;<abbr title="io.github.ericmedvet.jgea.core.solver.POCPopulationState">POCPopulationState</abbr>&lt;?, G, ?, ?, ?&gt;, <abbr title="io.github.ericmedvet.jnb.core.NamedParamMap">NamedParamMap</abbr>, <abbr title="io.github.ericmedvet.jgea.experimenter.Run">Run</abbr>&lt;?, G, ?, ?&gt;&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.Accumulators.lastPopulationMap()` by jgea-experimenter:2.7.1-SNAPSHOT
 
+## Package `ea.comparator`
+
+### Builder `ea.comparator.ascending()`
+
+`ea.comparator.ascending(of)`
+
+| Param | Type | Default | Java type |
+| --- | --- | --- | --- |
+| `of` | npm | `f.identity()` | <code><abbr title="java.util.function.Function">Function</abbr>&lt;? super X, ? extends T&gt;</code> |
+
+Produces <code><abbr title="java.util.Comparator">Comparator</abbr>&lt;X&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.Comparators.ascending()` by jgea-experimenter:2.7.1-SNAPSHOT
+
+### Builder `ea.comparator.descending()`
+
+`ea.comparator.descending(of)`
+
+| Param | Type | Default | Java type |
+| --- | --- | --- | --- |
+| `of` | npm | `f.identity()` | <code><abbr title="java.util.function.Function">Function</abbr>&lt;? super X, ? extends T&gt;</code> |
+
+Produces <code><abbr title="java.util.Comparator">Comparator</abbr>&lt;X&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.Comparators.descending()` by jgea-experimenter:2.7.1-SNAPSHOT
+
+### Builder `ea.comparator.pAscending()`
+
+`ea.comparator.pAscending(of)`
+
+| Param | Type | Default | Java type |
+| --- | --- | --- | --- |
+| `of` | npm | `f.identity()` | <code><abbr title="java.util.function.Function">Function</abbr>&lt;? super X, ? extends T&gt;</code> |
+
+Produces <code><abbr title="io.github.ericmedvet.jgea.core.order.PartialComparator">PartialComparator</abbr>&lt;X&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.Comparators.pAscending()` by jgea-experimenter:2.7.1-SNAPSHOT
+
+### Builder `ea.comparator.pDescending()`
+
+`ea.comparator.pDescending(of)`
+
+| Param | Type | Default | Java type |
+| --- | --- | --- | --- |
+| `of` | npm | `f.identity()` | <code><abbr title="java.util.function.Function">Function</abbr>&lt;? super X, ? extends T&gt;</code> |
+
+Produces <code><abbr title="io.github.ericmedvet.jgea.core.order.PartialComparator">PartialComparator</abbr>&lt;X&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.Comparators.pDescending()` by jgea-experimenter:2.7.1-SNAPSHOT
+
 ## Package `ea.consumer`
 
 Aliases: `ea.c`, `ea.consumer`
