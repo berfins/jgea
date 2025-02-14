@@ -30,7 +30,9 @@ import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
 import io.github.ericmedvet.jnb.core.Cacheable;
 import io.github.ericmedvet.jnb.core.Discoverable;
 import io.github.ericmedvet.jnb.core.Param;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 @Discoverable(prefixTemplate = "ea.grammar")
@@ -51,6 +53,16 @@ public class Grammars {
     try {
       return GridGrammar.load(GridGrammar.class.getResourceAsStream("/grammars/2d/" + name + ".bnf"))
           .map(s -> s == null ? null : s.charAt(0));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  public static GridGrammar<String> gridFile(@Param("path") String path) {
+    try (InputStream is = new FileInputStream(path)) {
+      return GridGrammar.load(is);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

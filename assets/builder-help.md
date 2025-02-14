@@ -1425,6 +1425,16 @@ Produces <code><abbr title="io.github.ericmedvet.jgea.core.representation.gramma
 
 Produces <code><abbr title="io.github.ericmedvet.jgea.core.representation.grammar.grid.GridGrammar">GridGrammar</abbr>&lt;<abbr title="java.lang.Character">Character</abbr>&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.Grammars.gridBundled()` by jgea-experimenter:2.7.1-SNAPSHOT
 
+### Builder `ea.grammar.gridFile()`
+
+`ea.grammar.gridFile(path)`
+
+| Param | Type | Default | Java type |
+| --- | --- | --- | --- |
+| `path` | s |  | <code><abbr title="java.lang.String">String</abbr></code> |
+
+Produces <code><abbr title="io.github.ericmedvet.jgea.core.representation.grammar.grid.GridGrammar">GridGrammar</abbr>&lt;<abbr title="java.lang.String">String</abbr>&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.Grammars.gridFile()` by jgea-experimenter:2.7.1-SNAPSHOT
+
 ### Builder `ea.grammar.regression()`
 
 `ea.grammar.regression(constants; operators; problem)`
@@ -2095,6 +2105,17 @@ Produces <code><abbr title="java.awt.image.BufferedImage">BufferedImage</abbr></
 
 Produces <code><abbr title="java.util.Map">Map</abbr>&lt;K, V&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.Miscs.map()` by jgea-experimenter:2.7.1-SNAPSHOT
 
+### Builder `ea.misc.mapFromLists()`
+
+`ea.misc.mapFromLists(keys; values)`
+
+| Param | Type | Default | Java type |
+| --- | --- | --- | --- |
+| `keys` | npm[] | `[]` | <code><abbr title="java.util.List">List</abbr>&lt;K&gt;</code> |
+| `values` | npm[] | `[]` | <code><abbr title="java.util.List">List</abbr>&lt;V&gt;</code> |
+
+Produces <code><abbr title="java.util.Map">Map</abbr>&lt;K, V&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.Miscs.mapFromLists()` by jgea-experimenter:2.7.1-SNAPSHOT
+
 ### Builder `ea.misc.sEntry()`
 
 `ea.misc.sEntry(key; value)`
@@ -2102,9 +2123,20 @@ Produces <code><abbr title="java.util.Map">Map</abbr>&lt;K, V&gt;</code>; built 
 | Param | Type | Default | Java type |
 | --- | --- | --- | --- |
 | `key` | s |  | <code><abbr title="java.lang.String">String</abbr></code> |
-| `value` | s |  | <code><abbr title="java.lang.String">String</abbr></code> |
+| `value` | npm |  | <code>V</code> |
 
-Produces <code><abbr title="java.util.Map$Entry">Map$Entry</abbr>&lt;<abbr title="java.lang.String">String</abbr>, <abbr title="java.lang.String">String</abbr>&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.Miscs.sEntry()` by jgea-experimenter:2.7.1-SNAPSHOT
+Produces <code><abbr title="java.util.Map$Entry">Map$Entry</abbr>&lt;<abbr title="java.lang.String">String</abbr>, V&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.Miscs.sEntry()` by jgea-experimenter:2.7.1-SNAPSHOT
+
+### Builder `ea.misc.sMapFromLists()`
+
+`ea.misc.sMapFromLists(keys; values)`
+
+| Param | Type | Default | Java type |
+| --- | --- | --- | --- |
+| `keys` | s[] | `[]` | <code><abbr title="java.util.List">List</abbr>&lt;<abbr title="java.lang.String">String</abbr>&gt;</code> |
+| `values` | npm[] | `[]` | <code><abbr title="java.util.List">List</abbr>&lt;V&gt;</code> |
+
+Produces <code><abbr title="java.util.Map">Map</abbr>&lt;<abbr title="java.lang.String">String</abbr>, V&gt;</code>; built from `io.github.ericmedvet.jgea.experimenter.builders.Miscs.sMapFromLists()` by jgea-experimenter:2.7.1-SNAPSHOT
 
 ### Builder `ea.misc.toVideo()`
 

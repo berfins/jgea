@@ -19,6 +19,7 @@
  */
 package io.github.ericmedvet.jgea.experimenter.builders;
 
+import io.github.ericmedvet.jgea.core.util.Misc;
 import io.github.ericmedvet.jgea.experimenter.drawer.DoubleGridDrawer;
 import io.github.ericmedvet.jgea.problem.ca.MultivariateRealGridCellularAutomaton;
 import io.github.ericmedvet.jgea.problem.image.ImageUtils;
@@ -105,6 +106,7 @@ public class Miscs {
   }
 
   @SuppressWarnings("unused")
+  @Cacheable
   public static <K, V> Map.Entry<K, V> entry(@Param("key") K key, @Param("value") V value) {
     return Map.entry(key, value);
   }
@@ -143,8 +145,59 @@ public class Miscs {
   }
 
   @SuppressWarnings("unused")
-  public static Map.Entry<String, String> sEntry(@Param("key") String key, @Param("value") String value) {
+  public static <K, V> Map<K, V> mapFromLists(
+      @Param("keys") List<K> keys,
+      @Param("values") List<V> values
+  ) {
+    if (keys.size() != values.size()) {
+      throw new IllegalArgumentException(
+          "Keys and values size do not match: %d != %d".formatted(
+              keys.size(),
+              values.size()
+          )
+      );
+    }
+    return Collections.unmodifiableSequencedMap(
+        IntStream.range(0, keys.size())
+            .boxed()
+            .collect(
+                Misc.toSequencedMap(
+                    keys::get,
+                    values::get
+                )
+            )
+    );
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  public static <V> Map.Entry<String, V> sEntry(@Param("key") String key, @Param("value") V value) {
     return Map.entry(key, value);
+  }
+
+  @SuppressWarnings("unused")
+  public static <V> Map<String, V> sMapFromLists(
+      @Param("keys") List<String> keys,
+      @Param("values") List<V> values
+  ) {
+    if (keys.size() != values.size()) {
+      throw new IllegalArgumentException(
+          "Keys and values size do not match: %d != %d".formatted(
+              keys.size(),
+              values.size()
+          )
+      );
+    }
+    return Collections.unmodifiableSequencedMap(
+        IntStream.range(0, keys.size())
+            .boxed()
+            .collect(
+                Misc.toSequencedMap(
+                    keys::get,
+                    values::get
+                )
+            )
+    );
   }
 
   @SuppressWarnings("unused")
