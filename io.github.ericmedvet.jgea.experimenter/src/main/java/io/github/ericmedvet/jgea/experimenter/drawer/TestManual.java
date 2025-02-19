@@ -35,11 +35,11 @@ public class TestManual {
       String[] args
   ) throws NetworkStructureException, ProgramExecutionException, NoSuchMethodException, TypeException {
     //biLongestString();
-    //rIntSum();
+    rIntSum();
     //iArraySum();
     //iBiMax();
     //iTriMax();
-    vScProduct();
+    //vScProduct();
     //sLengther();
     //triLongestString();
     //vProduct();

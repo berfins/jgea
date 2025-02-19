@@ -304,8 +304,8 @@ public class TTPNMain {
     //doComputationStuff();
     //comparator();
     //xover();
-    //iArraySum();
-    iBiMax();
+    iArraySum();
+    //iBiMax();
 
   }
 
