@@ -255,7 +255,6 @@ public class MutationExperiments {
         )
     );
 
-
     NamedBuilder<?> nb = NamedBuilder.fromDiscovery();
     ProgramSynthesisProblem rIntSumpsb = (ProgramSynthesisProblem) nb.build(
         "ea.p.ps.synthetic(name = \"rIntSum\"; metrics = [fail_rate; avg_raw_dissimilarity; exception_error_rate; profile_avg_steps; profile_avg_tot_size])"
@@ -285,121 +284,130 @@ public class MutationExperiments {
         "ea.p.ps.synthetic(name = \"vProduct\"; metrics = [fail_rate; avg_raw_dissimilarity; exception_error_rate; profile_avg_steps; profile_avg_tot_size])"
     );
 
-
     TTPNDrawer drawer = new TTPNDrawer(TTPNDrawer.Configuration.DEFAULT);
 
-
     Runner runner = new Runner(100, 100, 100, 100, false);
-
-
-    //        rIntSumpsb.caseProvider()
-    //                .stream()
-    //                .forEach(
-    //                        e -> System.out.printf(
-    //                                "in=%s\tactualOut=%s\tpredOut=%s\terror=%s\tsteps=%d%n",
-    //                                e.input(),
-    //                                e.output().outputs(),
-    //                                runner.run(rIntSumgoodNetwork, e.input()).outputs(),
-    //                                rIntSumpsb.errorFunction().apply(e.input(), e.output(), runner.run(rIntSumgoodNetwork, e.input())),
-    //                                runner.run(rIntSumgoodNetwork, e.input()).profile().states().size()
-    //                        ));
 
     RandomGenerator rnd = new Random(3);
     Mutation<Network> giMutation = new GateInserterMutation(new LinkedHashSet<>(StatsMain.ALL_GATES), 10, 10, true);
     Mutation<Network> grMutation = new GateRemoverMutation(10, true);
     Mutation<Network> wsMutation = new WireSwapperMutation(10, true);
 
+    System.out.println("Mutation Experiments");
+    System.out.println("=====================");
 
-    drawer.show(rIntSumgoodNetwork);
-    drawer.show(biLongestStringgoodNetwork);
-    drawer.show(iArraySumgoodNetwork);
-    drawer.show(iBiMaxgoodNetwork);
-    drawer.show(iTriMaxgoodNetwork);
-    drawer.show(vScProductgoodNetwork);
-    drawer.show(sLengthergoodNetwork);
-    drawer.show(triLongestStringgoodNetwork);
-    drawer.show(vProductgoodNetwork);
+    System.out.print("\t\t\tWire Swapper Mutation \t\t\t\t\t\t Gate Inserter Mutation \t\t\t\t\t\t Gate Remover Mutation\n");
 
+    System.out.println("\t\t\tFail_Rate\tAvg_Diss\tAvg_Steps\t\t\tError_Rate\tAvg_Diss\tAvg_Steps\t\t\t\tError_Rate\tAvg_Diss\tAvg_Steps");
 
-    //        System.out.println(rIntSumpsb.qualityFunction().apply(runner.asInstrumentedProgram(rIntSumgoodNetwork)));
-    //        System.out.println(biLongestStringpsb.qualityFunction().apply(runner.asInstrumentedProgram(biLongestStringgoodNetwork)));
-    //        System.out.println(iArraySumpsb.qualityFunction().apply(runner.asInstrumentedProgram(iArraySumgoodNetwork)));
-    //        System.out.println(iBiMaxpsb.qualityFunction().apply(runner.asInstrumentedProgram(iBiMaxgoodNetwork)));
-    //        System.out.println(iTriMaxpsb.qualityFunction().apply(runner.asInstrumentedProgram(iTriMaxgoodNetwork)));
-    //        System.out.println(vScProductpsb.qualityFunction().apply(runner.asInstrumentedProgram(vScProductgoodNetwork)));
-    //        System.out.println(sLengtherpsb.qualityFunction().apply(runner.asInstrumentedProgram(sLengthergoodNetwork)));
-    //        System.out.println(triLongestStringpsb.qualityFunction().apply(runner.asInstrumentedProgram(triLongestStringgoodNetwork)));
-    //        System.out.println(vProductpsb.qualityFunction().apply(runner.asInstrumentedProgram(vProductgoodNetwork)));
+    List<Network> networks = List.of(
+            rIntSumgoodNetwork, iArraySumgoodNetwork,
+            iBiMaxgoodNetwork, iTriMaxgoodNetwork, vScProductgoodNetwork,
+            sLengthergoodNetwork, vProductgoodNetwork
+    );
 
+    List<ProgramSynthesisProblem> psbs = List.of(
+            rIntSumpsb, iArraySumpsb, iBiMaxpsb, iTriMaxpsb,
+            vScProductpsb, sLengtherpsb, vProductpsb
+    );
 
-    Map<String, Double> rIntSumqualityMetrics = rIntSumpsb.qualityFunction()
-        .apply(runner.asInstrumentedProgram(rIntSumgoodNetwork));
-    Map<String, Double> biLongestStringqualityMetrics = biLongestStringpsb.qualityFunction()
-        .apply(runner.asInstrumentedProgram(biLongestStringgoodNetwork));
-    Map<String, Double> iArraySumqualityMetrics = iArraySumpsb.qualityFunction()
-        .apply(runner.asInstrumentedProgram(iArraySumgoodNetwork));
-    Map<String, Double> iBiMaxqualityMetrics = iBiMaxpsb.qualityFunction()
-        .apply(runner.asInstrumentedProgram(iBiMaxgoodNetwork));
-    Map<String, Double> vScProductqualityMetrics = vScProductpsb.qualityFunction()
-        .apply(runner.asInstrumentedProgram(vScProductgoodNetwork));
-    Map<String, Double> sLengtherqualityMetrics = sLengtherpsb.qualityFunction()
-        .apply(runner.asInstrumentedProgram(sLengthergoodNetwork));
-    Map<String, Double> triLongestqualityMetrics = triLongestStringpsb.qualityFunction()
-        .apply(runner.asInstrumentedProgram(triLongestStringgoodNetwork));
-    Map<String, Double> vProductqualityMetrics = vProductpsb.qualityFunction()
-        .apply(runner.asInstrumentedProgram(vProductgoodNetwork));
-
-
-    System.out.println("\t\t\t | Error Rate | \t | Average Distance | \t | Average Steps | ");
-    System.out.printf(
-        "rIntSum \t\t %s \t\t\t\t %s \t\t\t\t\t %s %n",
-        rIntSumqualityMetrics.get("fail_rate"),
-        rIntSumqualityMetrics.get("avg_raw_dissimilarity"),
-        rIntSumqualityMetrics.get("profile_avg_steps")
-    );
-    System.out.printf(
-        "biLongestString  %s \t\t\t\t %s \t\t\t\t\t %s %n",
-        biLongestStringqualityMetrics.get("fail_rate"),
-        biLongestStringqualityMetrics.get("avg_raw_dissimilarity"),
-        biLongestStringqualityMetrics.get("profile_avg_steps")
-    );
-    System.out.printf(
-        "iArraySum \t\t %s \t\t\t\t %s \t\t\t\t\t %s %n",
-        iArraySumqualityMetrics.get("fail_rate"),
-        iArraySumqualityMetrics.get("avg_raw_dissimilarity"),
-        iArraySumqualityMetrics.get("profile_avg_steps")
-    );
-    System.out.printf(
-        "iBiMax \t\t\t %s \t\t\t\t %s \t\t\t\t\t %s %n",
-        iBiMaxqualityMetrics.get("fail_rate"),
-        iBiMaxqualityMetrics.get("avg_raw_dissimilarity"),
-        iBiMaxqualityMetrics.get("profile_avg_steps")
-    );
-    System.out.printf(
-        "vScProduct \t\t %s \t\t\t\t %s \t\t\t\t\t %s %n",
-        vScProductqualityMetrics.get("fail_rate"),
-        vScProductqualityMetrics.get("avg_raw_dissimilarity"),
-        vScProductqualityMetrics.get("profile_avg_steps")
-    );
-    System.out.printf(
-        "sLengther \t\t %s \t\t\t\t %s \t\t\t\t\t %s %n",
-        sLengtherqualityMetrics.get("fail_rate"),
-        sLengtherqualityMetrics.get("avg_raw_dissimilarity"),
-        sLengtherqualityMetrics.get("profile_avg_steps")
-    );
-    System.out.printf(
-        "triLongest \t\t %s \t\t\t\t %s \t\t\t\t\t %s %n",
-        triLongestqualityMetrics.get("fail_rate"),
-        triLongestqualityMetrics.get("avg_raw_dissimilarity"),
-        triLongestqualityMetrics.get("profile_avg_steps")
-    );
-    System.out.printf(
-        "vProduct \t\t %s \t\t\t\t %s  %s %n",
-        vProductqualityMetrics.get("fail_rate"),
-        vProductqualityMetrics.get("avg_raw_dissimilarity"),
-        vProductqualityMetrics.get("profile_avg_steps")
+    List<String> problemNames = List.of(
+            "rIntSum ", "iArraySum", "iBiMax  ", "iTriMax ",
+            "vScProduct", "sLengther", "vProduct"
     );
 
 
+    for (int j = 0; j < networks.size(); j++) {
+      Network goodNetwork = networks.get(j);
+      ProgramSynthesisProblem psb = psbs.get(j);
+      String problemName = problemNames.get(j);
+
+      System.out.print(problemName + "\t");
+
+      for (Mutation<Network> mutation : List.of(wsMutation, giMutation, grMutation)) {
+        double totalFailRate = 0;
+        double totalAvgRawDissimilarity = 0;
+        double totalProfileAvgSteps = 0;
+
+
+        for (int i = 0; i < 10; i++) {
+          Network mutated = mutation.mutate(goodNetwork, rnd);
+//drawer.show(mutated);
+
+          Map<String, Double> qualityMetrics = psb.qualityFunction()
+                  .apply(runner.asInstrumentedProgram(mutated));
+
+          double failRate = qualityMetrics.get("fail_rate");
+          double avgRawDissimilarity = qualityMetrics.get("avg_raw_dissimilarity");
+          double profileAvgSteps = qualityMetrics.get("profile_avg_steps");
+
+          totalFailRate += failRate;
+          totalAvgRawDissimilarity += avgRawDissimilarity;
+          totalProfileAvgSteps += profileAvgSteps;
+        }
+
+        System.out.printf("%.1f\t\t\t",totalFailRate / 10);
+        System.out.printf("%.1f\t\t\t",totalAvgRawDissimilarity / 10);
+        System.out.printf("%.1f\t\t\t\t\t",totalProfileAvgSteps / 10);
+
+      }
+      System.out.println();
+    }
   }
 }
+
+
+
+//    drawer.show(rIntSumgoodNetwork);
+//    drawer.show(biLongestStringgoodNetwork);
+//    drawer.show(iArraySumgoodNetwork);
+//    drawer.show(iBiMaxgoodNetwork);
+//    drawer.show(iTriMaxgoodNetwork);
+//    drawer.show(vScProductgoodNetwork);
+//    drawer.show(sLengthergoodNetwork);
+//    drawer.show(triLongestStringgoodNetwork);
+//    drawer.show(vProductgoodNetwork);
+
+
+
+//    Map<String, Double> biLongestStringqualityMetrics = biLongestStringpsb.qualityFunction()
+//        .apply(runner.asInstrumentedProgram(biLongestStringgoodNetwork));
+//    Map<String, Double> iArraySumqualityMetrics = iArraySumpsb.qualityFunction()
+//        .apply(runner.asInstrumentedProgram(iArraySumgoodNetwork));
+//    Map<String, Double> iBiMaxqualityMetrics = iBiMaxpsb.qualityFunction()
+//        .apply(runner.asInstrumentedProgram(iBiMaxgoodNetwork));
+//    Map<String, Double> vScProductqualityMetrics = vScProductpsb.qualityFunction()
+//        .apply(runner.asInstrumentedProgram(vScProductgoodNetwork));
+//    Map<String, Double> sLengtherqualityMetrics = sLengtherpsb.qualityFunction()
+//        .apply(runner.asInstrumentedProgram(sLengthergoodNetwork));
+//    Map<String, Double> triLongestqualityMetrics = triLongestStringpsb.qualityFunction()
+//        .apply(runner.asInstrumentedProgram(triLongestStringgoodNetwork));
+//    Map<String, Double> vProductqualityMetrics = vProductpsb.qualityFunction()
+//        .apply(runner.asInstrumentedProgram(vProductgoodNetwork));
+
+
+
+//        rIntSumpsb.caseProvider()
+//                .stream()
+//                .forEach(
+//                        e -> System.out.printf(
+//                                "in=%s\tactualOut=%s\tpredOut=%s\terror=%s\tsteps=%d%n",
+//                                e.input(),
+//                                e.output().outputs(),
+//                                runner.run(rIntSumgoodNetwork, e.input()).outputs(),
+//                                rIntSumpsb.errorFunction().apply(e.input(), e.output(), runner.run(rIntSumgoodNetwork, e.input())),
+//                                runner.run(rIntSumgoodNetwork, e.input()).profile().states().size()
+//                        ));
+
+
+
+
+//        System.out.println(rIntSumpsb.qualityFunction().apply(runner.asInstrumentedProgram(rIntSumgoodNetwork)));
+//        System.out.println(biLongestStringpsb.qualityFunction().apply(runner.asInstrumentedProgram(biLongestStringgoodNetwork)));
+//        System.out.println(iArraySumpsb.qualityFunction().apply(runner.asInstrumentedProgram(iArraySumgoodNetwork)));
+//        System.out.println(iBiMaxpsb.qualityFunction().apply(runner.asInstrumentedProgram(iBiMaxgoodNetwork)));
+//        System.out.println(iTriMaxpsb.qualityFunction().apply(runner.asInstrumentedProgram(iTriMaxgoodNetwork)));
+//        System.out.println(vScProductpsb.qualityFunction().apply(runner.asInstrumentedProgram(vScProductgoodNetwork)));
+//        System.out.println(sLengtherpsb.qualityFunction().apply(runner.asInstrumentedProgram(sLengthergoodNetwork)));
+//        System.out.println(triLongestStringpsb.qualityFunction().apply(runner.asInstrumentedProgram(triLongestStringgoodNetwork)));
+//        System.out.println(vProductpsb.qualityFunction().apply(runner.asInstrumentedProgram(vProductgoodNetwork)));

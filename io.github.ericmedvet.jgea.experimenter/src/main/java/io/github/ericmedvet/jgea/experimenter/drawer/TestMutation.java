@@ -81,7 +81,7 @@ public class TestMutation {
     for (int i = 0; i < 10; i++) {
       Network mutated = giMutation.mutate(goodNetwork, rnd);
       //drawer.show(mutated);
-      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)));
+      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)).get("fail_rate"));
     }
 
     System.out.println();
@@ -89,7 +89,7 @@ public class TestMutation {
     for (int i = 0; i < 10; i++) {
       Network mutated = grMutation.mutate(goodNetwork, rnd);
       //drawer.show(mutated);
-      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)));
+      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)).get("fail_rate"));
     }
 
     System.out.println();
@@ -97,7 +97,7 @@ public class TestMutation {
     for (int i = 0; i < 10; i++) {
       Network mutated = wsMutation.mutate(goodNetwork, rnd);
       drawer.show(mutated);
-      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)));
+      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)).get("fail_rate"));
 
     }
   }
@@ -147,7 +147,7 @@ public class TestMutation {
     for (int i = 0; i < 10; i++) {
       Network mutated = giMutation.mutate(goodNetwork, rnd);
       //drawer.show(mutated);
-      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)));
+      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)).get("fail_rate"));
     }
 
     System.out.println();
@@ -155,7 +155,7 @@ public class TestMutation {
     for (int i = 0; i < 10; i++) {
       Network mutated = grMutation.mutate(goodNetwork, rnd);
       //drawer.show(mutated);
-      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)));
+      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)).get("fail_rate"));
     }
 
     System.out.println();
@@ -163,7 +163,7 @@ public class TestMutation {
     for (int i = 0; i < 10; i++) {
       Network mutated = wsMutation.mutate(goodNetwork, rnd);
       drawer.show(mutated);
-      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)));
+      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)).get("fail_rate"));
 
     }
   }
@@ -202,7 +202,7 @@ public class TestMutation {
     for (int i = 0; i < 10; i++) {
       Network mutated = giMutation.mutate(goodNetwork, rnd);
       //drawer.show(mutated);
-      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)));
+      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)).get("fail_rate"));
     }
 
     System.out.println();
@@ -210,7 +210,7 @@ public class TestMutation {
     for (int i = 0; i < 10; i++) {
       Network mutated = grMutation.mutate(goodNetwork, rnd);
       //drawer.show(mutated);
-      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)));
+      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)).get("fail_rate"));
     }
 
     System.out.println();
@@ -218,7 +218,7 @@ public class TestMutation {
     for (int i = 0; i < 10; i++) {
       Network mutated = wsMutation.mutate(goodNetwork, rnd);
       drawer.show(mutated);
-      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)));
+      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)).get("fail_rate"));
 
     }
   }
@@ -259,7 +259,7 @@ public class TestMutation {
     for (int i = 0; i < 10; i++) {
       Network mutated = giMutation.mutate(goodNetwork, rnd);
       //drawer.show(mutated);
-      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)));
+      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)).get("fail_rate"));
     }
 
     System.out.println();
@@ -267,7 +267,7 @@ public class TestMutation {
     for (int i = 0; i < 10; i++) {
       Network mutated = grMutation.mutate(goodNetwork, rnd);
       //drawer.show(mutated);
-      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)));
+      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)).get("fail_rate"));
     }
 
     System.out.println();
@@ -275,7 +275,7 @@ public class TestMutation {
     for (int i = 0; i < 10; i++) {
       Network mutated = wsMutation.mutate(goodNetwork, rnd);
       drawer.show(mutated);
-      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)));
+      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)).get("fail_rate"));
 
     }
   }
@@ -325,7 +325,7 @@ public class TestMutation {
     for (int i = 0; i < 10; i++) {
       Network mutated = giMutation.mutate(goodNetwork, rnd);
       //drawer.show(mutated);
-      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)));
+      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)).get("fail_rate"));
     }
 
     System.out.println();
@@ -333,7 +333,7 @@ public class TestMutation {
     for (int i = 0; i < 10; i++) {
       Network mutated = grMutation.mutate(goodNetwork, rnd);
       //drawer.show(mutated);
-      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)));
+      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)).get("fail_rate"));
     }
 
     System.out.println();
@@ -341,7 +341,7 @@ public class TestMutation {
     for (int i = 0; i < 10; i++) {
       Network mutated = wsMutation.mutate(goodNetwork, rnd);
       drawer.show(mutated);
-      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)));
+      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)).get("fail_rate"));
 
     }
   }
@@ -388,7 +388,7 @@ public class TestMutation {
     for (int i = 0; i < 10; i++) {
       Network mutated = giMutation.mutate(goodNetwork, rnd);
       //drawer.show(mutated);
-      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)));
+      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)).get("fail_rate"));
     }
 
     System.out.println();
@@ -396,7 +396,7 @@ public class TestMutation {
     for (int i = 0; i < 10; i++) {
       Network mutated = grMutation.mutate(goodNetwork, rnd);
       //drawer.show(mutated);
-      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)));
+      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)).get("fail_rate"));
     }
 
     System.out.println();
@@ -404,7 +404,7 @@ public class TestMutation {
     for (int i = 0; i < 10; i++) {
       Network mutated = wsMutation.mutate(goodNetwork, rnd);
       drawer.show(mutated);
-      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)));
+      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)).get("fail_rate"));
 
     }
   }
@@ -450,7 +450,7 @@ public class TestMutation {
     for (int i = 0; i < 10; i++) {
       Network mutated = giMutation.mutate(goodNetwork, rnd);
       //drawer.show(mutated);
-      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)));
+      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)).get("fail_rate"));
     }
 
     System.out.println();
@@ -458,7 +458,7 @@ public class TestMutation {
     for (int i = 0; i < 10; i++) {
       Network mutated = grMutation.mutate(goodNetwork, rnd);
       //drawer.show(mutated);
-      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)));
+      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)).get("fail_rate"));
     }
 
     System.out.println();
@@ -466,7 +466,7 @@ public class TestMutation {
     for (int i = 0; i < 10; i++) {
       Network mutated = wsMutation.mutate(goodNetwork, rnd);
       drawer.show(mutated);
-      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)));
+      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)).get("fail_rate"));
 
     }
   }
@@ -539,7 +539,7 @@ public class TestMutation {
     for (int i = 0; i < 10; i++) {
       Network mutated = grMutation.mutate(goodNetwork, rnd);
       //drawer.show(mutated);
-      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)));
+      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)).get("fail_rate"));
     }
 
     System.out.println();
@@ -547,7 +547,7 @@ public class TestMutation {
     for (int i = 0; i < 10; i++) {
       Network mutated = wsMutation.mutate(goodNetwork, rnd);
       drawer.show(mutated);
-      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)));
+      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)).get("fail_rate"));
 
     }
   }
@@ -619,7 +619,7 @@ public class TestMutation {
     for (int i = 0; i < 10; i++) {
       Network mutated = giMutation.mutate(goodNetwork, rnd);
       //drawer.show(mutated);
-      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)));
+      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)).get("fail_rate"));
     }
 
     System.out.println();
@@ -627,7 +627,7 @@ public class TestMutation {
     for (int i = 0; i < 10; i++) {
       Network mutated = grMutation.mutate(goodNetwork, rnd);
       // drawer.show(mutated);
-      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)));
+      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)).get("fail_rate"));
     }
 
     System.out.println();
@@ -636,7 +636,7 @@ public class TestMutation {
     for (int i = 0; i < 10; i++) {
       Network mutated = wsMutation.mutate(goodNetwork, rnd);
       //drawer.show(mutated);
-      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)));
+      System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(mutated)).get("fail_rate"));
     }
     //runner.asInstrumentedProgram(mutated).runInstrumented(null).profile().states().size(); // thıs ıs the number of steps for one case
     //      psb.caseProvider()
@@ -651,3 +651,5 @@ public class TestMutation {
     //              );
   }
 }
+
+

@@ -35,12 +35,12 @@ public class TestManual {
       String[] args
   ) throws NetworkStructureException, ProgramExecutionException, NoSuchMethodException, TypeException {
     //biLongestString();
-    rIntSum();
+    //rIntSum();
     //iArraySum();
     //iBiMax();
     //iTriMax();
     //vScProduct();
-    //sLengther();
+    sLengther();
     //triLongestString();
     //vProduct();
   }
@@ -330,6 +330,7 @@ public class TestManual {
               );
             }
         );
+    System.out.print(psb.qualityFunction().apply(runner.asInstrumentedProgram(goodNetwork)).get("fail_rate"));
   }
 
   private static void triLongestString() throws NetworkStructureException, TypeException {
