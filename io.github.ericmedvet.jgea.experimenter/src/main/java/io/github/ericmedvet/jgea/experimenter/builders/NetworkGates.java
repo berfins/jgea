@@ -70,12 +70,6 @@ public class NetworkGates {
 
   @SuppressWarnings("unused")
   @Cacheable
-  public static Gate dConst(@Param("value") double value) {
-    return Gates.dConst(value);
-  }
-
-  @SuppressWarnings("unused")
-  @Cacheable
   public static Gate equal() {
     return Gates.equal();
   }
@@ -172,6 +166,12 @@ public class NetworkGates {
 
   @SuppressWarnings("unused")
   @Cacheable
+  public static Gate rConst(@Param("value") double value) {
+    return Gates.rConst(value);
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
   public static Gate rPMathOperator(@Param("operator") Element.Operator operator) {
     return Gates.rPMathOperator(operator);
   }
@@ -264,5 +264,11 @@ public class NetworkGates {
   @Cacheable
   public static Gate unpairer() {
     return Gates.unpairer();
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
+  public static Gate sPSequencer() {
+    return Gates.sPSequencer();
   }
 }

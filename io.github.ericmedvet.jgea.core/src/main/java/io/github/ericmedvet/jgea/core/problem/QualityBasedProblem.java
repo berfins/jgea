@@ -28,6 +28,10 @@ public interface QualityBasedProblem<S, Q> extends Problem<S>, Function<S, Q> {
 
   Function<S, Q> qualityFunction();
 
+  default Function<S, Q> validationQualityFunction() {
+    return qualityFunction();
+  }
+
   @Override
   default Q apply(S s) {
     return qualityFunction().apply(s);

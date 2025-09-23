@@ -20,24 +20,18 @@
 
 package io.github.ericmedvet.jgea.experimenter.builders;
 
-import io.github.ericmedvet.jgea.core.order.PartialComparator;
 import io.github.ericmedvet.jgea.core.problem.*;
-import io.github.ericmedvet.jgea.problem.simulation.SimulationBasedProblem;
-import io.github.ericmedvet.jgea.problem.simulation.SimulationBasedTotalOrderProblem;
-import io.github.ericmedvet.jnb.core.*;
-import io.github.ericmedvet.jnb.datastructure.DoubleRange;
-import io.github.ericmedvet.jsdynsym.control.Environment;
+import io.github.ericmedvet.jgea.core.util.Misc;
+import io.github.ericmedvet.jnb.core.Cacheable;
+import io.github.ericmedvet.jnb.core.Discoverable;
+import io.github.ericmedvet.jnb.core.Param;
+import io.github.ericmedvet.jnb.datastructure.NamedFunction;
+import io.github.ericmedvet.jnb.datastructure.Pair;
 import io.github.ericmedvet.jsdynsym.control.Simulation;
-import io.github.ericmedvet.jsdynsym.control.SimulationWithExample;
-import io.github.ericmedvet.jsdynsym.control.SingleAgentTask;
-import io.github.ericmedvet.jsdynsym.core.numerical.NumericalDynamicalSystem;
-import io.github.ericmedvet.jsdynsym.core.numerical.NumericalStatelessSystem;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 @Discoverable(prefixTemplate = "ea.problem|p")
 public class Problems {
@@ -47,71 +41,6 @@ public class Problems {
 
   public enum OptimizationType {
     @SuppressWarnings("unused") MINIMIZE, MAXIMIZE
-  }
-
-  private interface SimulationBasedProblemWithExample<S, B, O extends Simulation.Outcome<B>, Q> extends SimulationBasedProblem<S, B, O, Q>, ProblemWithExampleSolution<S> {
-    static <S, B, O extends Simulation.Outcome<B>, Q> SimulationBasedProblemWithExample<S, B, O, Q> from(
-        Function<O, Q> behaviorQualityFunction,
-        Simulation<S, B, O> simulation,
-        PartialComparator<QualityOutcome<B, O, Q>> qualityComparator,
-        S example
-    ) {
-      return new SimulationBasedProblemWithExample<>() {
-        @Override
-        public S example() {
-          return example;
-        }
-
-        @Override
-        public Function<O, Q> outcomeQualityFunction() {
-          return behaviorQualityFunction;
-        }
-
-        @Override
-        public Simulation<S, B, O> simulation() {
-          return simulation;
-        }
-
-        @Override
-        public PartialComparator<QualityOutcome<B, O, Q>> qualityComparator() {
-          return qualityComparator;
-        }
-      };
-    }
-  }
-
-  private interface SimulationBasedTotalOrderProblemWithExample<S, B, O extends Simulation.Outcome<B>, Q extends Comparable<Q>> extends SimulationBasedTotalOrderProblem<S, B, O, Q>, ProblemWithExampleSolution<S> {
-    static <S, B, O extends Simulation.Outcome<B>, Q extends Comparable<Q>> SimulationBasedTotalOrderProblemWithExample<S, B, O, Q> from(
-        Function<O, Q> behaviorQualityFunction,
-        Simulation<S, B, O> simulation,
-        S example,
-        OptimizationType type
-    ) {
-      return new SimulationBasedTotalOrderProblemWithExample<>() {
-        @Override
-        public S example() {
-          return example;
-        }
-
-        @Override
-        public Function<O, Q> outcomeQualityFunction() {
-          return behaviorQualityFunction;
-        }
-
-        @Override
-        public Simulation<S, B, O> simulation() {
-          return simulation;
-        }
-
-        @Override
-        public Comparator<QualityOutcome<B, O, Q>> totalOrderComparator() {
-          return switch (type) {
-            case MINIMIZE -> Comparator.comparing(QualityOutcome::quality);
-            case MAXIMIZE -> ((o1, o2) -> o2.quality().compareTo(o1.quality()));
-          };
-        }
-      };
-    }
   }
 
   @SuppressWarnings("unused")
@@ -134,80 +63,104 @@ public class Problems {
   }
 
   @SuppressWarnings("unused")
-  public static <B, Q extends Comparable<Q>> SimulationBasedTotalOrderProblem<NumericalDynamicalSystem<?>, SingleAgentTask.Step<double[], double[], B>, Simulation.Outcome<SingleAgentTask.Step<double[], double[], B>>, Q> numEnvTo(
-      @Param(value = "name", iS = "{environment.name}") String name,
-      @Param(value = "dT", dD = 0.1) double dT,
-      @Param(value = "initialT", dD = 0) double initialT,
-      @Param(value = "finalT", dD = 60) double finalT,
-      @Param("environment") Environment<double[], double[], B> environment,
-      @Param(value = "stopCondition", dNPM = "predicate.not(condition = predicate.always())") Predicate<B> stopCondition,
-      @Param("f") Function<Simulation.Outcome<SingleAgentTask.Step<double[], double[], B>>, Q> outcomeQualityFunction,
-      @Param(value = "type", dS = "minimize") OptimizationType type,
-      @Param(value = "", injection = Param.Injection.BUILDER) NamedBuilder<?> nb,
-      @Param(value = "", injection = Param.Injection.MAP) ParamMap map
+  @Cacheable
+  public static <S, B extends Simulation.Outcome<BS>, BS, O extends Comparable<O>> SimpleBBMOProblem<S, B, O> simToSbbmo(
+      @Param(value = "name", iS = "{simulation.name}") String name,
+      @Param("simulation") Simulation<S, BS, B> simulation,
+      @Param("toMinObjectives") List<Function<B, O>> toMinObjectives,
+      @Param("toMaxObjectives") List<Function<B, O>> toMaxObjectives
   ) {
-    int nOfOutputs = environment.defaultAgentAction().length;
-    int nOfInputs = environment.step(0, environment.defaultAgentAction()).length;
-    @SuppressWarnings("unchecked") Supplier<Environment<double[], double[], B>> envSupplier = () -> (Environment<double[], double[], B>) nb
-        .build((NamedParamMap) map.value("environment", ParamMap.Type.NAMED_PARAM_MAP));
-    return SimulationBasedTotalOrderProblemWithExample.from(
-        outcomeQualityFunction,
-        SingleAgentTask.fromEnvironment(envSupplier, stopCondition, new DoubleRange(initialT, finalT), dT),
-        NumericalStatelessSystem.from(nOfInputs, nOfOutputs, (t, in) -> new double[nOfOutputs]),
-        type
-    );
+    SequencedMap<String, MultiObjectiveProblem.Objective<B, O>> behaviorObjectives = Stream.concat(
+        toMinObjectives.stream().map(f -> new MultiObjectiveProblem.Objective<>(f, Comparable::compareTo)),
+        toMaxObjectives.stream()
+            .map(f -> new MultiObjectiveProblem.Objective<>(f, ((Comparator<O>) Comparable::compareTo).reversed()))
+    )
+        .collect(
+            Misc.toSequencedMap(
+                o -> NamedFunction.name(o.function()),
+                o -> o
+            )
+        );
+    if (behaviorObjectives.size() != (toMinObjectives.size() + toMaxObjectives.size())) {
+      Logger.getLogger(Problems.class.getName())
+          .warning(
+              "Objectives have conflicting names: to minimize is %s, to maximize is %s".formatted(
+                  toMinObjectives.stream().map(NamedFunction::name).toList(),
+                  toMaxObjectives.stream().map(NamedFunction::name).toList()
+              )
+          );
+    }
+    return new SimpleBBMOProblem<>() {
+      @Override
+      public Function<? super S, ? extends B> behaviorFunction() {
+        return simulation::simulate;
+      }
+
+      @Override
+      public SequencedMap<String, Objective<B, O>> behaviorObjectives() {
+        return behaviorObjectives;
+      }
+
+      @Override
+      public Optional<S> example() {
+        return simulation.example();
+      }
+
+      @Override
+      public String toString() {
+        return "%s[%s]".formatted(name, String.join(";", behaviorObjectives.keySet()));
+      }
+    };
   }
 
   @SuppressWarnings("unused")
-  public static <S, B, O extends Simulation.Outcome<B>, Q extends Comparable<Q>> SimulationBasedTotalOrderProblem<S, B, O, Q> simTo(
+  @Cacheable
+  public static <S, B extends Simulation.Outcome<BS>, BS, O extends Comparable<O>> SimpleMOProblem<S, O> simToSmo(
       @Param(value = "name", iS = "{simulation.name}") String name,
-      @Param("simulation") Simulation<S, B, O> simulation,
-      @Param("f") Function<O, Q> outcomeQualityFunction,
-      @Param(value = "type", dS = "minimize") OptimizationType type
+      @Param("simulation") Simulation<S, BS, B> simulation,
+      @Param("toMinObjectives") List<Function<B, O>> toMinObjectives,
+      @Param("toMaxObjectives") List<Function<B, O>> toMaxObjectives
   ) {
-    Comparator<SimulationBasedProblem.QualityOutcome<B, O, Q>> comparator = switch (type) {
-      case MINIMIZE -> Comparator.comparing(
-          (SimulationBasedProblem.QualityOutcome<B, O, Q> qo) -> qo.quality()
-      );
-      case MAXIMIZE -> (qo1, qo2) -> qo2.quality().compareTo(qo1.quality());
-    };
-    if (simulation instanceof SimulationWithExample<S, B, O> simulationWithExample) {
-      return new SimulationBasedTotalOrderProblemWithExample<>() {
-        @Override
-        public S example() {
-          return simulationWithExample.example();
-        }
-
-        @Override
-        public Function<O, Q> outcomeQualityFunction() {
-          return outcomeQualityFunction;
-        }
-
-        @Override
-        public Simulation<S, B, O> simulation() {
-          return simulation;
-        }
-
-        @Override
-        public Comparator<QualityOutcome<B, O, Q>> totalOrderComparator() {
-          return comparator;
-        }
-      };
-    }
-    return new SimulationBasedTotalOrderProblem<>() {
+    Function<S, B> simulationFunction = simulation::simulate;
+    Function<B, SequencedMap<String, O>> objectivesFunction = b -> Stream.concat(
+        toMinObjectives.stream(),
+        toMaxObjectives.stream()
+    )
+        .collect(
+            Misc.toSequencedMap(
+                NamedFunction::name,
+                f -> f.apply(b)
+            )
+        );
+    SequencedMap<String, Comparator<O>> comparators = Stream.concat(
+        toMinObjectives.stream().map(f -> new Pair<>(f, ((Comparator<O>) Comparable::compareTo))),
+        toMaxObjectives.stream().map(f -> new Pair<>(f, ((Comparator<O>) Comparable::compareTo).reversed()))
+    )
+        .collect(
+            Misc.toSequencedMap(
+                p -> NamedFunction.name(p.first()),
+                Pair::second
+            )
+        );
+    return new SimpleMOProblem<S, O>() {
       @Override
-      public Function<O, Q> outcomeQualityFunction() {
-        return outcomeQualityFunction;
+      public SequencedMap<String, Comparator<O>> comparators() {
+        return comparators;
       }
 
       @Override
-      public Simulation<S, B, O> simulation() {
-        return simulation;
+      public Optional<S> example() {
+        return simulation.example();
       }
 
       @Override
-      public Comparator<QualityOutcome<B, O, Q>> totalOrderComparator() {
-        return comparator;
+      public Function<S, SequencedMap<String, O>> qualityFunction() {
+        return simulationFunction.andThen(objectivesFunction);
+      }
+
+      @Override
+      public String toString() {
+        return "%s[%s]".formatted(name, String.join(";", comparators.keySet()));
       }
     };
   }
@@ -235,7 +188,7 @@ public class Problems {
         null,
         type.equals(OptimizationType.MAXIMIZE) ? Comparator.comparing(comparableFunction)
             .reversed() : Comparator.comparing(comparableFunction),
-        null
+        Optional.empty()
     );
   }
 

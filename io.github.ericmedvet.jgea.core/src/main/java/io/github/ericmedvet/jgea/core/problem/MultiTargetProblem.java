@@ -65,10 +65,6 @@ public interface MultiTargetProblem<S> extends TotalOrderQualityBasedProblem<S, 
                 i -> distance().apply(s, targets.get(i))
             )
         );
-    if (this instanceof ProblemWithExampleSolution<?> pwes) {
-      //noinspection unchecked
-      return SimpleMOProblem.from(comparators, outcomeF, null, (S) pwes.example());
-    }
-    return SimpleMOProblem.from(comparators, outcomeF, null, null);
+    return SimpleMOProblem.from(comparators, outcomeF, null, example());
   }
 }

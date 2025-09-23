@@ -20,7 +20,7 @@
 
 package io.github.ericmedvet.jgea.experimenter.builders;
 
-import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
+import io.github.ericmedvet.jgea.core.problem.Problem;
 import io.github.ericmedvet.jgea.core.representation.NamedUnivariateRealFunction;
 import io.github.ericmedvet.jgea.core.representation.grammar.grid.GridGrammar;
 import io.github.ericmedvet.jgea.core.representation.grammar.string.GrammarBasedProblem;
@@ -30,7 +30,9 @@ import io.github.ericmedvet.jgea.core.representation.tree.numeric.Element;
 import io.github.ericmedvet.jnb.core.Cacheable;
 import io.github.ericmedvet.jnb.core.Discoverable;
 import io.github.ericmedvet.jnb.core.Param;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 @Discoverable(prefixTemplate = "ea.grammar")
@@ -58,13 +60,23 @@ public class Grammars {
 
   @SuppressWarnings("unused")
   @Cacheable
+  public static GridGrammar<String> gridFile(@Param("path") String path) {
+    try (InputStream is = new FileInputStream(path)) {
+      return GridGrammar.load(is);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @SuppressWarnings("unused")
+  @Cacheable
   public static StringGrammar<String> regression(
       @Param(
           value = "constants", dDs = {0.1, 1, 10}) List<Double> constants,
       @Param(
           value = "operators", dSs = {"addition", "subtraction", "multiplication", "prot_division", "prot_log"}) List<Element.Operator> operators,
-      @Param("problem") ProblemWithExampleSolution<NamedUnivariateRealFunction> problem
+      @Param("problem") Problem<NamedUnivariateRealFunction> problem
   ) {
-    return new SymbolicRegressionGrammar(operators, problem.example().xVarNames(), constants);
+    return new SymbolicRegressionGrammar(operators, problem.example().orElseThrow().xVarNames(), constants);
   }
 }

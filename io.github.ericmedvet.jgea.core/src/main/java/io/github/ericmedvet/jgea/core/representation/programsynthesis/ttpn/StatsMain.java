@@ -87,9 +87,9 @@ public class StatsMain {
       Gates.iConst(0),
       Gates.iConst(1),
       Gates.iConst(5),
-      Gates.dConst(0),
-      Gates.dConst(0.1),
-      Gates.dConst(XOVER_SUBNET_SIZE_RATE),
+      Gates.rConst(0),
+      Gates.rConst(0.1),
+      Gates.rConst(XOVER_SUBNET_SIZE_RATE),
       Gates.bConst(true)
   );
 

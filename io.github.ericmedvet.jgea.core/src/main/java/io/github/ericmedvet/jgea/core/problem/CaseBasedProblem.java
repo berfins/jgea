@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-public interface CaseBasedProblem<S, C, CQ, Q> extends QualityBasedProblem<S, Q>, ProblemWithValidation<S, Q> {
+public interface CaseBasedProblem<S, C, CQ, Q> extends QualityBasedProblem<S, Q> {
 
   Function<List<CQ>, Q> aggregateFunction();
 

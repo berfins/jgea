@@ -20,7 +20,6 @@
 package io.github.ericmedvet.jgea.problem.programsynthesis;
 
 import io.github.ericmedvet.jgea.core.distance.Distance;
-import io.github.ericmedvet.jgea.core.problem.ProblemWithExampleSolution;
 import io.github.ericmedvet.jgea.core.problem.SimpleEBMOProblem;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.InstrumentedProgram;
 import io.github.ericmedvet.jgea.core.representation.programsynthesis.Program;
@@ -31,15 +30,20 @@ import io.github.ericmedvet.jgea.core.util.Misc;
 import io.github.ericmedvet.jnb.datastructure.TriFunction;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.SequencedMap;
 import java.util.function.BiFunction;
 
-public interface ProgramSynthesisProblem extends SimpleEBMOProblem<Program, List<Object>, InstrumentedProgram.InstrumentedOutcome, ProgramSynthesisProblem.Outcome, Double>, ProblemWithExampleSolution<Program> {
+public interface ProgramSynthesisProblem extends SimpleEBMOProblem<Program, List<Object>, InstrumentedProgram.InstrumentedOutcome, ProgramSynthesisProblem.Outcome, Double> {
 
-  record Outcome(List<Object> actual, InstrumentedProgram.InstrumentedOutcome executionOutcome) {}
+  double SMOOTH_DISTANCE_THRESHOLD = 1e-1;
 
   enum Metric implements BiFunction<List<Outcome>, Distance<List<Object>>, Double> {
-    FAIL_RATE(
+    SMOOTH_FAIL_RATE(
+        (outcomes, d) -> (double) outcomes.stream()
+            .filter(outcome -> d.apply(outcome.actual, outcome.executionOutcome.outputs()) > SMOOTH_DISTANCE_THRESHOLD)
+            .count() / (double) outcomes.size()
+    ), FAIL_RATE(
         (outcomes, d) -> (double) outcomes.stream()
             .filter(outcome -> !Objects.equals(outcome.actual, outcome.executionOutcome.outputs()))
             .count() / (double) outcomes.size()
@@ -81,13 +85,26 @@ public interface ProgramSynthesisProblem extends SimpleEBMOProblem<Program, List
     }
   }
 
-  List<Metric> metrics();
+  record Outcome(List<Object> actual, InstrumentedProgram.InstrumentedOutcome executionOutcome) {}
 
   List<Type> inputTypes();
 
-  List<Type> outputTypes();
+  List<Metric> metrics();
 
   Distance<List<Object>> outputDistance();
+
+  List<Type> outputTypes();
+
+  static InstrumentedProgram.InstrumentedOutcome safelyExecute(Program program, List<Object> inputs) {
+    if (program instanceof InstrumentedProgram instrumentedProgram) {
+      return instrumentedProgram.runInstrumented(inputs);
+    }
+    try {
+      return InstrumentedProgram.InstrumentedOutcome.from(program.run(inputs), new RunProfile(List.of()));
+    } catch (ProgramExecutionException e) {
+      return InstrumentedProgram.InstrumentedOutcome.from(e);
+    }
+  }
 
   @Override
   default SequencedMap<String, Objective<List<Outcome>, Double>> aggregateObjectives() {
@@ -115,18 +132,7 @@ public interface ProgramSynthesisProblem extends SimpleEBMOProblem<Program, List
   }
 
   @Override
-  default Program example() {
-    return Program.from(inputs -> List.of(), inputTypes(), outputTypes());
-  }
-
-  static InstrumentedProgram.InstrumentedOutcome safelyExecute(Program program, List<Object> inputs) {
-    if (program instanceof InstrumentedProgram instrumentedProgram) {
-      return instrumentedProgram.runInstrumented(inputs);
-    }
-    try {
-      return InstrumentedProgram.InstrumentedOutcome.from(program.run(inputs), new RunProfile(List.of()));
-    } catch (ProgramExecutionException e) {
-      return InstrumentedProgram.InstrumentedOutcome.from(e);
-    }
+  default Optional<Program> example() {
+    return Optional.of(Program.from(inputs -> List.of(), inputTypes(), outputTypes()));
   }
 }

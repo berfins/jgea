@@ -35,14 +35,12 @@ import io.github.ericmedvet.jgea.core.util.Sized;
 import io.github.ericmedvet.jgea.core.util.TextPlotter;
 import io.github.ericmedvet.jgea.experimenter.Run;
 import io.github.ericmedvet.jgea.experimenter.Utils;
-import io.github.ericmedvet.jgea.problem.simulation.SimulationBasedProblem;
 import io.github.ericmedvet.jnb.core.Cacheable;
 import io.github.ericmedvet.jnb.core.Discoverable;
 import io.github.ericmedvet.jnb.core.Param;
 import io.github.ericmedvet.jnb.datastructure.FormattedNamedFunction;
 import io.github.ericmedvet.jnb.datastructure.Grid;
 import io.github.ericmedvet.jnb.datastructure.NamedFunction;
-import io.github.ericmedvet.jsdynsym.control.Simulation;
 import io.github.ericmedvet.jviz.core.drawer.ImageBuilder;
 import io.github.ericmedvet.jviz.core.drawer.Video;
 import io.github.ericmedvet.jviz.core.drawer.VideoBuilder;
@@ -584,26 +582,6 @@ public class Functions {
 
   @SuppressWarnings("unused")
   @Cacheable
-  public static <X, B, O extends Simulation.Outcome<B>> FormattedNamedFunction<X, O> simOutcome(
-      @Param(value = "of", dNPM = "f.identity()") Function<X, SimulationBasedProblem.QualityOutcome<B, O, ?>> beforeF,
-      @Param(value = "format", dS = "%s") String format
-  ) {
-    Function<SimulationBasedProblem.QualityOutcome<B, O, ?>, O> f = SimulationBasedProblem.QualityOutcome::outcome;
-    return FormattedNamedFunction.from(f, format, "sim.outcome").compose(beforeF);
-  }
-
-  @SuppressWarnings("unused")
-  @Cacheable
-  public static <X, Q> FormattedNamedFunction<X, Q> simQuality(
-      @Param(value = "of", dNPM = "f.identity()") Function<X, SimulationBasedProblem.QualityOutcome<?, ?, Q>> beforeF,
-      @Param(value = "format", dS = "%s") String format
-  ) {
-    Function<SimulationBasedProblem.QualityOutcome<?, ?, Q>, Q> f = SimulationBasedProblem.QualityOutcome::quality;
-    return FormattedNamedFunction.from(f, format, "sim.quality").compose(beforeF);
-  }
-
-  @SuppressWarnings("unused")
-  @Cacheable
   public static <X> FormattedNamedFunction<X, Integer> size(
       @Param(value = "of", dNPM = "f.identity()") Function<X, Object> beforeF,
       @Param(value = "format", dS = "%d") String format
@@ -843,7 +821,7 @@ public class Functions {
 
   @SuppressWarnings("unused")
   @Cacheable
-  public static <X, I extends Individual<?, S, Q>, S, Q, P extends ProblemWithValidation<S, Q>> FormattedNamedFunction<X, Q> validationQuality(
+  public static <X, I extends Individual<?, S, Q>, S, Q, P extends QualityBasedProblem<S, Q>> FormattedNamedFunction<X, Q> validationQuality(
       @Param(value = "of", dNPM = "f.identity()") Function<X, POCPopulationState<?, ?, S, Q, P>> beforeF,
       @Param(value = "individual", dNPM = "ea.f.best()") Function<POCPopulationState<?, ?, S, Q, P>, Individual<?, S, Q>> individualF,
       @Param(value = "format", dS = "%s") String format

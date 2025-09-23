@@ -1,8 +1,8 @@
 /*-
  * ========================LICENSE_START=================================
- * jgea-problem
+ * jgea-core
  * %%
- * Copyright (C) 2018 - 2024 Eric Medvet
+ * Copyright (C) 2018 - 2025 Eric Medvet
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,17 @@
  * limitations under the License.
  * =========================LICENSE_END==================================
  */
-package io.github.ericmedvet.jgea.problem.simulation;
+package io.github.ericmedvet.jgea.core.order;
 
-import io.github.ericmedvet.jgea.core.problem.TotalOrderQualityBasedProblem;
-import io.github.ericmedvet.jsdynsym.control.Simulation;
-import java.util.Comparator;
+public abstract class AbstractPartiallyOrderedCollection<T> implements PartiallyOrderedCollection<T> {
+  private final PartialComparator<? super T> partialComparator;
 
-public interface SimulationBasedTotalOrderProblem<S, B, O extends Simulation.Outcome<B>, Q extends Comparable<Q>> extends SimulationBasedProblem<S, B, O, Q>, TotalOrderQualityBasedProblem<S, SimulationBasedProblem.QualityOutcome<B, O, Q>> {
+  public AbstractPartiallyOrderedCollection(PartialComparator<? super T> partialComparator) {
+    this.partialComparator = partialComparator;
+  }
+
   @Override
-  default Comparator<QualityOutcome<B, O, Q>> totalOrderComparator() {
-    return Comparator.comparing(QualityOutcome::quality);
+  public PartialComparator<? super T> comparator() {
+    return partialComparator;
   }
 }

@@ -29,11 +29,12 @@ import io.github.ericmedvet.jnb.datastructure.TriFunction;
 import io.github.ericmedvet.jsdynsym.core.numerical.MultivariateRealFunction;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.SequencedMap;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
-public interface MultivariateRegressionProblem extends SimpleEBMOProblem<NamedMultivariateRealFunction, Map<String, Double>, Map<String, Double>, MultivariateRegressionProblem.Outcome, Double>, ProblemWithExampleSolution<NamedMultivariateRealFunction> {
+public interface MultivariateRegressionProblem extends SimpleEBMOProblem<NamedMultivariateRealFunction, Map<String, Double>, Map<String, Double>, MultivariateRegressionProblem.Outcome, Double> {
   record Outcome(Map<String, Double> actual, Map<String, Double> predicted) {
     public Map<String, UnivariateRegressionProblem.Outcome> toUROutcomes() {
       return actual.keySet()
@@ -94,16 +95,18 @@ public interface MultivariateRegressionProblem extends SimpleEBMOProblem<NamedMu
   }
 
   @Override
-  default NamedMultivariateRealFunction example() {
+  default Optional<NamedMultivariateRealFunction> example() {
     Example<Map<String, Double>, Map<String, Double>> example = caseProvider().first();
-    return NamedMultivariateRealFunction.from(
-        MultivariateRealFunction.from(
-            vs -> new double[example.output().size()],
-            example.input().size(),
-            example.output().size()
-        ),
-        example.input().keySet().stream().sorted().toList(),
-        example.output().keySet().stream().sorted().toList()
+    return Optional.of(
+        NamedMultivariateRealFunction.from(
+            MultivariateRealFunction.from(
+                vs -> new double[example.output().size()],
+                example.input().size(),
+                example.output().size()
+            ),
+            example.input().keySet().stream().sorted().toList(),
+            example.output().keySet().stream().sorted().toList()
+        )
     );
   }
 
